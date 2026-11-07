@@ -118,6 +118,8 @@ assert.equal(game.calculatePoints(5), 20, 'each valid move deducts one point');
 
 assert.equal(elements.get('word-entry').focusCalls, 0, 'initial rendering never opens the mobile keyboard');
 assert.equal(typeof elements.get('submit-button').listeners.pointerdown, 'function', 'touch submit preserves input focus');
+const touchSubmit = elements.get('submit-button').dispatch('pointerdown', { pointerType: 'touch' });
+assert.equal(elements.get('submit-button').lastEvent.defaultPrevented, true, 'touching Send does not blur the input before submission');
 
 const challenge = loadGame({ search: '?challenge=COLD-WARM' });
 assert.equal(challenge.game.getState().puzzle.start, 'COLD');
