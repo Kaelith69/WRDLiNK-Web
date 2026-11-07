@@ -501,9 +501,9 @@
     const start = state.puzzle.start;
     const target = state.puzzle.target;
     const link = challengeUrl().replace(/^https?:\\/\\//, '');
-    const tileRow = (word, x, fill, ink) => [...word].map((letter, index) => {
-      const left = x + index * 78;
-      return '<rect x="' + left + '" y="0" width="68" height="96" rx="14" fill="#091513" opacity=".72" transform="translate(0 7)"/><rect x="' + left + '" y="0" width="68" height="90" rx="14" fill="' + fill + '" stroke="#0b1715" stroke-width="7"/><text x="' + (left + 34) + '" y="62" text-anchor="middle" font-family="Arial, sans-serif" font-size="54" font-weight="900" fill="' + ink + '">' + letter + '</text>;
+    const tileRow = (word, fill, ink) => [...word].map((letter, index) => {
+      const left = index * 78;
+      return '<rect x="' + left + '" y="0" width="68" height="96" rx="14" fill="#091513" opacity=".72" transform="translate(0 7)"/><rect x="' + left + '" y="0" width="68" height="90" rx="14" fill="' + fill + '" stroke="#0b1715" stroke-width="7"/><text x="' + (left + 34) + '" y="62" text-anchor="middle" font-family="Arial, sans-serif" font-size="54" font-weight="900" fill="' + ink + '">' + letter + '</text>';
     }).join('');
     return '<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920">' +
       '<defs><linearGradient id="back" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#14211f"/><stop offset=".55" stop-color="#1b2d29"/><stop offset="1" stop-color="#101b19"/></linearGradient><pattern id="dots" width="42" height="42" patternUnits="userSpaceOnUse"><circle cx="4" cy="4" r="3" fill="#a8c0b2" opacity=".14"/></pattern><linearGradient id="panel" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#2a3d38"/><stop offset="1" stop-color="#20312d"/></linearGradient></defs>' +
@@ -512,14 +512,13 @@
       '<rect x="96" y="96" width="76" height="76" rx="19" fill="#f0bd5c" stroke="#0b1715" stroke-width="8"/><text x="134" y="153" text-anchor="middle" font-family="Arial,sans-serif" font-size="54" font-weight="900" fill="#2c210d">W</text>' +
       '<text x="198" y="151" font-family="Arial,sans-serif" font-size="48" font-weight="950" letter-spacing="-2" fill="#f3f0e8">WRDLINK</text><text x="96" y="262" font-family="Arial,sans-serif" font-size="23" font-weight="800" letter-spacing="6" fill="#a9bbb1">A WORD LADDER CHALLENGE</text>' +
       '<rect x="96" y="330" width="888" height="210" rx="28" fill="#1b2a27" stroke="#50645c" stroke-width="4"/><text x="540" y="421" text-anchor="middle" font-family="Arial,sans-serif" font-size="68" font-weight="950" letter-spacing="-2" fill="#f3f0e8">CAN YOU SOLVE IT?</text><text x="540" y="477" text-anchor="middle" font-family="Arial,sans-serif" font-size="27" font-weight="700" letter-spacing="2" fill="#a9bbb1">ONE LETTER CHANGES PER MOVE</text>' +
-      '<text x="150" y="665" font-family="Arial,sans-serif" font-size="24" font-weight="900" letter-spacing="4" fill="#a9bbb1">START WORD</text><circle cx="119" cy="655" r="8" fill="#42a99a"/>' +
-      '<text x="930" y="665" text-anchor="end" font-family="Arial,sans-serif" font-size="24" font-weight="900" letter-spacing="4" fill="#a9bbb1">TARGET WORD</text><circle cx="961" cy="655" r="8" fill="#f0bd5c"/>' +
-      '<g transform="translate(142 710)">' + tileRow(start,0,'#42a99a','#102321') + '</g><g transform="translate(618 710)">' + tileRow(target,0,'#f0bd5c','#2c210d') + '</g>' +
-      '<path d="M470 765h140m-30 -26 30 26 -30 26" fill="none" stroke="#a9bbb1" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '<text x="120" y="665" font-family="Arial,sans-serif" font-size="24" font-weight="900" letter-spacing="4" fill="#a9bbb1">START WORD</text><circle cx="96" cy="655" r="8" fill="#42a99a"/>' +
+      '<text x="960" y="665" text-anchor="end" font-family="Arial,sans-serif" font-size="24" font-weight="900" letter-spacing="4" fill="#a9bbb1">TARGET WORD</text><circle cx="984" cy="655" r="8" fill="#f0bd5c"/>' +
+      '<g transform="translate(120 710)">' + tileRow(start,'#42a99a','#102321') + '</g><g transform="translate(672 710)">' + tileRow(target,'#f0bd5c','#2c210d') + '</g>' +
+      '<path d="M485 755h110m-24 -22 24 22 -24 22" fill="none" stroke="#a9bbb1" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>' +
       '<rect x="96" y="900" width="888" height="340" rx="28" fill="#1b2a27" stroke="#50645c" stroke-width="4"/><text x="144" y="1000" font-family="Arial,sans-serif" font-size="25" font-weight="900" letter-spacing="4" fill="#a9bbb1">YOUR MISSION</text><text x="144" y="1085" font-family="Arial,sans-serif" font-size="42" font-weight="900" fill="#f3f0e8">Connect ' + start + ' to ' + target + '.</text><text x="144" y="1155" font-family="Arial,sans-serif" font-size="29" font-weight="700" fill="#a9bbb1">Change one letter at a time.</text>' +
       '<rect x="96" y="1310" width="888" height="360" rx="28" fill="#20332f" stroke="#42a99a" stroke-width="4"/><text x="144" y="1390" font-family="Arial,sans-serif" font-size="24" font-weight="900" letter-spacing="4" fill="#8fcfc0">TAKE THE CHALLENGE</text><text x="144" y="1465" font-family="Arial,sans-serif" font-size="34" font-weight="900" fill="#f3f0e8">Open WRDLINK and make your moves.</text><text x="144" y="1540" font-family="Arial,sans-serif" font-size="23" font-weight="800" fill="#a9bbb1">CHALLENGE LINK</text><text x="144" y="1590" font-family="Arial,sans-serif" font-size="23" font-weight="700" fill="#f0bd5c">' + link + '</text>' +
-      '<path d="M96 1740H984" stroke="#50645c" stroke-width="3"/><text x="540" y="1800" text-anchor="middle" font-family="Arial,sans-serif" font-size="22" font-weight="900" letter-spacing="5" fill="#a9bbb1">THINK SHARP. LINK WORDS.</text><text x="540" y="1840" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" font-weight="700" letter-spacing="2" fill="#71877c">ADD A LINK STICKER IN STORIES FOR A TAPABLE URL</text>' +
-      '</svg>';
+      '<path d="M96 1740H984" stroke="#50645c" stroke-width="3"/><text x="540" y="1800" text-anchor="middle" font-family="Arial,sans-serif" font-size="22" font-weight="900" letter-spacing="5" fill="#a9bbb1">THINK SHARP. LINK WORDS.</text><text x="540" y="1840" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" font-weight="700" letter-spacing="2" fill="#a9bbb1">ADD A LINK STICKER IN STORIES FOR A TAPABLE URL</text></svg>';
   }
 
   async function prepareChallengeCard() {
