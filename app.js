@@ -450,7 +450,8 @@
       setMessage(result.message);
       saveProgress();
       setBusy(false);
-      elements.input.focus({ preventScroll: true });
+      // Do not force focus here. Enter keeps the input active naturally,
+      // while tapping the submit button should allow the mobile keyboard to close.
     }
   }
 
