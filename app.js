@@ -509,7 +509,7 @@
     return '<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920">' +
       '<defs>' +
       '<filter id="paper-grain"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .55 0"/></filter>' +
-      '<pattern id="midtiles" width="18" height="18" patternUnits="userSpaceOnUse" patternTransform="rotate(135)"><rect width="18" height="18" fill="#2b463e"/><rect width="7" height="18" fill="#253d36"/></pattern>' +
+      '<pattern id="midtiles" width="19.44" height="19.44" patternUnits="userSpaceOnUse" patternTransform="rotate(135)"><rect width="19.44" height="19.44" fill="#2b463e"/><rect width="9.72" height="19.44" fill="#253d36"/></pattern>' +
       '</defs>' +
       '<rect width="1080" height="1920" fill="#14221f"/>' +
       '<rect width="1080" height="1920" filter="url(#paper-grain)" opacity=".07"/>' +
@@ -567,9 +567,9 @@
       const x = CARD_X + index * (tileSize + tileGap) + tileSize / 2;
       const changed = changedLetterIndex(first, second) === index;
       if (dotted) {
-        return '<path d="M' + x + ' ' + y + 'v' + linkHeight + '" stroke="#4a655d" stroke-width="6" stroke-dasharray="14 11" stroke-linecap="round"/>';
+        return '<path d="M' + x + ' ' + y + 'v' + linkHeight + '" stroke="#4a655d" stroke-width="12" stroke-dasharray="14 11" stroke-linecap="round"/>';
       }
-      return '<rect x="' + (x - (changed ? 5 : 3)) + '" y="' + y + '" width="' + (changed ? 10 : 6) + '" height="' + linkHeight + '" rx="4" fill="' + (changed ? '#efc45c' : '#2d423c') + '"/>';
+      return '<rect x="' + (x - (changed ? 5 : 3)) + '" y="' + y + '" width="' + (changed ? 19 : 12) + '" height="' + linkHeight + '" rx="4" fill="' + (changed ? '#efc45c' : '#2d423c') + '"/>';
     }).join('');
   }
 
