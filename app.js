@@ -583,5 +583,19 @@
     }
   });
 
+  function updateKeyboardLayout() {
+    const viewport = window.visualViewport;
+    if (!viewport) return;
+    const obscuredHeight = Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop);
+    const compactMobile = window.matchMedia && window.matchMedia('(pointer: coarse)').matches && window.screen && window.screen.height - viewport.height > 180;
+    const keyboardOpen = document.activeElement === elements.input && (obscuredHeight > 120 || compactMobile);
+    document.documentElement.classList.toggle('keyboard-open', Boolean(keyboardOpen));
+  }
+  window.visualViewport?.addEventListener('resize', updateKeyboardLayout);
+  window.visualViewport?.addEventListener('scroll', updateKeyboardLayout);
+  window.addEventListener('resize', updateKeyboardLayout);
+  elements.input.addEventListener('focus', updateKeyboardLayout);
+  elements.input.addEventListener('blur', () => document.documentElement.classList.remove('keyboard-open'));
+
   initialize();
 })();
