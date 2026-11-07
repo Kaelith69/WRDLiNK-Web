@@ -106,6 +106,7 @@ assert.equal(challenge.game.getState().puzzle.start, 'COLD');
 assert.equal(challenge.game.getState().puzzle.target, 'WARM');
 assert.equal(challenge.game.getState().chain[0], 'COLD');
 assert.equal(challenge.game.getState().score, 0);
+assert.equal([...challenge.storage.keys()].some((key) => key.includes(':progress')), false, 'friend challenges do not overwrite campaign progress');
 
 const puzzle = {
   id: 'test-puzzle', title: 'Test puzzle', start: 'COLD', target: 'WARM',
