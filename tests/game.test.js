@@ -26,6 +26,9 @@ function makeElement() {
     setAttribute(name, value) { attributes.set(name, String(value)); },
     getAttribute(name) { return attributes.get(name); },
     append(...items) { this.children.push(...items); },
+    click() { this.clicked = true; },
+    getContext() { return { drawImage() {} }; },
+    toBlob(callback) { callback(new Blob(['test png'], { type: 'image/png' })); },
     prepend(...items) { this.children.unshift(...items); },
     replaceChildren(...items) { this.children = [...items]; },
     querySelector() { return null; },
@@ -49,7 +52,7 @@ function loadGame({ includeDictionary = true, search = '' } = {}) {
       }
       return elements.get(id);
     },
-    createElement: makeElement,
+    createElement(tag) { return makeElement(tag); },
     querySelector() { return makeElement(); }
   };
   const storage = new Map();
@@ -59,6 +62,7 @@ function loadGame({ includeDictionary = true, search = '' } = {}) {
     removeItem(key) { storage.delete(key); }
   };
   const copied = [];
+  const shareCalls = [];
   const window = {
     isSecureContext: true,
     innerWidth: 390,
@@ -68,9 +72,14 @@ function loadGame({ includeDictionary = true, search = '' } = {}) {
     location: { search, href: 'https://example.test/WRDLiNK-Web/' },
     requestAnimationFrame(callback) { callback(); }
   };
-  const navigator = { clipboard: { async writeText(value) { copied.push(value); } } };
+  const navigator = {
+    clipboard: { async writeText(value) { copied.push(value); } },
+    canShare() { return true; },
+    async share(data) { shareCalls.push(data); }
+  };
+  class MockImage { async decode() {} set src(value) { this.source = value; } }
   const context = vm.createContext({
-    window, document, localStorage, navigator, URLSearchParams, URL,
+    window, document, localStorage, navigator, URLSearchParams, URL, File, Blob, Image: MockImage,
     crypto: { randomUUID: () => 'test-session' },
     structuredClone: (value) => JSON.parse(JSON.stringify(value)),
     console: { warn() {}, error() {}, log() {} }
@@ -79,7 +88,7 @@ function loadGame({ includeDictionary = true, search = '' } = {}) {
   const dictionary = window.WRDLINK_DICTIONARY || new Set();
   if (includeDictionary) assert.equal(dictionary.size, 3889, 'the complete bundled dictionary is unchanged');
   vm.runInContext(appSource, context, { filename: 'app.js' });
-  return { game: window.WRDLINK, dictionary, storage, elements, copied };
+  return { game: window.WRDLINK, dictionary, storage, elements, copied, shareCalls };
 }
 
 const { game, dictionary, elements } = loadGame();
@@ -127,8 +136,36 @@ assert.equal(challenge.elements.get('submit-button').disabled, false, 'valid len
 challenge.elements.get('move-form').dispatch('submit');
 assert.deepEqual(challenge.game.getState().chain, ['COLD', 'CORD'], 'submitting a valid move updates the live game');
 assert.equal([...challenge.storage.keys()].some((key) => key.includes(':progress')), false, 'friend challenges do not overwrite campaign progress');
-challenge.elements.get('share-challenge-button').dispatch('click').then(() => {
+async function testInteractions() {
+  await challenge.elements.get('share-challenge-button').dispatch('click');
   assert.match(challenge.copied[0], /challenge=COLD-WARM/, 'challenge button copies the exact puzzle URL');
+
+  const submitWord = (word) => {
+    const input = challenge.elements.get('word-entry');
+    input.value = word;
+    input.dispatch('input');
+    challenge.elements.get('move-form').dispatch('submit');
+  };
+  submitWord('CARD');
+  submitWord('WARD');
+  submitWord('WARM');
+  assert.equal(challenge.game.getState().completed, true, 'submitting the target completes the puzzle');
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(challenge.elements.get('share-result-button').disabled, false, 'result sharing becomes available after its PNG is prepared');
+  assert.equal(challenge.elements.get('download-result-button').disabled, false, 'direct PNG download becomes available after preparation');
+  await challenge.elements.get('share-result-button').dispatch('click');
+  assert.equal(challenge.shareCalls.length, 1, 'result button opens the native share action');
+  assert.equal(challenge.shareCalls[0].files[0].type, 'image/png', 'native share receives a PNG image');
+
+  challenge.elements.get('new-game-button').dispatch('click');
+  assert.match(challenge.game.getState().puzzle.id, /^random-/, 'New game starts a fresh puzzle');
+  challenge.elements.get('theme-toggle').dispatch('click');
+  assert.equal(challenge.elements.get('theme-toggle').getAttribute('aria-pressed'), 'true', 'theme button toggles the theme state');
+}
+
+testInteractions().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
 });
 
 const puzzle = {
