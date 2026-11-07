@@ -54,7 +54,7 @@ Each level starts at **25 points**. One point is deducted for each valid move, w
 Level score = max(0, 25 - valid moves)
 ```
 
-Completed level scores accumulate during the current game. After a win, choose **Share result** to create a 1080 × 1920 story card. It shows the connected status, shortest route result, the ladder with changed letter positions highlighted, move count, and level score. Challenge cards use the matching 9:16 design with a concealed middle route, letter distance, and the exact challenge URL. Supported browsers open the native share sheet; other browsers download the image so it can be posted manually. Selecting **New game** resets the level and total score.
+Completed level scores accumulate during the current game. After a win, choose **Share result** to create a 1080 × 1920 story card. Result and challenge cards follow the supplied matching 9:16 layouts, with a full bleed textured field, Barlow Condensed display type, DM Mono labels, reference sized letter tiles, and the original connector treatment. Result cards show the connected status, route status, concealed intermediate words, changed letter connectors, move count, and level score. Challenge cards show the dashed mystery route, letter distance, unknown move count, and exact challenge URL. Supported browsers open the native share sheet; other browsers download the image so it can be posted manually. Selecting **New game** resets the level and total score.
 
 Puzzles are generated from connected paths in the bundled dictionary. Breadth first search calculates the shortest possible distance between the start and target. You may use a longer valid route and still complete the puzzle.
 
