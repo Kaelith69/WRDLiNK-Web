@@ -62,7 +62,7 @@ function loadGame({ includeDictionary = true, search = '' } = {}) {
     requestAnimationFrame(callback) { callback(); }
   };
   const context = vm.createContext({
-    window, document, localStorage, URLSearchParams,
+    window, document, localStorage, URLSearchParams, URL,
     crypto: { randomUUID: () => 'test-session' },
     structuredClone: (value) => JSON.parse(JSON.stringify(value)),
     console: { warn() {}, error() {}, log() {} }
