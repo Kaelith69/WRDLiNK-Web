@@ -523,8 +523,8 @@
   async function waitForCardFonts() {
     if (!document.fonts?.load) return;
     await Promise.all([
-      document.fonts.load('800 156px "Barlow Condensed"'),
-      document.fonts.load('500 23px "DM Mono"')
+      document.fonts.load('800 156px "Barlow Condensed"').catch(() => []),
+      document.fonts.load('500 23px "DM Mono"').catch(() => [])
     ]);
   }
 
