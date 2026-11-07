@@ -741,7 +741,7 @@
     const compactLadder = visibleWords.length === 5;
     const ladder = cardLadderRows(visibleWords, compactLadder ? 650 : 625, false, false, compactLadder);
     const status = shortest ? 'SHORTEST ROUTE FOUND' : 'ROUTE FOUND';
-    const url = escapeSvgText(window.location.host + window.location.pathname.replace(/\/$/, ''));
+    const url = escapeSvgText((window.location.host || window.location.hostname || '') + (window.location.pathname || '').replace(/\/$/, ''));
     const content =
       '<text x="86" y="500" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="156" font-weight="800" letter-spacing="-1" fill="#eef3f0">CONNECTED<tspan fill="#efc45c">.</tspan></text>' +
       '<rect x="86" y="535" width="690" height="62" rx="31" fill="none" stroke="#efc45c" stroke-width="5"/><path d="M118 566l13 13 26 -28" fill="none" stroke="#efc45c" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><text x="177" y="575" font-family="DM Mono, monospace" font-size="24" letter-spacing="3" fill="#efc45c">' + status + '</text>' +
