@@ -36,7 +36,7 @@ for (const asset of ['./index.html', './styles.css', './app.js', './dictionary.j
   assert(worker.includes(asset), 'service worker app shell includes ' + asset);
 }
 assert(worker.includes("const CACHE_PREFIX = 'wrdlink-shell-'"));
-assert(worker.includes('const CACHE_NAME = `' + '${CACHE_PREFIX}' + 'v6`'));
+assert(worker.includes('const CACHE_NAME = `' + '${CACHE_PREFIX}' + 'v7`'));
 assert(worker.includes("request.mode === 'navigate'"));
 assert(worker.includes('self.clients.claim()'));
 assert(deploy.includes('manifest.webmanifest sw.js'));
@@ -60,10 +60,19 @@ assert(html.includes('id="download-result-button"'));
 assert(html.includes('enterkeyhint="send"'));
 assert(html.includes('aria-label="Send word"'));
 assert(html.includes('autocorrect="off"'));
+assert(html.includes('writingsuggestions="false"'));
+assert(html.includes('<form id="move-form" autocomplete="off" novalidate>'));
+assert(html.includes('id="copy-challenge-button"'));
+assert(!html.includes('name="wrdlink-word"'));
+assert(!html.includes('data-form-type="other"'));
 assert(game.includes('elements.downloadResultButton.addEventListener'));
 assert(game.includes('Native sharing was unavailable. Use Download PNG instead.'));
 assert(game.includes('navigator.share(data)'));
 assert(game.includes('wrdlink-challenge.png'));
+assert(game.includes('width="1080" height="1920"'));
+assert(game.includes('ADD A LINK STICKER IN STORIES'));
+assert(game.includes('async function copyChallengeLink()'));
+assert(game.includes('elements.copyChallengeButton.addEventListener'));
 assert(game.includes('Can you solve this WRDLINK word ladder?'));
 assert(game.includes('elements.input.focus({ preventScroll: true })'));
 assert(styles.includes(':root.keyboard-open .entry-panel .send-button'));
