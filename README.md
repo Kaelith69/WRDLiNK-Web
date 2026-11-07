@@ -1,5 +1,8 @@
 # WRDLINK Browser Edition
 
+
+[**▶ Play WRDLINK**](https://kaelith69.github.io/WRDLiNK-Web/)
+
 A standalone, dependency free word ladder game that runs entirely in your browser. WRDLINK challenges you to transform one four letter word into another, changing exactly one letter per move.
 
 The browser edition keeps the original word ladder mechanics and gives them a fresh, tactile interface with responsive layouts, accessible controls, and persistent light and dark themes.
