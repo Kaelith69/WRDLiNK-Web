@@ -588,7 +588,7 @@
     const start = state.puzzle.start;
     const target = state.puzzle.target;
     const apart = [...start].filter((letter, index) => letter !== target[index]).length;
-    const url = escapeSvgText(challengeUrl().replace(/^https?:\\/\\//, ''));
+    const url = escapeSvgText(challengeUrl().replace(/^https?:\/\//, ''));
     const ladderY = 650;
     const ladder = [
       cardTileRow(start, ladderY, 'start', false, 'Start'),
@@ -769,7 +769,7 @@
       await image.decode();
       const canvas = document.createElement('canvas');
       canvas.width = 1080;
-      canvas.height = 1350;
+      canvas.height = 1920;
       const context = canvas.getContext('2d');
       if (!context) throw new Error('Canvas is unavailable.');
       context.drawImage(image, 0, 0);
