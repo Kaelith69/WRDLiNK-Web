@@ -118,6 +118,8 @@ assert.equal(game.validateProgressSnapshot(snapshot({ puzzle: { ...puzzle, optim
 assert.equal(game.validateProgressSnapshot(snapshot({ chain: ['COLD', 'CORD'], completed: true })), false);
 assert.equal(game.validateProgressSnapshot(snapshot({ chain: ['COLD', 'CORD', 'CARD', 'WARD', 'WARM'], completed: true })), true);
 assert.equal(game.validateProgressSnapshot(snapshot({ chain: ['COLD', 'CORD', 'COLD'] })), false);
+const sparseChain = ['COLD', , 'WARM'];
+assert.equal(game.validateProgressSnapshot(snapshot({ chain: sparseChain })), false);
 
 // The production generator must always return a dictionary backed, solvable puzzle.
 for (let attempt = 0; attempt < 12; attempt += 1) {
