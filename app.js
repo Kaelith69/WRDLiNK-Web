@@ -452,7 +452,21 @@
 
   async function shareChallenge() {
     try {
-      await navigator.clipboard.writeText(challengeUrl());
+      const link = challengeUrl();
+      if (navigator.clipboard?.writeText && window.isSecureContext) {
+        await navigator.clipboard.writeText(link);
+      } else {
+        const field = document.createElement('textarea');
+        field.value = link;
+        field.setAttribute('readonly', '');
+        field.style.position = 'fixed';
+        field.style.opacity = '0';
+        document.body.append(field);
+        field.select();
+        const copied = document.execCommand?.('copy');
+        field.remove();
+        if (!copied) throw new Error('Clipboard access is unavailable.');
+      }
       setMessage('Challenge link copied. Send it to a friend and see if they can solve it.');
     } catch (error) {
       setMessage('Could not copy the challenge link. Check clipboard permissions and try again.', 'error');
