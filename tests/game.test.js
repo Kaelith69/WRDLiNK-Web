@@ -160,8 +160,8 @@ async function testInteractions() {
   assert.equal(challenge.elements.get('share-result-button').disabled, false, 'result sharing becomes available after its PNG is prepared');
   assert.equal(challenge.elements.get('download-result-button').disabled, false, 'direct PNG download becomes available after preparation');
   await challenge.elements.get('share-result-button').dispatch('click');
-  assert.equal(challenge.shareCalls.length, 1, 'result button opens the native share action');
-  assert.equal(challenge.shareCalls[0].files[0].type, 'image/png', 'native share receives a PNG image');
+  assert.equal(challenge.shareCalls.length, 2, 'result button opens the native share action after challenge sharing');
+  assert.equal(challenge.shareCalls[1].files[0].type, 'image/png', 'native result share receives a PNG image');
 
   challenge.elements.get('new-game-button').dispatch('click');
   assert.match(challenge.game.getState().puzzle.id, /^random-/, 'New game starts a fresh puzzle');
