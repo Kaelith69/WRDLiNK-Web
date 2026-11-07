@@ -1,7 +1,7 @@
 'use strict';
 
 const CACHE_PREFIX = 'wrdlink-shell-';
-const CACHE_NAME = `${CACHE_PREFIX}v1`;
+const CACHE_NAME = `${CACHE_PREFIX}v2`;
 const APP_SHELL = [
   './index.html',
   './styles.css',
@@ -46,7 +46,9 @@ self.addEventListener('fetch', (event) => {
         .then((response) => {
           if (response.ok) {
             const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(scopedUrl('./index.html'), copy));
+            event.waitUntil(
+              caches.open(CACHE_NAME).then((cache) => cache.put(scopedUrl('./index.html'), copy))
+            );
           }
           return response;
         })
@@ -61,7 +63,9 @@ self.addEventListener('fetch', (event) => {
       return fetch(request).then((response) => {
         if (response.ok && response.type === 'basic') {
           const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          event.waitUntil(
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy))
+          );
         }
         return response;
       });
