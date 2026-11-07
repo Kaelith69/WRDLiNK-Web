@@ -34,7 +34,7 @@ function makeElement() {
   };
 }
 
-function loadGame() {
+function loadGame({ includeDictionary = true } = {}) {
   const elements = new Map();
   const document = {
     documentElement: { dataset: { theme: 'light' } },
@@ -61,15 +61,22 @@ function loadGame() {
     structuredClone: (value) => JSON.parse(JSON.stringify(value)),
     console: { warn() {}, error() {}, log() {} }
   });
-  vm.runInContext(dictionarySource, context, { filename: 'dictionary.js' });
-  const dictionary = window.WRDLINK_DICTIONARY;
-  assert.equal(dictionary.size, 3889, 'the complete bundled dictionary is unchanged');
+  if (includeDictionary) vm.runInContext(dictionarySource, context, { filename: 'dictionary.js' });
+  const dictionary = window.WRDLINK_DICTIONARY || new Set();
+  if (includeDictionary) assert.equal(dictionary.size, 3889, 'the complete bundled dictionary is unchanged');
   vm.runInContext(appSource, context, { filename: 'app.js' });
   return { game: window.WRDLINK, dictionary, storage, elements };
 }
 
 const { game, dictionary } = loadGame();
 assert.equal(game.dictionarySize, 3889);
+
+// A missing dictionary must reach the existing recovery UI, not throw while
+// building the word index at script evaluation time.
+const missingDictionary = loadGame({ includeDictionary: false });
+assert.equal(missingDictionary.game.dictionarySize, 0);
+assert.equal(missingDictionary.elements.get('error-panel').hidden, false);
+assert.match(missingDictionary.elements.get('error-message').textContent, /dictionary failed to load/i);
 assert(dictionary.has('COLD'));
 assert(dictionary.has('WARM'));
 assert(!dictionary.has('ZZZZ'));
