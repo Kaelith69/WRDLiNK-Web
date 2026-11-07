@@ -920,6 +920,9 @@
     shortestDistance,
     calculatePoints,
     loadChallengeFromUrl,
+    createChallengeSvg,
+    createResultSvg,
+    cardLayout,
     getState: () => structuredClone(state),
     dictionarySize: WORD_SET.size
   });
