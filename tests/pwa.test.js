@@ -121,7 +121,7 @@ assert(game.includes('const apart = [...start].filter((letter, index) => letter 
 assert(game.includes('const shortest = result.movesUsed === state.puzzle.optimalMoves'));
 assert(game.includes('const ladder = cardLadderRows(visibleWords, layout.ladderY, false, false, compactLadder)'));
 assert(game.includes("font-size=\"' + (tileSize * .67) + '\""));
-assert(game.includes("y + 'v' + linkHeight + '"));
+assert(game.includes("(y - 15) + 'v' + (linkHeight + 30)"));
 assert(game.includes("labelLineX + 43 + 17"));
 assert(game.includes('window.location.host || window.location.hostname ||'));
 assert(game.includes('challengeUrl().replace(/^https?:\\/\\//, \'\')'));
