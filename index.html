@@ -48,7 +48,7 @@
             <span class="route-label"><span class="route-dot start-dot"></span> START WORD</span>
             <div class="word-display" id="start-word" aria-label="Starting word"></div>
           </div>
-          <div class="route-connector" aria-hidden="true"><span>TO</span><i></i></div>
+          <div class="route-connector" aria-hidden="true"><i></i></div>
           <div class="route-end route-end-target">
             <span class="route-label"><span class="route-dot target-dot"></span> TARGET WORD</span>
             <div class="word-display word-display-target" id="target-word" aria-label="Target word"></div>
@@ -56,31 +56,31 @@
         </section>
 
         <section class="chain-panel card-panel" aria-label="Your word chain">
-          <div class="panel-heading"><div><span class="eyebrow">YOUR PROGRESS</span><h2>Word ladder</h2></div><span class="move-counter" id="chain-move-count">0 moves</span></div>
+          <div class="panel-heading"><h2>Word ladder</h2></div>
           <ol class="chain-list" id="chain-list" aria-label="Words used in your current ladder"></ol>
-          <p class="chain-hint">Each step changes exactly one letter.</p>
+          <p class="chain-hint">Change one letter per move.</p>
         </section>
 
         <section class="entry-panel card-panel" id="entry-panel">
-          <div class="entry-heading"><div><span class="eyebrow">MAKE YOUR NEXT MOVE</span><h2>One letter at a time.</h2></div><span class="letter-count">4 LETTERS</span></div>
+          <div class="entry-heading"><h2>Your next word</h2></div>
           <form id="move-form" novalidate>
             <label class="sr-only" for="word-entry">Enter your next four letter word</label>
-            <input id="word-entry" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="4" placeholder="TYPE WORD" aria-describedby="entry-help message">
+            <input id="word-entry" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="4" placeholder="ENTER WORD" aria-describedby="entry-help message">
             <button class="ink-button" id="submit-button" type="submit" disabled>LOCK IT IN <span aria-hidden="true">↗</span></button>
           </form>
-          <div class="entry-meta"><p id="entry-help">Use a valid four letter word from the dictionary.</p><button class="secondary-button" id="new-game-button" type="button">↻ New game</button></div>
+          <div class="entry-meta"><p id="entry-help">Use a dictionary word.</p><button class="secondary-button" id="new-game-button" type="button">↻ New game</button></div>
           <p id="message" class="game-message" role="status" aria-live="polite" aria-atomic="true" hidden></p>
         </section>
 
         <section class="finish-panel card-panel" id="finish-panel" hidden>
-          <span class="eyebrow">PUZZLE COMPLETE</span><h2 id="finish-title">Connected.</h2><p id="finish-description"></p>
+          <h2 id="finish-title">Connected!</h2><p id="finish-description"></p>
           <button class="ink-button" id="next-button" type="button">NEXT LEVEL <span aria-hidden="true">→</span></button>
         </section>
       </div>
 
       <section class="state-error card-panel" id="error-panel" hidden role="alert"><p id="error-message">The puzzle could not be loaded.</p><button class="ink-button" id="retry-button" type="button">TRY AGAIN</button></section>
     </section>
-    <footer class="game-footer"><span>THINK SHARP. LINK WORDS.</span><span>4 LETTERS <i></i> 1 CHANGE</span></footer>
+    <footer class="game-footer"><span>THINK SHARP. LINK WORDS.</span></footer>
   </main>
 </body>
 </html>
