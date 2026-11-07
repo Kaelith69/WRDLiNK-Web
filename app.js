@@ -6,7 +6,7 @@
   // indexing so a missing or malformed asset reaches the designed error UI.
   const DICTIONARY = window.WRDLINK_DICTIONARY;
   const WORD_LENGTH = 4;
-  const BASE_LEVEL_POINTS = 50;
+  const BASE_LEVEL_POINTS = 25;
   const MAX_PUZZLE_ATTEMPTS = 100;
   const PROGRESS_KEY = 'wrdlink-browser-session-v1:progress';
 
@@ -19,7 +19,7 @@
     form: $('move-form'), input: $('word-entry'), submit: $('submit-button'),
     message: $('message'), entryPanel: $('entry-panel'), finishPanel: $('finish-panel'),
     finishTitle: $('finish-title'), finishDescription: $('finish-description'),
-    nextButton: $('next-button'), newGameButton: $('new-game-button'), retryButton: $('retry-button'), themeToggle: $('theme-toggle')
+    nextButton: $('next-button'), newGameButton: $('new-game-button'), retryButton: $('retry-button'), themeToggle: $('theme-toggle'), shareChallengeButton: $('share-challenge-button'), shareResultButton: $('share-result-button')
   };
 
   // Game session mirrors server SessionState: accumulated score, level,
@@ -224,7 +224,7 @@
     elements.movesLabel.textContent = String(moves);
     // Keep the newest move visible without allowing a long ladder to push
     // the entry controls indefinitely down the page.
-    elements.chainList.lastElementChild?.scrollIntoView?.({ block: 'nearest' });
+    elements.chainList.scrollTop = elements.chainList.scrollHeight;
   }
 
   function renderHeader() {
@@ -246,6 +246,7 @@
     elements.submit.disabled = value || state.completed || elements.input.value.length !== WORD_LENGTH;
     elements.newGameButton.disabled = value;
     elements.nextButton.disabled = value;
+    elements.shareChallengeButton.disabled = value || state.completed;
   }
 
   function renderPuzzle() {
@@ -258,7 +259,6 @@
     elements.finishPanel.hidden = true;
     elements.input.value = '';
     setBusy(false);
-    elements.input.focus({ preventScroll: true });
   }
 
   function showError(message) {
@@ -442,6 +442,67 @@
     }
   }
 
+
+  function challengeUrl() {
+    const url = new URL(window.location.href);
+    url.searchParams.set('challenge', state.puzzle.start + '-' + state.puzzle.target);
+    url.hash = '';
+    return url.href;
+  }
+
+  async function shareChallenge() {
+    try {
+      await navigator.clipboard.writeText(challengeUrl());
+      setMessage('Challenge link copied. Send it to a friend and see if they can solve it.');
+    } catch (error) {
+      setMessage('Could not copy the challenge link. Check clipboard permissions and try again.', 'error');
+    }
+  }
+
+  function loadChallengeFromUrl() {
+    const value = new URLSearchParams(window.location.search).get('challenge');
+    const match = value && /^([A-Z]{4})-([A-Z]{4})$/i.exec(value);
+    if (!match) return false;
+    const start = match[1].toUpperCase();
+    const target = match[2].toUpperCase();
+    if (!WORD_SET.has(start) || !WORD_SET.has(target) || start === target) return false;
+    const optimalMoves = shortestDistance(start, target);
+    if (!Number.isInteger(optimalMoves) || optimalMoves < 1) return false;
+    state = {
+      score: 0, level: 1,
+      puzzle: { id: 'challenge-' + start + '-' + target, title: 'Friend challenge', start, target, wordLength: WORD_LENGTH, optimalMoves },
+      chain: [start], completed: false
+    };
+    saveProgress();
+    return true;
+  }
+
+  async function shareResult() {
+    const result = validateSequence(state.puzzle, state.chain);
+    if (!result.valid || !result.complete) return;
+    const points = calculatePoints(result.movesUsed);
+    const start = state.puzzle.start;
+    const target = state.puzzle.target;
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350"><defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#172322"/><stop offset="1" stop-color="#30443e"/></linearGradient></defs><rect width="1080" height="1350" fill="url(#bg)"/><rect x="64" y="64" width="952" height="1222" rx="42" fill="#263936" stroke="#0b1715" stroke-width="12"/><rect x="112" y="118" width="78" height="78" rx="19" fill="#e8ad45"/><text x="151" y="174" text-anchor="middle" font-family="Arial" font-size="54" font-weight="900" fill="#33230b">W</text><text x="218" y="171" font-family="Arial" font-size="42" font-weight="900" fill="#f3f0e8">WRDLINK</text><text x="116" y="282" font-family="Arial" font-size="22" font-weight="800" letter-spacing="5" fill="#aabbb1">WORD LADDER</text><text x="112" y="405" font-family="Arial" font-size="78" font-weight="900" fill="#f3f0e8">CONNECTED.</text><text x="116" y="490" font-family="Arial" font-size="24" font-weight="800" fill="#aabbb1">START</text><text x="592" y="490" font-family="Arial" font-size="24" font-weight="800" fill="#aabbb1">TARGET</text><text x="116" y="610" font-family="Arial" font-size="64" font-weight="900" fill="#52b6a6">' + start + '</text><text x="592" y="610" font-family="Arial" font-size="64" font-weight="900" fill="#e8ad45">' + target + '</text><text x="116" y="724" font-family="Arial" font-size="22" font-weight="800" fill="#aabbb1">MOVES</text><text x="560" y="724" font-family="Arial" font-size="22" font-weight="800" fill="#aabbb1">LEVEL SCORE</text><text x="116" y="832" font-family="Arial" font-size="92" font-weight="900" fill="#f3f0e8">' + result.movesUsed + '</text><text x="560" y="832" font-family="Arial" font-size="92" font-weight="900" fill="#f3f0e8">+' + points + '</text><text x="116" y="930" font-family="Arial" font-size="24" font-weight="800" fill="#d5a34d">' + (result.movesUsed === state.puzzle.optimalMoves ? 'SHORTEST ROUTE FOUND' : 'PUZZLE SOLVED') + '</text><path d="M116 1000H964" stroke="#aabbb1" stroke-opacity=".35" stroke-width="2"/><text x="116" y="1070" font-family="Arial" font-size="30" font-weight="800" fill="#f3f0e8">Can you build the ladder?</text><text x="116" y="1190" font-family="Arial" font-size="22" font-weight="800" fill="#d5a34d">KAELITH69.GITHUB.IO/WRDLINK-WEB</text></svg>';
+    const blob = new Blob([svg], { type: 'image/svg+xml' });
+    const file = new File([blob], 'wrdlink-result.svg', { type: 'image/svg+xml' });
+    try {
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: 'My WRDLINK result', text: 'I solved ' + start + ' to ' + target + ' in ' + result.movesUsed + ' moves.' });
+      } else {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'wrdlink-result.svg';
+        link.click();
+        URL.revokeObjectURL(url);
+        setMessage('Your result card was downloaded. Share it from your gallery.');
+      }
+    } catch (error) {
+      if (error.name !== 'AbortError') setMessage('Could not create the result card on this device.', 'error');
+    }
+  }
+
   // Input is deliberately restricted to ASCII letters and four characters.
   elements.input.addEventListener('input', () => {
     const clean = elements.input.value.replace(/[^a-z]/gi, '').toUpperCase().slice(0, WORD_LENGTH);
@@ -452,6 +513,8 @@
   elements.newGameButton.addEventListener('click', () => startPuzzle({ resetScore: true }));
   elements.nextButton.addEventListener('click', () => startPuzzle({ nextLevel: true }));
   elements.retryButton.addEventListener('click', () => startPuzzle());
+  elements.shareChallengeButton.addEventListener('click', shareChallenge);
+  elements.shareResultButton.addEventListener('click', shareResult);
 
   // A tiny public API is useful for local testing and debugging without
   // exposing mutable state to the page UI.
@@ -463,6 +526,7 @@
     differsByOneLetter,
     shortestDistance,
     calculatePoints,
+    loadChallengeFromUrl,
     getState: () => structuredClone(state),
     dictionarySize: WORD_SET.size
   });
@@ -473,6 +537,13 @@
       return;
     }
     buildNeighborIndex();
+    if (loadChallengeFromUrl()) {
+      hideError();
+      elements.loading.hidden = true;
+      elements.game.hidden = false;
+      renderPuzzle();
+      return;
+    }
     if (loadProgress()) {
       hideError();
       elements.loading.hidden = true;
