@@ -78,12 +78,12 @@
 
         <section class="entry-panel card-panel" id="entry-panel">
           <div class="entry-heading"><h2>Your next word</h2></div>
-          <form id="move-form" novalidate>
+          <form id="move-form" autocomplete="off" novalidate>
             <label class="sr-only" for="word-entry">Enter your next four letter word</label>
-            <input id="word-entry" name="wrdlink-word" type="text" inputmode="text" enterkeyhint="send" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" data-form-type="other" maxlength="4" placeholder="ENTER WORD" aria-label="Enter your next four letter word" aria-describedby="entry-help message">
+            <input id="word-entry" type="text" inputmode="text" enterkeyhint="send" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" writingsuggestions="false" maxlength="4" placeholder="ENTER WORD" aria-label="Enter your next four letter word" aria-describedby="entry-help message">
             <button class="ink-button send-button" id="submit-button" type="submit" aria-label="Send word" title="Send word" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12 20 4l-5 16-3-7-8-1Zm8 1 8-9"/></svg></button>
           </form>
-          <div class="entry-meta"><p id="entry-help">Use a dictionary word.</p><div class="entry-actions"><button class="secondary-button" id="share-challenge-button" type="button">↗ Challenge a friend</button><button class="secondary-button" id="new-game-button" type="button">↻ New game</button></div></div>
+          <div class="entry-meta"><p id="entry-help">Use a dictionary word.</p><div class="entry-actions"><button class="secondary-button" id="share-challenge-button" type="button">↗ Share challenge</button><button class="secondary-button" id="copy-challenge-button" type="button">Copy challenge link</button><button class="secondary-button" id="new-game-button" type="button">↻ New game</button></div></div>
           <p id="message" class="game-message" role="status" aria-live="polite" aria-atomic="true" hidden></p>
         </section>
 

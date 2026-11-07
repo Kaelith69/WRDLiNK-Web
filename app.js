@@ -19,7 +19,7 @@
     form: $('move-form'), input: $('word-entry'), submit: $('submit-button'),
     message: $('message'), entryPanel: $('entry-panel'), finishPanel: $('finish-panel'),
     finishTitle: $('finish-title'), finishDescription: $('finish-description'), shareStatus: $('share-status'),
-    nextButton: $('next-button'), newGameButton: $('new-game-button'), retryButton: $('retry-button'), themeToggle: $('theme-toggle'), shareChallengeButton: $('share-challenge-button'), shareResultButton: $('share-result-button'), downloadResultButton: $('download-result-button')
+    nextButton: $('next-button'), newGameButton: $('new-game-button'), retryButton: $('retry-button'), themeToggle: $('theme-toggle'), shareChallengeButton: $('share-challenge-button'), copyChallengeButton: $('copy-challenge-button'), shareResultButton: $('share-result-button'), downloadResultButton: $('download-result-button')
   };
 
   // Game session mirrors server SessionState: accumulated score, level,
@@ -500,7 +500,25 @@
   function createChallengeSvg() {
     const start = state.puzzle.start;
     const target = state.puzzle.target;
-    return '<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350"><rect width="1080" height="1350" fill="#172322"/><rect x="64" y="64" width="952" height="1222" rx="42" fill="#263936" stroke="#0b1715" stroke-width="12"/><rect x="112" y="118" width="78" height="78" rx="19" fill="#e8ad45"/><text x="151" y="174" text-anchor="middle" font-family="Arial" font-size="54" font-weight="900" fill="#33230b">W</text><text x="218" y="171" font-family="Arial" font-size="42" font-weight="900" fill="#f3f0e8">WRDLINK</text><text x="112" y="420" font-family="Arial" font-size="76" font-weight="900" fill="#f3f0e8">CAN YOU SOLVE IT?</text><text x="112" y="610" font-family="Arial" font-size="25" font-weight="800" fill="#aabbb1">START WORD</text><text x="592" y="610" font-family="Arial" font-size="25" font-weight="800" fill="#aabbb1">TARGET WORD</text><rect x="112" y="680" width="390" height="142" rx="24" fill="#42a99a"/><rect x="578" y="680" width="390" height="142" rx="24" fill="#f0bd5c"/><text x="307" y="775" text-anchor="middle" font-family="Arial" font-size="76" font-weight="900" fill="#102321">' + start + '</text><text x="773" y="775" text-anchor="middle" font-family="Arial" font-size="76" font-weight="900" fill="#2c210d">' + target + '</text><text x="112" y="1010" font-family="Arial" font-size="35" font-weight="800" fill="#f3f0e8">Change one letter per move.</text><text x="112" y="1090" font-family="Arial" font-size="28" font-weight="700" fill="#aabbb1">Your turn. Build the ladder.</text><text x="112" y="1200" font-family="Arial" font-size="24" font-weight="800" fill="#d5a34d">OPEN WRDLINK AND TAKE THE CHALLENGE</text></svg>';
+    const link = challengeUrl().replace('https://', '').replaceAll('&', '&amp;');
+    const tileRow = (word, fill, ink) => [...word].map((letter, index) => {
+      const left = index * 78;
+      return '<rect x="' + left + '" y="0" width="68" height="96" rx="14" fill="#091513" opacity=".72" transform="translate(0 7)"/><rect x="' + left + '" y="0" width="68" height="90" rx="14" fill="' + fill + '" stroke="#0b1715" stroke-width="7"/><text x="' + (left + 34) + '" y="62" text-anchor="middle" font-family="Arial, sans-serif" font-size="54" font-weight="900" fill="' + ink + '">' + letter + '</text>';
+    }).join('');
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920">' +
+      '<defs><linearGradient id="back" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#14211f"/><stop offset=".55" stop-color="#1b2d29"/><stop offset="1" stop-color="#101b19"/></linearGradient><pattern id="dots" width="42" height="42" patternUnits="userSpaceOnUse"><circle cx="4" cy="4" r="3" fill="#a8c0b2" opacity=".14"/></pattern><linearGradient id="panel" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#2a3d38"/><stop offset="1" stop-color="#20312d"/></linearGradient></defs>' +
+      '<rect width="1080" height="1920" fill="url(#back)"/><rect width="1080" height="1920" fill="url(#dots)"/>' +
+      '<rect x="48" y="48" width="984" height="1824" rx="46" fill="#0b1715" opacity=".8"/><rect x="48" y="40" width="984" height="1824" rx="46" fill="url(#panel)" stroke="#0b1715" stroke-width="12"/>' +
+      '<rect x="96" y="96" width="76" height="76" rx="19" fill="#f0bd5c" stroke="#0b1715" stroke-width="8"/><text x="134" y="153" text-anchor="middle" font-family="Arial,sans-serif" font-size="54" font-weight="900" fill="#2c210d">W</text>' +
+      '<text x="198" y="151" font-family="Arial,sans-serif" font-size="48" font-weight="950" letter-spacing="-2" fill="#f3f0e8">WRDLINK</text><text x="96" y="262" font-family="Arial,sans-serif" font-size="23" font-weight="800" letter-spacing="6" fill="#a9bbb1">A WORD LADDER CHALLENGE</text>' +
+      '<rect x="96" y="330" width="888" height="210" rx="28" fill="#1b2a27" stroke="#50645c" stroke-width="4"/><text x="540" y="421" text-anchor="middle" font-family="Arial,sans-serif" font-size="68" font-weight="950" letter-spacing="-2" fill="#f3f0e8">CAN YOU SOLVE IT?</text><text x="540" y="477" text-anchor="middle" font-family="Arial,sans-serif" font-size="27" font-weight="700" letter-spacing="2" fill="#a9bbb1">ONE LETTER CHANGES PER MOVE</text>' +
+      '<text x="120" y="665" font-family="Arial,sans-serif" font-size="24" font-weight="900" letter-spacing="4" fill="#a9bbb1">START WORD</text><circle cx="96" cy="655" r="8" fill="#42a99a"/>' +
+      '<text x="960" y="665" text-anchor="end" font-family="Arial,sans-serif" font-size="24" font-weight="900" letter-spacing="4" fill="#a9bbb1">TARGET WORD</text><circle cx="984" cy="655" r="8" fill="#f0bd5c"/>' +
+      '<g transform="translate(120 710)">' + tileRow(start,'#42a99a','#102321') + '</g><g transform="translate(672 710)">' + tileRow(target,'#f0bd5c','#2c210d') + '</g>' +
+      '<path d="M485 755h110m-24 -22 24 22 -24 22" fill="none" stroke="#a9bbb1" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '<rect x="96" y="900" width="888" height="340" rx="28" fill="#1b2a27" stroke="#50645c" stroke-width="4"/><text x="144" y="1000" font-family="Arial,sans-serif" font-size="25" font-weight="900" letter-spacing="4" fill="#a9bbb1">YOUR MISSION</text><text x="144" y="1085" font-family="Arial,sans-serif" font-size="42" font-weight="900" fill="#f3f0e8">Connect ' + start + ' to ' + target + '.</text><text x="144" y="1155" font-family="Arial,sans-serif" font-size="29" font-weight="700" fill="#a9bbb1">Change one letter at a time.</text>' +
+      '<rect x="96" y="1310" width="888" height="360" rx="28" fill="#20332f" stroke="#42a99a" stroke-width="4"/><text x="144" y="1390" font-family="Arial,sans-serif" font-size="24" font-weight="900" letter-spacing="4" fill="#8fcfc0">TAKE THE CHALLENGE</text><text x="144" y="1465" font-family="Arial,sans-serif" font-size="34" font-weight="900" fill="#f3f0e8">Open WRDLINK and make your moves.</text><text x="144" y="1540" font-family="Arial,sans-serif" font-size="23" font-weight="800" fill="#a9bbb1">CHALLENGE LINK</text><text x="144" y="1590" font-family="Arial,sans-serif" font-size="23" font-weight="700" fill="#f0bd5c">' + link + '</text>' +
+      '<path d="M96 1740H984" stroke="#50645c" stroke-width="3"/><text x="540" y="1800" text-anchor="middle" font-family="Arial,sans-serif" font-size="22" font-weight="900" letter-spacing="5" fill="#a9bbb1">THINK SHARP. LINK WORDS.</text><text x="540" y="1840" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" font-weight="700" letter-spacing="2" fill="#a9bbb1">ADD A LINK STICKER IN STORIES FOR A CLICKABLE URL</text></svg>';
   }
 
   async function prepareChallengeCard() {
@@ -533,6 +551,32 @@
         challengeCardPending = false;
         elements.shareChallengeButton.disabled = busy;
       }
+    }
+  }
+
+  async function copyChallengeLink() {
+    const link = challengeUrl();
+    try {
+      if (navigator.clipboard?.writeText && window.isSecureContext) {
+        await navigator.clipboard.writeText(link);
+      } else {
+        const field = document.createElement('textarea');
+        field.value = link;
+        field.setAttribute('readonly', '');
+        field.style.position = 'fixed';
+        field.style.opacity = '0';
+        document.body.append(field);
+        field.select();
+        const copied = document.execCommand?.('copy');
+        field.remove();
+        if (!copied) {
+          const manualCopy = window.prompt?.('Copy this challenge link:', link);
+          if (!manualCopy) throw new Error('Clipboard access is unavailable.');
+        }
+      }
+      setMessage('Challenge link copied. Add it to an Instagram Story Link sticker if you share the card there.');
+    } catch (error) {
+      setMessage('Could not copy the challenge link. Check clipboard permissions and try again.', 'error');
     }
   }
 
@@ -701,6 +745,7 @@
   elements.nextButton.addEventListener('click', () => startPuzzle({ nextLevel: true }));
   elements.retryButton.addEventListener('click', () => startPuzzle());
   elements.shareChallengeButton.addEventListener('click', shareChallenge);
+  elements.copyChallengeButton.addEventListener('click', copyChallengeLink);
   elements.shareResultButton.addEventListener('click', shareResult);
   elements.downloadResultButton.addEventListener('click', () => {
     if (preparedResultFile) downloadResultCard(preparedResultFile);
