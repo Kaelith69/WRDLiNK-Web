@@ -497,28 +497,118 @@
     return url.href;
   }
 
+  function escapeSvgText(value) {
+    return String(value).replace(/[&<>"']/g, (character) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;'
+    })[character]);
+  }
+
+  function cardSvgShell(content) {
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920">' +
+      '<defs>' +
+      '<linearGradient id="field" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#14221f"/><stop offset="1" stop-color="#0d1714"/></linearGradient>' +
+      '<linearGradient id="panel" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#2b463e"/><stop offset="1" stop-color="#253d36"/></linearGradient>' +
+      '<pattern id="grain" width="220" height="220" patternUnits="userSpaceOnUse"><circle cx="14" cy="19" r="1.5" fill="#eef3f0" opacity=".13"/><circle cx="84" cy="70" r="1" fill="#eef3f0" opacity=".12"/><circle cx="174" cy="151" r="1.4" fill="#eef3f0" opacity=".1"/><circle cx="45" cy="180" r="1" fill="#eef3f0" opacity=".12"/></pattern>' +
+      '<pattern id="midtiles" width="18" height="18" patternUnits="userSpaceOnUse" patternTransform="rotate(135)"><rect width="18" height="18" fill="#2b463e"/><rect width="7" height="18" fill="#253d36"/></pattern>' +
+      '</defs>' +
+      '<rect width="1080" height="1920" fill="url(#field)"/><rect width="1080" height="1920" fill="url(#grain)"/>' +
+      '<rect x="48" y="48" width="984" height="1824" rx="44" fill="#091512" opacity=".72"/>' +
+      '<rect x="48" y="40" width="984" height="1824" rx="44" fill="url(#panel)" stroke="#0b1715" stroke-width="12"/>' +
+      '<rect x="96" y="96" width="78" height="78" rx="16" fill="#efc45c" stroke="#b58c26" stroke-width="5"/>' +
+      '<text x="135" y="153" text-anchor="middle" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="55" font-weight="900" fill="#10201c">W</text>' +
+      '<text x="200" y="151" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="50" font-weight="900" letter-spacing="1" fill="#eef3f0">WRDLINK</text>' +
+      '<text x="96" y="260" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="23" font-weight="800" letter-spacing="5" fill="#7f948d">THINK SHARP. LINK WORDS.</text>' +
+      content +
+      '<path d="M96 1740H984" stroke="#2d423c" stroke-width="4"/>' +
+      '<text x="96" y="1800" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="25" font-weight="800" letter-spacing="3" fill="#7f948d">KAELITH69.GITHUB.IO/WRDLINK-WEB</text>' +
+      '<text x="984" y="1840" text-anchor="end" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="18" font-weight="700" letter-spacing="3" fill="#7f948d">WORD LADDER</text></svg>';
+  }
+
+  function cardTileRow(word, x, y, kind, changedIndex = -1, hidden = false) {
+    const colors = kind === 'start'
+      ? { fill: '#74c6b2', edge: '#3f8f7d', ink: '#10201c' }
+      : kind === 'end'
+        ? { fill: '#efc45c', edge: '#b58c26', ink: '#10201c' }
+        : kind === 'ghost'
+          ? { fill: 'none', edge: '#4a655d', ink: '#7a978d' }
+          : { fill: 'url(#midtiles)', edge: '#1a2d27', ink: '#eef3f0' };
+    const tile = 112;
+    const gap = 22;
+    return [...word].map((letter, index) => {
+      const left = x + index * (tile + gap);
+      const fill = kind === 'mid' && index === changedIndex ? '#efc45c' : colors.fill;
+      const edge = kind === 'mid' && index === changedIndex ? '#b58c26' : colors.edge;
+      const ink = kind === 'mid' && index === changedIndex ? '#10201c' : colors.ink;
+      const shown = hidden ? '' : letter;
+      return '<rect x="' + left + '" y="' + (y + 8) + '" width="' + tile + '" height="' + tile + '" rx="17" fill="#091512" opacity=".55"/>' +
+        '<rect x="' + left + '" y="' + y + '" width="' + tile + '" height="' + tile + '" rx="17" fill="' + (kind === 'ghost' ? 'none' : fill) + '" stroke="' + edge + '" stroke-width="6"' + (kind === 'ghost' ? ' stroke-dasharray="12 9"' : '') + '/>' +
+        (shown ? '<text x="' + (left + tile / 2) + '" y="' + (y + 76) + '" text-anchor="middle" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="74" font-weight="900" fill="' + ink + '">' + escapeSvgText(shown) + '</text>' : '');
+    }).join('');
+  }
+
+  function changedLetterIndex(first, second) {
+    let changed = -1;
+    for (let index = 0; index < first.length; index += 1) {
+      if (first[index] !== second[index]) {
+        if (changed !== -1) return -1;
+        changed = index;
+      }
+    }
+    return changed;
+  }
+
+  function cardLadderRows(words, y, reveal, highlightChanges = true) {
+    const x = 112;
+    const rowHeight = 112;
+    const connectorHeight = 24;
+    const parts = [];
+    words.forEach((word, index) => {
+      const kind = index === 0 ? 'start' : index === words.length - 1 ? 'end' : word === '????' && !reveal ? 'ghost' : 'mid';
+      const changed = index > 0 ? changedLetterIndex(words[index - 1], word) : -1;
+      const hidden = (kind === 'mid' && !reveal) || kind === 'ghost';
+      const rowY = y + index * (rowHeight + connectorHeight);
+      parts.push(cardTileRow(word, x, rowY, kind, changed, hidden));
+      if (index === 0 || index === words.length - 1) {
+        const label = index === 0 ? 'START' : 'TARGET';
+        const color = index === 0 ? '#74c6b2' : '#efc45c';
+        parts.push('<text x="640" y="' + (rowY + 70) + '" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="22" font-weight="800" letter-spacing="4" fill="' + color + '">' + label + '</text>');
+      }
+      if (index < words.length - 1) {
+        const next = words[index + 1];
+        const changedNext = changedLetterIndex(word, next);
+        const connectorY = rowY + rowHeight + 3;
+        for (let tileIndex = 0; tileIndex < 4; tileIndex += 1) {
+          const cx = x + tileIndex * (112 + 22) + 56;
+          const active = highlightChanges && changedNext >= 0 && tileIndex === changedNext;
+          if (!highlightChanges) {
+            parts.push('<path d="M' + cx + ' ' + connectorY + 'v' + connectorHeight + '" stroke="#4a655d" stroke-width="6" stroke-dasharray="7 7" stroke-linecap="round"/>');
+          } else {
+            parts.push('<rect x="' + (cx - (active ? 5 : 3)) + '" y="' + connectorY + '" width="' + (active ? 10 : 6) + '" height="' + connectorHeight + '" rx="4" fill="' + (active ? '#efc45c' : '#2d423c') + '"/>');
+          }
+        }
+      }
+    });
+    return parts.join('');
+  }
+
   function createChallengeSvg() {
     const start = state.puzzle.start;
     const target = state.puzzle.target;
-    const link = challengeUrl().replace('https://', '').replaceAll('&', '&amp;');
-    const tileRow = (word, fill, ink) => [...word].map((letter, index) => {
-      const left = index * 78;
-      return '<rect x="' + left + '" y="0" width="68" height="96" rx="14" fill="#091513" opacity=".72" transform="translate(0 7)"/><rect x="' + left + '" y="0" width="68" height="90" rx="14" fill="' + fill + '" stroke="#0b1715" stroke-width="7"/><text x="' + (left + 34) + '" y="62" text-anchor="middle" font-family="Arial, sans-serif" font-size="54" font-weight="900" fill="' + ink + '">' + letter + '</text>';
-    }).join('');
-    return '<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920">' +
-      '<defs><linearGradient id="back" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#14211f"/><stop offset=".55" stop-color="#1b2d29"/><stop offset="1" stop-color="#101b19"/></linearGradient><pattern id="dots" width="42" height="42" patternUnits="userSpaceOnUse"><circle cx="4" cy="4" r="3" fill="#a8c0b2" opacity=".14"/></pattern><linearGradient id="panel" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#2a3d38"/><stop offset="1" stop-color="#20312d"/></linearGradient></defs>' +
-      '<rect width="1080" height="1920" fill="url(#back)"/><rect width="1080" height="1920" fill="url(#dots)"/>' +
-      '<rect x="48" y="48" width="984" height="1824" rx="46" fill="#0b1715" opacity=".8"/><rect x="48" y="40" width="984" height="1824" rx="46" fill="url(#panel)" stroke="#0b1715" stroke-width="12"/>' +
-      '<rect x="96" y="96" width="76" height="76" rx="19" fill="#f0bd5c" stroke="#0b1715" stroke-width="8"/><text x="134" y="153" text-anchor="middle" font-family="Arial,sans-serif" font-size="54" font-weight="900" fill="#2c210d">W</text>' +
-      '<text x="198" y="151" font-family="Arial,sans-serif" font-size="48" font-weight="950" letter-spacing="-2" fill="#f3f0e8">WRDLINK</text><text x="96" y="262" font-family="Arial,sans-serif" font-size="23" font-weight="800" letter-spacing="6" fill="#a9bbb1">A WORD LADDER CHALLENGE</text>' +
-      '<rect x="96" y="330" width="888" height="210" rx="28" fill="#1b2a27" stroke="#50645c" stroke-width="4"/><text x="540" y="421" text-anchor="middle" font-family="Arial,sans-serif" font-size="68" font-weight="950" letter-spacing="-2" fill="#f3f0e8">CAN YOU SOLVE IT?</text><text x="540" y="477" text-anchor="middle" font-family="Arial,sans-serif" font-size="27" font-weight="700" letter-spacing="2" fill="#a9bbb1">ONE LETTER CHANGES PER MOVE</text>' +
-      '<text x="120" y="665" font-family="Arial,sans-serif" font-size="24" font-weight="900" letter-spacing="4" fill="#a9bbb1">START WORD</text><circle cx="96" cy="655" r="8" fill="#42a99a"/>' +
-      '<text x="960" y="665" text-anchor="end" font-family="Arial,sans-serif" font-size="24" font-weight="900" letter-spacing="4" fill="#a9bbb1">TARGET WORD</text><circle cx="984" cy="655" r="8" fill="#f0bd5c"/>' +
-      '<g transform="translate(120 710)">' + tileRow(start,'#42a99a','#102321') + '</g><g transform="translate(672 710)">' + tileRow(target,'#f0bd5c','#2c210d') + '</g>' +
-      '<path d="M485 755h110m-24 -22 24 22 -24 22" fill="none" stroke="#a9bbb1" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>' +
-      '<rect x="96" y="900" width="888" height="340" rx="28" fill="#1b2a27" stroke="#50645c" stroke-width="4"/><text x="144" y="1000" font-family="Arial,sans-serif" font-size="25" font-weight="900" letter-spacing="4" fill="#a9bbb1">YOUR MISSION</text><text x="144" y="1085" font-family="Arial,sans-serif" font-size="42" font-weight="900" fill="#f3f0e8">Connect ' + start + ' to ' + target + '.</text><text x="144" y="1155" font-family="Arial,sans-serif" font-size="29" font-weight="700" fill="#a9bbb1">Change one letter at a time.</text>' +
-      '<rect x="96" y="1310" width="888" height="360" rx="28" fill="#20332f" stroke="#42a99a" stroke-width="4"/><text x="144" y="1390" font-family="Arial,sans-serif" font-size="24" font-weight="900" letter-spacing="4" fill="#8fcfc0">TAKE THE CHALLENGE</text><text x="144" y="1465" font-family="Arial,sans-serif" font-size="34" font-weight="900" fill="#f3f0e8">Open WRDLINK and make your moves.</text><text x="144" y="1540" font-family="Arial,sans-serif" font-size="23" font-weight="800" fill="#a9bbb1">CHALLENGE LINK</text><text x="144" y="1590" font-family="Arial,sans-serif" font-size="23" font-weight="700" fill="#f0bd5c">' + link + '</text>' +
-      '<path d="M96 1740H984" stroke="#50645c" stroke-width="3"/><text x="540" y="1800" text-anchor="middle" font-family="Arial,sans-serif" font-size="22" font-weight="900" letter-spacing="5" fill="#a9bbb1">THINK SHARP. LINK WORDS.</text><text x="540" y="1840" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" font-weight="700" letter-spacing="2" fill="#a9bbb1">ADD A LINK STICKER IN STORIES FOR A CLICKABLE URL</text></svg>';
+    const apart = [...start].filter((letter, index) => letter !== target[index]).length;
+    const url = escapeSvgText(challengeUrl().replace(/^https?:\/\//, ''));
+    const content =
+      '<text x="96" y="430" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="154" font-weight="900" letter-spacing="-5" fill="#eef3f0">YOUR MOVE<tspan fill="#74c6b2">.</tspan></text>' +
+      '<rect x="96" y="490" width="460" height="58" rx="29" fill="none" stroke="#74c6b2" stroke-width="5"/><circle cx="127" cy="519" r="8" fill="#74c6b2"/><text x="154" y="528" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="24" font-weight="800" letter-spacing="3" fill="#74c6b2">ONE LETTER PER MOVE</text>' +
+      '<g>' + cardLadderRows([start, '????', target], 650, false, false) + '</g>' +
+      '<path d="M96 1260H984" stroke="#2d423c" stroke-width="4"/>' +
+      '<text x="112" y="1340" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="24" font-weight="800" letter-spacing="4" fill="#7f948d">LETTERS APART</text>' +
+      '<text x="112" y="1515" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="170" font-weight="900" fill="#eef3f0">' + apart + '</text>' +
+      '<path d="M550 1320V1545" stroke="#2d423c" stroke-width="4"/>' +
+      '<text x="610" y="1340" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="24" font-weight="800" letter-spacing="4" fill="#7f948d">MOVES NEEDED</text>' +
+      '<text x="610" y="1515" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="170" font-weight="900" fill="#efc45c">?</text>' +
+      '<text x="96" y="1650" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="26" font-weight="800" fill="#eef3f0">Can you bridge the gap?</text>' +
+      '<text x="96" y="1695" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="22" font-weight="700" fill="#efc45c">' + url + '</text>';
+    return cardSvgShell(content);
   }
 
   async function prepareChallengeCard() {
@@ -639,7 +729,28 @@
   function createResultSvg(result, points) {
     const start = state.puzzle.start;
     const target = state.puzzle.target;
-    return '<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350"><defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#172322"/><stop offset="1" stop-color="#30443e"/></linearGradient></defs><rect width="1080" height="1350" fill="url(#bg)"/><rect x="64" y="64" width="952" height="1222" rx="42" fill="#263936" stroke="#0b1715" stroke-width="12"/><rect x="112" y="118" width="78" height="78" rx="19" fill="#e8ad45"/><text x="151" y="174" text-anchor="middle" font-family="Arial" font-size="54" font-weight="900" fill="#33230b">W</text><text x="218" y="171" font-family="Arial" font-size="42" font-weight="900" fill="#f3f0e8">WRDLINK</text><text x="116" y="282" font-family="Arial" font-size="22" font-weight="800" letter-spacing="5" fill="#aabbb1">WORD LADDER</text><text x="112" y="405" font-family="Arial" font-size="78" font-weight="900" fill="#f3f0e8">CONNECTED.</text><text x="116" y="490" font-family="Arial" font-size="24" font-weight="800" fill="#aabbb1">START</text><text x="592" y="490" font-family="Arial" font-size="24" font-weight="800" fill="#aabbb1">TARGET</text><text x="116" y="610" font-family="Arial" font-size="64" font-weight="900" fill="#52b6a6">' + start + '</text><text x="592" y="610" font-family="Arial" font-size="64" font-weight="900" fill="#e8ad45">' + target + '</text><text x="116" y="724" font-family="Arial" font-size="22" font-weight="800" fill="#aabbb1">MOVES</text><text x="560" y="724" font-family="Arial" font-size="22" font-weight="800" fill="#aabbb1">LEVEL SCORE</text><text x="116" y="832" font-family="Arial" font-size="92" font-weight="900" fill="#f3f0e8">' + result.movesUsed + '</text><text x="560" y="832" font-family="Arial" font-size="92" font-weight="900" fill="#f3f0e8">+' + points + '</text><text x="116" y="930" font-family="Arial" font-size="24" font-weight="800" fill="#d5a34d">' + (result.movesUsed === state.puzzle.optimalMoves ? 'SHORTEST ROUTE FOUND' : 'PUZZLE SOLVED') + '</text><path d="M116 1000H964" stroke="#aabbb1" stroke-opacity=".35" stroke-width="2"/><text x="116" y="1070" font-family="Arial" font-size="30" font-weight="800" fill="#f3f0e8">Can you build the ladder?</text><text x="116" y="1190" font-family="Arial" font-size="22" font-weight="800" fill="#d5a34d">KAELITH69.GITHUB.IO/WRDLINK-WEB</text></svg>';
+    const sequence = state.chain;
+    const shortest = result.movesUsed === state.puzzle.optimalMoves;
+    // Preserve the designed card rhythm while allowing unusually long routes.
+    // The result card shows the first three intermediate steps and the target.
+    const visibleWords = sequence.length > 5
+      ? [sequence[0], sequence[1], sequence[2], sequence[sequence.length - 1]]
+      : sequence;
+    const ladder = cardLadderRows(visibleWords, 625, false);
+    const status = shortest ? 'SHORTEST ROUTE FOUND' : 'ROUTE FOUND';
+    const url = escapeSvgText(window.location.origin + window.location.pathname);
+    const content =
+      '<text x="96" y="430" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="174" font-weight="900" letter-spacing="-5" fill="#eef3f0">CONNECTED<tspan fill="#efc45c">.</tspan></text>' +
+      '<rect x="96" y="490" width="560" height="58" rx="29" fill="none" stroke="#efc45c" stroke-width="5"/><path d="M122 520l12 12 22 -25" fill="none" stroke="#efc45c" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><text x="176" y="528" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="23" font-weight="800" letter-spacing="3" fill="#efc45c">' + status + '</text>' +
+      '<g>' + ladder + '</g>' +
+      '<path d="M96 1395H984" stroke="#2d423c" stroke-width="4"/>' +
+      '<text x="112" y="1470" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="24" font-weight="800" letter-spacing="4" fill="#7f948d">LEVEL SCORE</text>' +
+      '<text x="112" y="1635" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="160" font-weight="900" fill="#efc45c">+' + points + '</text>' +
+      '<path d="M550 1450V1655" stroke="#2d423c" stroke-width="4"/>' +
+      '<text x="610" y="1470" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="24" font-weight="800" letter-spacing="4" fill="#7f948d">MOVES</text>' +
+      '<text x="610" y="1635" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="160" font-weight="900" fill="#eef3f0">' + result.movesUsed + '</text>' +
+      '<text x="96" y="1700" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="27" font-weight="800" fill="#eef3f0">Can you build the ladder?</text>';
+    return cardSvgShell(content);
   }
 
   async function prepareResultCard(result) {
