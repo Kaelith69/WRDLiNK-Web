@@ -36,7 +36,7 @@ for (const asset of ['./index.html', './styles.css', './app.js', './dictionary.j
   assert(worker.includes(asset), 'service worker app shell includes ' + asset);
 }
 assert(worker.includes("const CACHE_PREFIX = 'wrdlink-shell-'"));
-assert(worker.includes('const CACHE_NAME = `' + '${CACHE_PREFIX}' + 'v5`'));
+assert(worker.includes('const CACHE_NAME = `' + '${CACHE_PREFIX}' + 'v6`'));
 assert(worker.includes("request.mode === 'navigate'"));
 assert(worker.includes('self.clients.claim()'));
 assert(deploy.includes('manifest.webmanifest sw.js'));
@@ -57,7 +57,15 @@ assert(game.includes('window.setTimeout(() => URL.revokeObjectURL(url), 60000)')
 assert(game.includes('prepareResultCard(result)'));
 assert(html.includes('id="share-status"'));
 assert(html.includes('id="download-result-button"'));
+assert(html.includes('enterkeyhint="send"'));
+assert(html.includes('aria-label="Send word"'));
+assert(html.includes('autocorrect="off"'));
 assert(game.includes('elements.downloadResultButton.addEventListener'));
 assert(game.includes('Native sharing was unavailable. Use Download PNG instead.'));
+assert(game.includes('navigator.share(data)'));
+assert(game.includes('wrdlink-challenge.png'));
+assert(game.includes('Can you solve this WRDLINK word ladder?'));
+assert(game.includes('elements.input.focus({ preventScroll: true })'));
+assert(styles.includes(':root.keyboard-open .entry-panel .send-button'));
 
 console.log('WRDLINK PWA metadata and deployment checks passed.');

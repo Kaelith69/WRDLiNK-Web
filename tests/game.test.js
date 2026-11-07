@@ -22,7 +22,7 @@ function makeElement() {
     listeners: {},
     classList: { add() {}, remove() {}, toggle() {} },
     addEventListener(type, callback) { this.listeners[type] = callback; },
-    dispatch(type, event = {}) { return this.listeners[type]?.({ preventDefault() {}, ...event }); },
+    dispatch(type, event = {}) { const dispatched = { defaultPrevented: false, preventDefault() { this.defaultPrevented = true; }, ...event }; const result = this.listeners[type]?.(dispatched); this.lastEvent = dispatched; return result; },
     setAttribute(name, value) { attributes.set(name, String(value)); },
     getAttribute(name) { return attributes.get(name); },
     append(...items) { this.children.push(...items); },
@@ -117,6 +117,9 @@ assert.equal(game.calculatePoints(0), 25, 'each completed level starts at 25 poi
 assert.equal(game.calculatePoints(5), 20, 'each valid move deducts one point');
 
 assert.equal(elements.get('word-entry').focusCalls, 0, 'initial rendering never opens the mobile keyboard');
+assert.equal(typeof elements.get('submit-button').listeners.pointerdown, 'function', 'touch submit preserves input focus');
+elements.get('submit-button').dispatch('pointerdown', { pointerType: 'touch' });
+assert.equal(elements.get('submit-button').lastEvent.defaultPrevented, true, 'touching Send does not blur the input before submission');
 
 const challenge = loadGame({ search: '?challenge=COLD-WARM' });
 assert.equal(challenge.game.getState().puzzle.start, 'COLD');
@@ -135,10 +138,15 @@ assert.equal(challenge.elements.get('word-entry').value, 'CORD', 'input normaliz
 assert.equal(challenge.elements.get('submit-button').disabled, false, 'valid length enables submit');
 challenge.elements.get('move-form').dispatch('submit');
 assert.deepEqual(challenge.game.getState().chain, ['COLD', 'CORD'], 'submitting a valid move updates the live game');
+assert.equal(challenge.elements.get('word-entry').focusCalls, 1, 'input regains focus after submission so mobile keyboard stays available');
 assert.equal([...challenge.storage.keys()].some((key) => key.includes(':progress')), false, 'friend challenges do not overwrite campaign progress');
 async function testInteractions() {
+  await new Promise((resolve) => setImmediate(resolve));
   await challenge.elements.get('share-challenge-button').dispatch('click');
-  assert.match(challenge.copied[0], /challenge=COLD-WARM/, 'challenge button copies the exact puzzle URL');
+  assert.equal(challenge.shareCalls.length, 1, 'challenge button opens the native share sheet');
+  assert.match(challenge.shareCalls[0].url, /challenge=COLD-WARM/, 'native share includes the exact puzzle URL');
+  assert.equal(challenge.shareCalls[0].files[0].name, 'wrdlink-challenge.png', 'native share includes a branded challenge card');
+  assert.match(challenge.shareCalls[0].text, /Can you solve this WRDLINK word ladder/, 'challenge share asks the recipient to solve it');
 
   const submitWord = (word) => {
     const input = challenge.elements.get('word-entry');
@@ -154,8 +162,8 @@ async function testInteractions() {
   assert.equal(challenge.elements.get('share-result-button').disabled, false, 'result sharing becomes available after its PNG is prepared');
   assert.equal(challenge.elements.get('download-result-button').disabled, false, 'direct PNG download becomes available after preparation');
   await challenge.elements.get('share-result-button').dispatch('click');
-  assert.equal(challenge.shareCalls.length, 1, 'result button opens the native share action');
-  assert.equal(challenge.shareCalls[0].files[0].type, 'image/png', 'native share receives a PNG image');
+  assert.equal(challenge.shareCalls.length, 2, 'result button opens the native share action after challenge sharing');
+  assert.equal(challenge.shareCalls[1].files[0].type, 'image/png', 'native result share receives a PNG image');
 
   challenge.elements.get('new-game-button').dispatch('click');
   assert.match(challenge.game.getState().puzzle.id, /^random-/, 'New game starts a fresh puzzle');

@@ -375,3 +375,89 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
   .entry-meta { gap: 8px; }
   .entry-actions .secondary-button { flex: 1 1 100%; }
 }
+
+
+/* Focused mobile play: reserve the visible viewport for the route, history,
+   and a compact one tap word control. */
+.send-button {
+  width: 54px;
+  min-width: 54px;
+  min-height: 54px;
+  padding: 0;
+}
+.send-button svg {
+  width: 23px;
+  height: 23px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.send-button:disabled svg { opacity: .65; }
+
+@media (max-width: 620px) {
+  .entry-panel form { grid-template-columns: minmax(0, 1fr) 54px; }
+  .entry-panel .send-button { width: 54px; min-width: 54px; min-height: 54px; }
+  :root.keyboard-open,
+  :root.keyboard-open body {
+    height: var(--visual-viewport-height, 100dvh);
+    min-height: 0;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+  :root.keyboard-open .game-page {
+    height: var(--visual-viewport-height, 100dvh);
+    min-height: 0;
+  }
+  :root.keyboard-open .game-header {
+    min-height: 38px;
+    flex-basis: 38px;
+    padding: 3px 9px;
+  }
+  :root.keyboard-open .wordmark { font-size: 12px; }
+  :root.keyboard-open .brand-mark { width: 24px; height: 24px; font-size: 13px; }
+  :root.keyboard-open .theme-toggle { width: 32px; height: 32px; }
+  :root.keyboard-open .game-workspace {
+    padding: 4px 8px max(4px, env(safe-area-inset-bottom));
+  }
+  :root.keyboard-open #game:not([hidden]) { gap: 5px; }
+  :root.keyboard-open .route-panel {
+    gap: 5px;
+    padding: 0 2px 3px;
+  }
+  :root.keyboard-open .route-label { font-size: 7px; }
+  :root.keyboard-open .word-display span {
+    width: clamp(25px, 6.8vw, 32px);
+    height: 30px;
+    font-size: 17px;
+  }
+  :root.keyboard-open .chain-panel {
+    padding: 7px 9px;
+    border-radius: 11px;
+  }
+  :root.keyboard-open .panel-heading h2 { font-size: 13px; }
+  :root.keyboard-open .chain-list { margin-top: 4px; }
+  :root.keyboard-open .chain-list li { min-height: 26px; }
+  :root.keyboard-open .chain-list li b { font-size: 13px; }
+  :root.keyboard-open .entry-panel {
+    padding: 6px 8px;
+    border-radius: 11px;
+  }
+  :root.keyboard-open .entry-panel form {
+    grid-template-columns: minmax(0, 1fr) 48px;
+    gap: 6px;
+  }
+  :root.keyboard-open .entry-panel input {
+    height: 44px;
+    min-height: 44px;
+    font-size: 18px;
+  }
+  :root.keyboard-open .entry-panel .send-button {
+    width: 48px;
+    min-width: 48px;
+    min-height: 44px;
+  }
+  :root.keyboard-open .send-button svg { width: 20px; height: 20px; }
+  :root.keyboard-open .game-message { margin-top: 3px; padding: 4px 6px; }
+}

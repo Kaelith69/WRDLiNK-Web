@@ -34,7 +34,7 @@ The browser edition is a small, dependency free web app. It runs locally in the 
 5. Reach the target word to complete the level.
 6. Continue to the next level and build your cumulative score.
 
-Invalid entries do not change the chain or consume a move. Use **Challenge a friend** to copy a link to the exact puzzle. Anyone opening that link receives the same start and target words and can solve it independently.
+Invalid entries do not change the chain or consume a move. Use **Challenge a friend** to open your device's native share sheet with a branded puzzle card and a link to the exact puzzle. Choose a messaging or social app, or use the share sheet's copy link action. Anyone opening the link receives the same start and target words and can solve it independently.
 
 ### Rules at a glance
 
