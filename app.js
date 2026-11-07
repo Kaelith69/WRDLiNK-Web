@@ -310,7 +310,10 @@
     // it so corrupted metadata cannot alter the minimum-move message.
     if (shortestDistance(puzzle.start, puzzle.target) !== puzzle.optimalMoves) return false;
 
-    const result = validateSequence(puzzle, chain);
+    // A fresh puzzle legitimately contains only its start word.
+    const result = chain.length === 1
+      ? { valid: true, complete: false }
+      : validateSequence(puzzle, chain);
     if (!result.valid || saved.completed !== result.complete) return false;
     return true;
   }
