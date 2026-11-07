@@ -500,7 +500,7 @@
   function createChallengeSvg() {
     const start = state.puzzle.start;
     const target = state.puzzle.target;
-    const link = challengeUrl().replace(/^https?:\\/\\//, '');
+    const link = challengeUrl().replace('https://', '');
     const tileRow = (word, fill, ink) => [...word].map((letter, index) => {
       const left = index * 78;
       return '<rect x="' + left + '" y="0" width="68" height="96" rx="14" fill="#091513" opacity=".72" transform="translate(0 7)"/><rect x="' + left + '" y="0" width="68" height="90" rx="14" fill="' + fill + '" stroke="#0b1715" stroke-width="7"/><text x="' + (left + 34) + '" y="62" text-anchor="middle" font-family="Arial, sans-serif" font-size="54" font-weight="900" fill="' + ink + '">' + letter + '</text>';
