@@ -515,13 +515,13 @@
       '<rect x="48" y="48" width="984" height="1824" rx="44" fill="#091512" opacity=".72"/>' +
       '<rect x="48" y="40" width="984" height="1824" rx="44" fill="url(#panel)" stroke="#0b1715" stroke-width="12"/>' +
       '<rect x="96" y="96" width="78" height="78" rx="16" fill="#efc45c" stroke="#b58c26" stroke-width="5"/>' +
-      '<text x="135" y="153" text-anchor="middle" font-family="Arial,sans-serif" font-size="55" font-weight="900" fill="#10201c">W</text>' +
-      '<text x="200" y="151" font-family="Arial,sans-serif" font-size="50" font-weight="900" letter-spacing="1" fill="#eef3f0">WRDLINK</text>' +
-      '<text x="96" y="260" font-family="Arial,sans-serif" font-size="23" font-weight="800" letter-spacing="5" fill="#7f948d">THINK SHARP. LINK WORDS.</text>' +
+      '<text x="135" y="153" text-anchor="middle" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="55" font-weight="900" fill="#10201c">W</text>' +
+      '<text x="200" y="151" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="50" font-weight="900" letter-spacing="1" fill="#eef3f0">WRDLINK</text>' +
+      '<text x="96" y="260" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="23" font-weight="800" letter-spacing="5" fill="#7f948d">THINK SHARP. LINK WORDS.</text>' +
       content +
       '<path d="M96 1740H984" stroke="#2d423c" stroke-width="4"/>' +
-      '<text x="96" y="1800" font-family="Arial,sans-serif" font-size="25" font-weight="800" letter-spacing="3" fill="#7f948d">KAELITH69.GITHUB.IO/WRDLINK-WEB</text>' +
-      '<text x="984" y="1840" text-anchor="end" font-family="Arial,sans-serif" font-size="18" font-weight="700" letter-spacing="3" fill="#7f948d">WORD LADDER</text></svg>';
+      '<text x="96" y="1800" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="25" font-weight="800" letter-spacing="3" fill="#7f948d">KAELITH69.GITHUB.IO/WRDLINK-WEB</text>' +
+      '<text x="984" y="1840" text-anchor="end" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="18" font-weight="700" letter-spacing="3" fill="#7f948d">WORD LADDER</text></svg>';
   }
 
   function cardTileRow(word, x, y, kind, changedIndex = -1, hidden = false) {
@@ -542,7 +542,7 @@
       const shown = hidden ? '' : letter;
       return '<rect x="' + left + '" y="' + (y + 8) + '" width="' + tile + '" height="' + tile + '" rx="17" fill="#091512" opacity=".55"/>' +
         '<rect x="' + left + '" y="' + y + '" width="' + tile + '" height="' + tile + '" rx="17" fill="' + (kind === 'ghost' ? 'none' : fill) + '" stroke="' + edge + '" stroke-width="6"' + (kind === 'ghost' ? ' stroke-dasharray="12 9"' : '') + '/>' +
-        (shown ? '<text x="' + (left + tile / 2) + '" y="' + (y + 76) + '" text-anchor="middle" font-family="Arial,sans-serif" font-size="74" font-weight="900" fill="' + ink + '">' + escapeSvgText(shown) + '</text>' : '');
+        (shown ? '<text x="' + (left + tile / 2) + '" y="' + (y + 76) + '" text-anchor="middle" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="74" font-weight="900" fill="' + ink + '">' + escapeSvgText(shown) + '</text>' : '');
     }).join('');
   }
 
@@ -571,7 +571,7 @@
       if (index === 0 || index === words.length - 1) {
         const label = index === 0 ? 'START' : 'TARGET';
         const color = index === 0 ? '#74c6b2' : '#efc45c';
-        parts.push('<text x="640" y="' + (rowY + 70) + '" font-family="Arial,sans-serif" font-size="22" font-weight="800" letter-spacing="4" fill="' + color + '">' + label + '</text>');
+        parts.push('<text x="640" y="' + (rowY + 70) + '" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="22" font-weight="800" letter-spacing="4" fill="' + color + '">' + label + '</text>');
       }
       if (index < words.length - 1) {
         const next = words[index + 1];
@@ -597,17 +597,17 @@
     const apart = [...start].filter((letter, index) => letter !== target[index]).length;
     const url = escapeSvgText(challengeUrl().replace(/^https?:\/\//, ''));
     const content =
-      '<text x="96" y="430" font-family="Arial,sans-serif" font-size="154" font-weight="900" letter-spacing="-5" fill="#eef3f0">YOUR MOVE<tspan fill="#74c6b2">.</tspan></text>' +
-      '<rect x="96" y="490" width="460" height="58" rx="29" fill="none" stroke="#74c6b2" stroke-width="5"/><circle cx="127" cy="519" r="8" fill="#74c6b2"/><text x="154" y="528" font-family="Arial,sans-serif" font-size="24" font-weight="800" letter-spacing="3" fill="#74c6b2">ONE LETTER PER MOVE</text>' +
+      '<text x="96" y="430" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="154" font-weight="900" letter-spacing="-5" fill="#eef3f0">YOUR MOVE<tspan fill="#74c6b2">.</tspan></text>' +
+      '<rect x="96" y="490" width="460" height="58" rx="29" fill="none" stroke="#74c6b2" stroke-width="5"/><circle cx="127" cy="519" r="8" fill="#74c6b2"/><text x="154" y="528" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="24" font-weight="800" letter-spacing="3" fill="#74c6b2">ONE LETTER PER MOVE</text>' +
       '<g>' + cardLadderRows([start, '????', target], 650, false, false) + '</g>' +
       '<path d="M96 1260H984" stroke="#2d423c" stroke-width="4"/>' +
-      '<text x="112" y="1340" font-family="Arial,sans-serif" font-size="24" font-weight="800" letter-spacing="4" fill="#7f948d">LETTERS APART</text>' +
-      '<text x="112" y="1515" font-family="Arial,sans-serif" font-size="170" font-weight="900" fill="#eef3f0">' + apart + '</text>' +
+      '<text x="112" y="1340" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="24" font-weight="800" letter-spacing="4" fill="#7f948d">LETTERS APART</text>' +
+      '<text x="112" y="1515" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="170" font-weight="900" fill="#eef3f0">' + apart + '</text>' +
       '<path d="M550 1320V1545" stroke="#2d423c" stroke-width="4"/>' +
-      '<text x="610" y="1340" font-family="Arial,sans-serif" font-size="24" font-weight="800" letter-spacing="4" fill="#7f948d">MOVES NEEDED</text>' +
-      '<text x="610" y="1515" font-family="Arial,sans-serif" font-size="170" font-weight="900" fill="#efc45c">?</text>' +
-      '<text x="96" y="1650" font-family="Arial,sans-serif" font-size="26" font-weight="800" fill="#eef3f0">Can you bridge the gap?</text>' +
-      '<text x="96" y="1695" font-family="Arial,sans-serif" font-size="22" font-weight="700" fill="#efc45c">' + url + '</text>';
+      '<text x="610" y="1340" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="24" font-weight="800" letter-spacing="4" fill="#7f948d">MOVES NEEDED</text>' +
+      '<text x="610" y="1515" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="170" font-weight="900" fill="#efc45c">?</text>' +
+      '<text x="96" y="1650" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="26" font-weight="800" fill="#eef3f0">Can you bridge the gap?</text>' +
+      '<text x="96" y="1695" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="22" font-weight="700" fill="#efc45c">' + url + '</text>';
     return cardSvgShell(content);
   }
 
@@ -740,16 +740,16 @@
     const status = shortest ? 'SHORTEST ROUTE FOUND' : 'ROUTE FOUND';
     const url = escapeSvgText(window.location.origin + window.location.pathname);
     const content =
-      '<text x="96" y="430" font-family="Arial,sans-serif" font-size="174" font-weight="900" letter-spacing="-5" fill="#eef3f0">CONNECTED<tspan fill="#efc45c">.</tspan></text>' +
-      '<rect x="96" y="490" width="560" height="58" rx="29" fill="none" stroke="#efc45c" stroke-width="5"/><path d="M122 520l12 12 22 -25" fill="none" stroke="#efc45c" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><text x="176" y="528" font-family="Arial,sans-serif" font-size="23" font-weight="800" letter-spacing="3" fill="#efc45c">' + status + '</text>' +
+      '<text x="96" y="430" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="174" font-weight="900" letter-spacing="-5" fill="#eef3f0">CONNECTED<tspan fill="#efc45c">.</tspan></text>' +
+      '<rect x="96" y="490" width="560" height="58" rx="29" fill="none" stroke="#efc45c" stroke-width="5"/><path d="M122 520l12 12 22 -25" fill="none" stroke="#efc45c" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><text x="176" y="528" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="23" font-weight="800" letter-spacing="3" fill="#efc45c">' + status + '</text>' +
       '<g>' + ladder + '</g>' +
       '<path d="M96 1395H984" stroke="#2d423c" stroke-width="4"/>' +
-      '<text x="112" y="1470" font-family="Arial,sans-serif" font-size="24" font-weight="800" letter-spacing="4" fill="#7f948d">LEVEL SCORE</text>' +
-      '<text x="112" y="1635" font-family="Arial,sans-serif" font-size="160" font-weight="900" fill="#efc45c">+' + points + '</text>' +
+      '<text x="112" y="1470" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="24" font-weight="800" letter-spacing="4" fill="#7f948d">LEVEL SCORE</text>' +
+      '<text x="112" y="1635" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="160" font-weight="900" fill="#efc45c">+' + points + '</text>' +
       '<path d="M550 1450V1655" stroke="#2d423c" stroke-width="4"/>' +
-      '<text x="610" y="1470" font-family="Arial,sans-serif" font-size="24" font-weight="800" letter-spacing="4" fill="#7f948d">MOVES</text>' +
-      '<text x="610" y="1635" font-family="Arial,sans-serif" font-size="160" font-weight="900" fill="#eef3f0">' + result.movesUsed + '</text>' +
-      '<text x="96" y="1700" font-family="Arial,sans-serif" font-size="27" font-weight="800" fill="#eef3f0">Can you build the ladder?</text>';
+      '<text x="610" y="1470" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="24" font-weight="800" letter-spacing="4" fill="#7f948d">MOVES</text>' +
+      '<text x="610" y="1635" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="160" font-weight="900" fill="#eef3f0">' + result.movesUsed + '</text>' +
+      '<text x="96" y="1700" font-family="Arial Narrow,Roboto Condensed,Arial,sans-serif" font-size="27" font-weight="800" fill="#eef3f0">Can you build the ladder?</text>';
     return cardSvgShell(content);
   }
 
