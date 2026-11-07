@@ -34,7 +34,9 @@ The browser edition is a small, dependency free web app. It runs locally in the 
 5. Reach the target word to complete the level.
 6. Continue to the next level and build your cumulative score.
 
-Invalid entries do not change the chain or consume a move. Use **Challenge a friend** to open your device's native share sheet with a branded puzzle card and a link to the exact puzzle. Choose a messaging or social app, or use the share sheet's copy link action. Anyone opening the link receives the same start and target words and can solve it independently.
+Invalid entries do not change the chain or consume a move. Use **Share challenge** to send a branded 9:16 story card and the exact puzzle URL through your device's native share sheet. Use **Copy challenge link** separately when a destination such as Instagram Stories needs its own Link sticker. Anyone opening the URL receives the same start and target words and can solve it independently.
+
+Browsers can request that autocomplete, autocorrection, spell checking, and writing suggestions be disabled for the game input. The operating system's keyboard toolbar and autofill service remain under device and keyboard control, so a website cannot guarantee that every suggestion strip or toolbar is hidden.
 
 ### Rules at a glance
 
