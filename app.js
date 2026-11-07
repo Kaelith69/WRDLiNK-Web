@@ -543,7 +543,7 @@
     }).join('');
   }
 
-  function cardLadderRows(words, y, reveal) {
+  function cardLadderRows(words, y, reveal, highlightChanges = true) {
     const x = 112;
     const rowHeight = 112;
     const connectorHeight = 24;
@@ -565,7 +565,7 @@
         const connectorY = rowY + rowHeight + 3;
         for (let tileIndex = 0; tileIndex < 4; tileIndex += 1) {
           const cx = x + tileIndex * (112 + 22) + 56;
-          const active = tileIndex === changedNext;
+          const active = highlightChanges && tileIndex === changedNext;
           parts.push('<rect x="' + (cx - (active ? 5 : 3)) + '" y="' + connectorY + '" width="' + (active ? 10 : 6) + '" height="' + connectorHeight + '" rx="4" fill="' + (active ? '#efc45c' : '#2d423c') + '"/>');
         }
       }
@@ -581,7 +581,7 @@
     const content =
       '<text x="96" y="430" font-family="Arial,sans-serif" font-size="154" font-weight="900" letter-spacing="-5" fill="#eef3f0">YOUR MOVE<tspan fill="#74c6b2">.</tspan></text>' +
       '<rect x="96" y="490" width="460" height="58" rx="29" fill="none" stroke="#74c6b2" stroke-width="5"/><circle cx="127" cy="519" r="8" fill="#74c6b2"/><text x="154" y="528" font-family="Arial,sans-serif" font-size="24" font-weight="800" letter-spacing="3" fill="#74c6b2">ONE LETTER PER MOVE</text>' +
-      '<g>' + cardLadderRows([start, '????', target], 650, false) + '</g>' +
+      '<g>' + cardLadderRows([start, '????', target], 650, false, false) + '</g>' +
       '<path d="M96 1260H984" stroke="#2d423c" stroke-width="4"/>' +
       '<text x="112" y="1340" font-family="Arial,sans-serif" font-size="24" font-weight="800" letter-spacing="4" fill="#7f948d">LETTERS APART</text>' +
       '<text x="112" y="1515" font-family="Arial,sans-serif" font-size="170" font-weight="900" fill="#eef3f0">' + apart + '</text>' +
