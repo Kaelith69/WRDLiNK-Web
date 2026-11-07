@@ -1,14 +1,17 @@
 'use strict';
 
 const CACHE_PREFIX = 'wrdlink-shell-';
-const CACHE_NAME = `${CACHE_PREFIX}v2`;
+const CACHE_NAME = `${CACHE_PREFIX}v3`;
 const APP_SHELL = [
   './index.html',
   './styles.css',
   './app.js',
   './dictionary.js',
   './manifest.webmanifest',
-  './assets/wrdlink-icon.svg'
+  './assets/wrdlink-icon.svg',
+  './assets/wrdlink-icon-192.png',
+  './assets/wrdlink-icon-512.png',
+  './assets/wrdlink-icon-180.png'
 ];
 
 const scopedUrl = (path) => new URL(path, self.registration.scope).href;
