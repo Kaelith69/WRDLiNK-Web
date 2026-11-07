@@ -537,7 +537,7 @@
       const x = CARD_X + index * (tileSize + tileGap);
       const shown = hidden ? '' : letter;
       return '<rect x="' + x + '" y="' + (y + 8) + '" width="' + tileSize + '" height="' + tileSize + '" rx="19" fill="#091512" opacity=".45"/>' +
-        '<rect x="' + x + '" y="' + y + '" width="' + CARD_TILE + '" height="' + CARD_TILE + '" rx="19" fill="' + colors.fill + '" stroke="' + colors.edge + '" stroke-width="5"' + (kind === 'ghost' ? ' stroke-dasharray="9 8"' : '') + '/>' +
+        '<rect x="' + x + '" y="' + y + '" width="' + tileSize + '" height="' + tileSize + '" rx="19" fill="' + colors.fill + '" stroke="' + colors.edge + '" stroke-width="5"' + (kind === 'ghost' ? ' stroke-dasharray="9 8"' : '') + '/>' +
         (shown ? '<text x="' + (x + tileSize / 2) + '" y="' + (y + tileSize * .68) + '" text-anchor="middle" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="101" font-weight="800" fill="' + colors.ink + '">' + escapeSvgText(shown) + '</text>' : '');
     }).join('');
     if (!label) return tiles;
@@ -563,7 +563,7 @@
       const x = CARD_X + index * (tileSize + tileGap) + tileSize / 2;
       const changed = changedLetterIndex(first, second) === index;
       if (dotted) {
-        return '<path d="M' + x + ' ' + y + 'v' + CARD_LINK_HEIGHT + '" stroke="#4a655d" stroke-width="6" stroke-dasharray="7 7" stroke-linecap="round"/>';
+        return '<path d="M' + x + ' ' + y + 'v' + linkHeight + '" stroke="#4a655d" stroke-width="6" stroke-dasharray="7 7" stroke-linecap="round"/>';
       }
       return '<rect x="' + (x - (changed ? 5 : 3)) + '" y="' + y + '" width="' + (changed ? 10 : 6) + '" height="' + linkHeight + '" rx="4" fill="' + (changed ? '#efc45c' : '#2d423c') + '"/>';
     }).join('');
