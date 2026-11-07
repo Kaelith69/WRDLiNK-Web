@@ -132,6 +132,7 @@ const challengeSvg = challenge.game.createChallengeSvg();
 assert.match(challengeSvg, /width="1080" height="1920" viewBox="0 0 1080 1920"/);
 assert.match(challengeSvg, /stroke-width="12" stroke-dasharray="14 11" stroke-linecap="butt"/);
 assert.match(challengeSvg, /font-size="238"/);
+assert.match(challengeSvg, /stroke-width="12" stroke-dasharray="14 11" stroke-linecap="butt"/);
 assert.match(challengeSvg, /LETTERS APART/);
 assert.match(challengeSvg, /MOVES NEEDED/);
 assert.match(challengeSvg, /width="465" height="77"/);
@@ -186,7 +187,6 @@ async function testInteractions() {
   assert.match(resultSvg, /SHORTEST ROUTE FOUND/);
   assert.match(resultSvg, /font-size="238"/);
   assert.match(resultSvg, /x="639" y="[^"]+" width="43" height="4"/);
-  assert.match(resultSvg, /stroke-width="12" stroke-dasharray="14 11" stroke-linecap="butt"/);
   const resultLayout = challenge.game.cardLayout(5, 112, 34);
   assert(resultLayout.statsY >= resultLayout.ladderY + resultLayout.ladderHeight, 'result statistics never overlap the ladder');
   assert(resultLayout.footerY >= resultLayout.statsY + 259, 'result footer never overlaps the statistics');
