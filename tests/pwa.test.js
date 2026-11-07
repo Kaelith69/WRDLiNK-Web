@@ -56,5 +56,8 @@ assert(game.includes('const shareRequest = navigator.share(shareData)'));
 assert(game.includes('window.setTimeout(() => URL.revokeObjectURL(url), 60000)'));
 assert(game.includes('prepareResultCard(result)'));
 assert(html.includes('id="share-status"'));
+assert(html.includes('id="download-result-button"'));
+assert(game.includes('elements.downloadResultButton.addEventListener'));
+assert(game.includes('Native sharing was unavailable. Use Download PNG instead.'));
 
 console.log('WRDLINK PWA metadata and deployment checks passed.');
