@@ -121,5 +121,6 @@ assert(game.includes('elements.copyChallengeButton.addEventListener'));
 assert(game.includes('Can you solve this WRDLINK word ladder?'));
 assert(game.includes('elements.input.focus({ preventScroll: true })'));
 assert(styles.includes(':root.keyboard-open .entry-panel .send-button'));
+assert(styles.includes(':root.keyboard-open .entry-actions { display: none; }'));
 
 console.log('WRDLINK PWA metadata and deployment checks passed.');
