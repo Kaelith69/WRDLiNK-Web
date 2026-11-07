@@ -39,6 +39,8 @@
   let resultPreparationId = 0;
   let resultPreparationPending = false;
   let keyboardFocusViewportHeight = null;
+  let challengeCardFile = null;
+  let challengeCardPreparationId = 0;
 
   // Theme choice is independent from game progress and persists per browser.
   function applyTheme(theme) {
@@ -254,7 +256,7 @@
     elements.submit.disabled = value || state.completed || elements.input.value.length !== WORD_LENGTH;
     elements.newGameButton.disabled = value;
     elements.nextButton.disabled = value;
-    elements.shareChallengeButton.disabled = value || state.completed;
+    elements.shareChallengeButton.disabled = value;
     elements.shareResultButton.disabled = value || !state.completed || !preparedResultFile;
     elements.downloadResultButton.disabled = value || !state.completed || !preparedResultFile;
   }
@@ -274,6 +276,8 @@
     elements.shareResultButton.disabled = true;
     elements.downloadResultButton.disabled = true;
     elements.shareStatus.textContent = '';
+    challengeCardFile = null;
+    prepareChallengeCard();
     setBusy(false);
   }
 
@@ -492,9 +496,53 @@
     return url.href;
   }
 
-  async function shareChallenge() {
+  function createChallengeSvg() {
+    const start = state.puzzle.start;
+    const target = state.puzzle.target;
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350"><rect width="1080" height="1350" fill="#172322"/><rect x="64" y="64" width="952" height="1222" rx="42" fill="#263936" stroke="#0b1715" stroke-width="12"/><rect x="112" y="118" width="78" height="78" rx="19" fill="#e8ad45"/><text x="151" y="174" text-anchor="middle" font-family="Arial" font-size="54" font-weight="900" fill="#33230b">W</text><text x="218" y="171" font-family="Arial" font-size="42" font-weight="900" fill="#f3f0e8">WRDLINK</text><text x="112" y="420" font-family="Arial" font-size="76" font-weight="900" fill="#f3f0e8">CAN YOU SOLVE IT?</text><text x="112" y="610" font-family="Arial" font-size="25" font-weight="800" fill="#aabbb1">START WORD</text><text x="592" y="610" font-family="Arial" font-size="25" font-weight="800" fill="#aabbb1">TARGET WORD</text><rect x="112" y="680" width="390" height="142" rx="24" fill="#42a99a"/><rect x="578" y="680" width="390" height="142" rx="24" fill="#f0bd5c"/><text x="307" y="775" text-anchor="middle" font-family="Arial" font-size="76" font-weight="900" fill="#102321">' + start + '</text><text x="773" y="775" text-anchor="middle" font-family="Arial" font-size="76" font-weight="900" fill="#2c210d">' + target + '</text><text x="112" y="1010" font-family="Arial" font-size="35" font-weight="800" fill="#f3f0e8">Change one letter per move.</text><text x="112" y="1090" font-family="Arial" font-size="28" font-weight="700" fill="#aabbb1">Your turn. Build the ladder.</text><text x="112" y="1200" font-family="Arial" font-size="24" font-weight="800" fill="#d5a34d">OPEN WRDLINK AND TAKE THE CHALLENGE</text></svg>';
+  }
+
+  async function prepareChallengeCard() {
+    const id = ++challengeCardPreparationId;
+    challengeCardFile = null;
+    let imageUrl = null;
     try {
-      const link = challengeUrl();
+      const image = new Image();
+      imageUrl = URL.createObjectURL(new Blob([createChallengeSvg()], { type: 'image/svg+xml' }));
+      image.src = imageUrl;
+      await image.decode();
+      const canvas = document.createElement('canvas');
+      canvas.width = 1080;
+      canvas.height = 1350;
+      const context = canvas.getContext('2d');
+      if (!context) throw new Error('Canvas is unavailable.');
+      context.drawImage(image, 0, 0);
+      const png = await new Promise((resolve, reject) => {
+        canvas.toBlob((value) => value ? resolve(value) : reject(new Error('PNG export failed.')), 'image/png');
+      });
+      if (id === challengeCardPreparationId && state.puzzle && !state.completed) {
+        challengeCardFile = new File([png], 'wrdlink-challenge.png', { type: 'image/png' });
+      }
+    } catch (error) {
+      console.warn('Challenge card could not be prepared.', error);
+    } finally {
+      if (imageUrl) URL.revokeObjectURL(imageUrl);
+    }
+  }
+
+  async function shareChallenge() {
+    const link = challengeUrl();
+    const text = 'Can you solve this WRDLINK word ladder? ' + state.puzzle.start + ' to ' + state.puzzle.target;
+    try {
+      if (navigator.share) {
+        const data = challengeCardFile && navigator.canShare?.({ files: [challengeCardFile] })
+          ? { files: [challengeCardFile], title: 'WRDLINK challenge', text: text + ' ' + link, url: link }
+          : { title: 'WRDLINK challenge', text, url: link };
+        const request = navigator.share(data);
+        await request;
+        setMessage('Challenge shared. Your friend can open the same puzzle.');
+        return;
+      }
       if (navigator.clipboard?.writeText && window.isSecureContext) {
         await navigator.clipboard.writeText(link);
       } else {
@@ -514,7 +562,8 @@
       }
       setMessage('Challenge link copied. Send it to a friend and see if they can solve it.');
     } catch (error) {
-      setMessage('Could not copy the challenge link. Check clipboard permissions and try again.', 'error');
+      if (error.name === 'AbortError') return;
+      setMessage('Could not open sharing or copy the challenge link. Check browser permissions and try again.', 'error');
     }
   }
 
@@ -637,6 +686,9 @@
     const clean = elements.input.value.replace(/[^a-z]/gi, '').toUpperCase().slice(0, WORD_LENGTH);
     if (elements.input.value !== clean) elements.input.value = clean;
     elements.submit.disabled = busy || state.completed || clean.length !== WORD_LENGTH;
+  });
+  elements.submit.addEventListener('pointerdown', (event) => {
+    if (event.pointerType === 'touch' || event.pointerType === 'pen') event.preventDefault();
   });
   elements.form.addEventListener('submit', submitMove);
   elements.newGameButton.addEventListener('click', () => startPuzzle({ resetScore: true }));
