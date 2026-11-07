@@ -16,19 +16,20 @@ assert.match(html, /navigator\.serviceWorker\.register\('\.\/sw\.js'/);
 assert.match(html, /assets\/wrdlink-icon\.svg/);
 assert.equal(manifest.name, 'WRDLINK | Word Ladder');
 assert.equal(manifest.short_name, 'WRDLINK');
-assert.equal(manifest.start_url, './');
+assert.equal(manifest.start_url, './?source=pwa');
 assert.equal(manifest.scope, './');
 assert.equal(manifest.display, 'standalone');
-for (const size of ['192x192', '512x512']) {
+for (const [size, filename] of [['192x192', 'wrdlink-icon-192.png'], ['512x512', 'wrdlink-icon-512.png']]) {
   assert(manifest.icons.some((icon) =>
-    icon.src === './assets/wrdlink-icon.svg' &&
-    icon.type === 'image/svg+xml' &&
+    icon.src === './assets/' + filename &&
+    icon.type === 'image/png' &&
     icon.sizes === size &&
     icon.purpose === 'any'
-  ), `manifest declares a ${size} app icon`);
+  ), 'manifest declares a ' + size + ' PNG app icon');
 }
+assert(manifest.icons.some((icon) => icon.src === './assets/wrdlink-icon.svg' && icon.sizes === 'any'));
 assert.match(read('assets/wrdlink-icon.svg'), /<svg[^>]+viewBox="0 0 512 512"/);
-for (const asset of ['./index.html', './styles.css', './app.js', './dictionary.js', './manifest.webmanifest', './assets/wrdlink-icon.svg']) {
+for (const asset of ['./index.html', './styles.css', './app.js', './dictionary.js', './manifest.webmanifest', './assets/wrdlink-icon.svg', './assets/wrdlink-icon-192.png', './assets/wrdlink-icon-512.png', './assets/wrdlink-icon-180.png']) {
   assert(worker.includes(asset), `service worker app shell includes ${asset}`);
 }
 assert.match(worker, /const CACHE_PREFIX = 'wrdlink-shell-'/);
