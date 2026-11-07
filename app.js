@@ -18,7 +18,7 @@
     scoreLabel: $('score-label'), movesLabel: $('moves-label'), levelLabel: $('level-label'),
     form: $('move-form'), input: $('word-entry'), submit: $('submit-button'),
     message: $('message'), entryPanel: $('entry-panel'), finishPanel: $('finish-panel'),
-    finishTitle: $('finish-title'), finishDescription: $('finish-description'),
+    finishTitle: $('finish-title'), finishDescription: $('finish-description'), shareStatus: $('share-status'),
     nextButton: $('next-button'), newGameButton: $('new-game-button'), retryButton: $('retry-button'), themeToggle: $('theme-toggle'), shareChallengeButton: $('share-challenge-button'), shareResultButton: $('share-result-button')
   };
 
