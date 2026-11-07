@@ -18,6 +18,7 @@ function makeElement() {
     className: '',
     children: [],
     style: {},
+    focusCalls: 0,
     classList: { add() {}, remove() {}, toggle() {} },
     addEventListener() {},
     setAttribute(name, value) { attributes.set(name, String(value)); },
@@ -26,7 +27,7 @@ function makeElement() {
     prepend(...items) { this.children.unshift(...items); },
     replaceChildren(...items) { this.children = [...items]; },
     querySelector() { return null; },
-    focus() {},
+    focus() { this.focusCalls += 1; },
     select() {},
     scrollIntoView() {},
     remove() {},
@@ -34,7 +35,7 @@ function makeElement() {
   };
 }
 
-function loadGame({ includeDictionary = true } = {}) {
+function loadGame({ includeDictionary = true, search = '' } = {}) {
   const elements = new Map();
   const document = {
     documentElement: { dataset: { theme: 'light' } },
@@ -57,10 +58,11 @@ function loadGame({ includeDictionary = true } = {}) {
   };
   const window = {
     addEventListener() {},
+    location: { search, href: 'https://example.test/WRDLiNK-Web/' },
     requestAnimationFrame(callback) { callback(); }
   };
   const context = vm.createContext({
-    window, document, localStorage,
+    window, document, localStorage, URLSearchParams,
     crypto: { randomUUID: () => 'test-session' },
     structuredClone: (value) => JSON.parse(JSON.stringify(value)),
     console: { warn() {}, error() {}, log() {} }
@@ -90,10 +92,20 @@ assert.equal(game.differsByOneLetter('COLD', 'CORD'), true);
 assert.equal(game.differsByOneLetter('CORD', 'CARD'), true);
 assert.equal(game.differsByOneLetter('COLD', 'WARM'), false);
 assert.equal(game.differsByOneLetter('COLD', 'COL'), false);
-assert.equal(game.calculatePoints(0), 50);
-assert.equal(game.calculatePoints(1), 49);
-assert.equal(game.calculatePoints(50), 0);
+assert.equal(game.calculatePoints(0), 25);
+assert.equal(game.calculatePoints(1), 24);
+assert.equal(game.calculatePoints(25), 0);
 assert.equal(game.calculatePoints(80), 0);
+assert.equal(game.calculatePoints(0), 25, 'each completed level starts at 25 points');
+assert.equal(game.calculatePoints(5), 20, 'each valid move deducts one point');
+
+assert.equal(elements.get('word-entry').focusCalls, 0, 'initial rendering never opens the mobile keyboard');
+
+const challenge = loadGame({ search: '?challenge=COLD-WARM' });
+assert.equal(challenge.game.getState().puzzle.start, 'COLD');
+assert.equal(challenge.game.getState().puzzle.target, 'WARM');
+assert.equal(challenge.game.getState().chain[0], 'COLD');
+assert.equal(challenge.game.getState().score, 0);
 
 const puzzle = {
   id: 'test-puzzle', title: 'Test puzzle', start: 'COLD', target: 'WARM',
