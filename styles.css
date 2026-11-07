@@ -365,3 +365,13 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
   }
   :root.keyboard-open .game-footer { display: none; }
 }
+
+/* Prevent the help text and action buttons from overflowing narrow screens. */
+.entry-meta { flex-wrap: wrap; }
+.entry-meta > p { flex: 1 1 100%; max-width: none; }
+.entry-actions { display: flex; width: 100%; flex-wrap: wrap; gap: 8px; }
+.entry-actions .secondary-button { flex: 1 1 125px; }
+@media (max-width: 370px) {
+  .entry-meta { gap: 8px; }
+  .entry-actions .secondary-button { flex: 1 1 100%; }
+}
