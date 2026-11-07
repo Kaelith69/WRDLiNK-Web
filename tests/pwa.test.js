@@ -33,12 +33,12 @@ for (const asset of ['./index.html', './styles.css', './app.js', './dictionary.j
   assert(worker.includes(asset), `service worker app shell includes ${asset}`);
 }
 assert.match(worker, /const CACHE_PREFIX = 'wrdlink-shell-'/);
-assert.match(worker, /const CACHE_NAME = `\$\{CACHE_PREFIX\}v2`/);
+assert.match(worker, /const CACHE_NAME = `\$\{CACHE_PREFIX\}v3`/);
 assert.match(worker, /request\.mode === 'navigate'/);
 assert.match(worker, /self\.clients\.claim\(\)/);
 assert.match(deploy, /manifest\.webmanifest sw\.js/);
 assert.match(deploy, /assets\/wrdlink-icon\.svg/);
-assert.match(read('README.md'), /## Install the app/);
+assert.match(html, /rel=\"apple-touch-icon\" href=\"\\.\\/assets\\/wrdlink-icon-180\\.png\"/);\nassert(deploy.includes('rsvg-convert --width 192 --height 192'));\nassert(deploy.includes('rsvg-convert --width 512 --height 512'));\nassert(deploy.includes('rsvg-convert --width 180 --height 180'));\nassert.match(read('README.md'), /## Install the app/);
 assert.match(read('README.md'), /assets\/readme-banner\.svg/);
 assert.match(read('LICENSE'), /MIT License/);
 
