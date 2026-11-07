@@ -94,3 +94,17 @@ This is the independent browser edition of WRDLINK. It does not require Reddit, 
 ## License
 
 No open source license has been assigned yet. Unless a license is added, the source remains under its default copyright. You may view and fork the repository through GitHub, but the usual open source reuse permissions are not automatically granted.
+
+## Deploy with GitHub Pages
+
+WRDLINK is a static site and does not need a build step. The GitHub Actions workflow in `.github/workflows/deploy-pages.yml` publishes the game files from the repository root whenever a commit is pushed to `main`.
+
+To enable the first deployment:
+
+1. Open the repository's **Settings → Pages**.
+2. Under **Build and deployment**, select **GitHub Actions** as the source if it is not already selected.
+3. Open the **Actions** tab and wait for the **Deploy to GitHub Pages** workflow to finish successfully.
+4. Open the published URL shown in the deployment job or in **Settings → Pages**.
+
+The deployment contains only the runtime files: `index.html`, `styles.css`, `app.js`, and `dictionary.js`. Tests, documentation, and development files are not published. Later pushes to `main` deploy automatically. A manual deployment can also be started with **Actions → Deploy to GitHub Pages → Run workflow**.
+
