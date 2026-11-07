@@ -81,7 +81,7 @@ assert(game.includes('LEVEL SCORE'));
 assert(game.includes('function cardLadderRows(words, y, reveal, highlightChanges = true)'));
 assert(game.includes('function changedLetterIndex(first, second)'));
 assert(game.includes('const changed = index > 0 ? changedLetterIndex(words[index - 1], word) : -1'));
-assert(game.includes('const active = highlightChanges && tileIndex === changedNext'));
+assert(game.includes('const active = highlightChanges && changedNext >= 0 && tileIndex === changedNext'));
 assert(game.includes('const apart = [...start].filter((letter, index) => letter !== target[index]).length'));
 assert(game.includes('const shortest = result.movesUsed === state.puzzle.optimalMoves'));
 assert(game.includes('const ladder = cardLadderRows(visibleWords, 625, false)'));
