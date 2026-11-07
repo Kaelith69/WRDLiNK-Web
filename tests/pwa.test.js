@@ -36,7 +36,7 @@ for (const asset of ['./index.html', './styles.css', './app.js', './dictionary.j
   assert(worker.includes(asset), 'service worker app shell includes ' + asset);
 }
 assert(worker.includes("const CACHE_PREFIX = 'wrdlink-shell-'"));
-assert(worker.includes('const CACHE_NAME = `' + '${CACHE_PREFIX}' + 'v7`'));
+assert(worker.includes('const CACHE_NAME = `' + '${CACHE_PREFIX}' + 'v8`'));
 assert(worker.includes("request.mode === 'navigate'"));
 assert(worker.includes('self.clients.claim()'));
 assert(deploy.includes('manifest.webmanifest sw.js'));
@@ -79,6 +79,8 @@ assert(game.includes('CONNECTED'));
 assert(game.includes('SHORTEST ROUTE FOUND'));
 assert(game.includes('LEVEL SCORE'));
 assert(game.includes('function cardLadderRows(words, y, reveal, highlightChanges = true)'));
+assert(game.includes('function changedLetterIndex(first, second)'));
+assert(game.includes('const changed = index > 0 ? changedLetterIndex(words[index - 1], word) : -1'));
 assert(game.includes('const active = highlightChanges && tileIndex === changedNext'));
 assert(game.includes('const apart = [...start].filter((letter, index) => letter !== target[index]).length'));
 assert(game.includes('const shortest = result.movesUsed === state.puzzle.optimalMoves'));
