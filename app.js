@@ -32,6 +32,7 @@
     completed: false
   };
   let busy = false;
+  let externalProgressChanged = false;
 
   // Theme choice is independent from game progress and persists per browser.
   function applyTheme(theme) {
@@ -237,6 +238,7 @@
     elements.message.className = `game-message${type === 'error' ? ' error' : ''}`;
     elements.message.hidden = !message;
     elements.message.setAttribute('role', type === 'error' ? 'alert' : 'status');
+    elements.message.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
   }
 
   function setBusy(value) {
@@ -265,6 +267,7 @@
     elements.game.hidden = true;
     elements.errorPanel.hidden = false;
     elements.errorMessage.textContent = message;
+    elements.retryButton.focus({ preventScroll: true });
   }
 
   function hideError() {
@@ -272,6 +275,8 @@
   }
 
   function saveProgress() {
+    // Never overwrite a newer snapshot written by another open tab.
+    if (externalProgressChanged) return;
     const snapshot = {
       version: 1,
       score: state.score,
@@ -486,6 +491,7 @@
   // the active in-memory game; explain the conflict and let the player reload.
   window.addEventListener('storage', (event) => {
     if (event.key === PROGRESS_KEY && event.newValue !== event.oldValue) {
+      externalProgressChanged = true;
       setMessage('Game progress changed in another tab. Reload this page to use the latest saved game.', 'error');
     }
   });
