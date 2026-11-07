@@ -502,8 +502,8 @@
     const target = state.puzzle.target;
     const link = challengeUrl().replace(/^https?:\\/\\//, '');
     const tileRow = (word, x, fill, ink) => [...word].map((letter, index) => {
-      const left = x + index * 112;
-      return '<rect x="' + left + '" y="0" width="96" height="112" rx="18" fill="#091513" opacity=".72" transform="translate(0 8)"/><rect x="' + left + '" y="0" width="96" height="108" rx="18" fill="' + fill + '" stroke="#0b1715" stroke-width="8"/><text x="' + (left + 48) + '" y="73" text-anchor="middle" font-family="Arial, sans-serif" font-size="68" font-weight="900" fill="' + ink + '">' + letter + '</text>';
+      const left = x + index * 78;
+      return '<rect x="' + left + '" y="0" width="68" height="96" rx="14" fill="#091513" opacity=".72" transform="translate(0 7)"/><rect x="' + left + '" y="0" width="68" height="90" rx="14" fill="' + fill + '" stroke="#0b1715" stroke-width="7"/><text x="' + (left + 34) + '" y="62" text-anchor="middle" font-family="Arial, sans-serif" font-size="54" font-weight="900" fill="' + ink + '">' + letter + '</text>;
     }).join('');
     return '<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920">' +
       '<defs><linearGradient id="back" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#14211f"/><stop offset=".55" stop-color="#1b2d29"/><stop offset="1" stop-color="#101b19"/></linearGradient><pattern id="dots" width="42" height="42" patternUnits="userSpaceOnUse"><circle cx="4" cy="4" r="3" fill="#a8c0b2" opacity=".14"/></pattern><linearGradient id="panel" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#2a3d38"/><stop offset="1" stop-color="#20312d"/></linearGradient></defs>' +
