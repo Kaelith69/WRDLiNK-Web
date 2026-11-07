@@ -33,6 +33,7 @@
   };
   let busy = false;
   let externalProgressChanged = false;
+  let challengeSession = false;
 
   // Theme choice is independent from game progress and persists per browser.
   function applyTheme(theme) {
@@ -274,6 +275,8 @@
   }
 
   function saveProgress() {
+    // Friend challenges are isolated from the player's saved campaign.
+    if (challengeSession) return;
     // Never overwrite a newer snapshot written by another open tab.
     if (externalProgressChanged) return;
     const snapshot = {
@@ -359,6 +362,7 @@
       try {
         const puzzle = createRandomPuzzle();
         if (resetScore) {
+          challengeSession = false;
           state.score = 0;
           state.level = 1;
         } else if (nextLevel) {
@@ -366,6 +370,11 @@
         }
         state.puzzle = puzzle;
         state.chain = [puzzle.start];
+        if (challengeSession) {
+          const sharedUrl = new URL(window.location.href);
+          sharedUrl.searchParams.set('challenge', puzzle.start + '-' + puzzle.target);
+          window.history?.replaceState?.({}, '', sharedUrl.pathname + sharedUrl.search + sharedUrl.hash);
+        }
         state.completed = false;
         saveProgress();
         renderPuzzle();
@@ -483,15 +492,12 @@
     if (!WORD_SET.has(start) || !WORD_SET.has(target) || start === target) return false;
     const optimalMoves = shortestDistance(start, target);
     if (!Number.isInteger(optimalMoves) || optimalMoves < 1) return false;
+    challengeSession = true;
     state = {
       score: 0, level: 1,
       puzzle: { id: 'challenge-' + start + '-' + target, title: 'Friend challenge', start, target, wordLength: WORD_LENGTH, optimalMoves },
       chain: [start], completed: false
     };
-    saveProgress();
-    const cleanUrl = new URL(window.location.href);
-    cleanUrl.searchParams.delete('challenge');
-    window.history?.replaceState?.({}, '', cleanUrl.pathname + cleanUrl.search + cleanUrl.hash);
     return true;
   }
 
