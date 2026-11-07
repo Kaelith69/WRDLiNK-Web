@@ -40,6 +40,7 @@
   let resultPreparationPending = false;
   let keyboardFocusViewportHeight = null;
   let challengeCardFile = null;
+  let challengeCardPending = false;
   let challengeCardPreparationId = 0;
 
   // Theme choice is independent from game progress and persists per browser.
@@ -256,7 +257,7 @@
     elements.submit.disabled = value || state.completed || elements.input.value.length !== WORD_LENGTH;
     elements.newGameButton.disabled = value;
     elements.nextButton.disabled = value;
-    elements.shareChallengeButton.disabled = value;
+    elements.shareChallengeButton.disabled = value || challengeCardPending;
     elements.shareResultButton.disabled = value || !state.completed || !preparedResultFile;
     elements.downloadResultButton.disabled = value || !state.completed || !preparedResultFile;
   }
@@ -504,6 +505,7 @@
 
   async function prepareChallengeCard() {
     const id = ++challengeCardPreparationId;
+    challengeCardPending = true;
     challengeCardFile = null;
     let imageUrl = null;
     try {
@@ -527,6 +529,10 @@
       console.warn('Challenge card could not be prepared.', error);
     } finally {
       if (imageUrl) URL.revokeObjectURL(imageUrl);
+      if (id === challengeCardPreparationId) {
+        challengeCardPending = false;
+        elements.shareChallengeButton.disabled = busy;
+      }
     }
   }
 
