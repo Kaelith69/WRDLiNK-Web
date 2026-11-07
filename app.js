@@ -38,6 +38,7 @@
   let preparedResultFile = null;
   let resultPreparationId = 0;
   let resultPreparationPending = false;
+  let keyboardFocusViewportHeight = null;
 
   // Theme choice is independent from game progress and persists per browser.
   function applyTheme(theme) {
@@ -463,6 +464,7 @@
     if (!result.valid) {
       setMessage(result.message, 'error');
       // Rejected moves never alter the chain or consume a move.
+      elements.input.focus({ preventScroll: true });
       elements.input.select();
       setBusy(false);
       return;
@@ -475,6 +477,7 @@
       completePuzzle(result);
     } else {
       setMessage(result.message);
+      elements.input.focus({ preventScroll: true });
       saveProgress();
       setBusy(false);
       // Do not force focus here. Enter keeps the input active naturally,
@@ -698,21 +701,30 @@
     }
   });
 
-  function updateKeyboardLayout() {
+  function updateKeyboardLayout(forceCompact = false) {
     const viewport = window.visualViewport;
-    if (!viewport) return;
-    document.documentElement.style.setProperty('--visual-viewport-height', Math.round(viewport.height) + 'px');
+    if (viewport) {
+      document.documentElement.style.setProperty('--visual-viewport-height', Math.round(viewport.height) + 'px');
+    }
     const mobile = window.matchMedia?.('(max-width: 620px)').matches ?? window.innerWidth <= 620;
-    document.documentElement.classList.toggle('keyboard-open', Boolean(mobile && document.activeElement === elements.input));
+    const focused = document.activeElement === elements.input;
+    const viewportHeight = viewport?.height ?? window.innerHeight;
+    const keyboardVisible = keyboardFocusViewportHeight !== null &&
+      keyboardFocusViewportHeight - viewportHeight > 120;
+    const compact = mobile && focused && (forceCompact || keyboardVisible);
+    document.documentElement.classList.toggle('keyboard-open', Boolean(compact));
   }
-  window.visualViewport?.addEventListener('resize', updateKeyboardLayout);
-  window.visualViewport?.addEventListener('scroll', updateKeyboardLayout);
-  window.addEventListener('resize', updateKeyboardLayout);
+  window.visualViewport?.addEventListener('resize', () => updateKeyboardLayout());
+  window.visualViewport?.addEventListener('scroll', () => updateKeyboardLayout());
+  window.addEventListener('resize', () => updateKeyboardLayout());
   elements.input.addEventListener('focus', () => {
-    document.documentElement.classList.toggle('keyboard-open', window.matchMedia?.('(max-width: 620px)').matches ?? window.innerWidth <= 620);
-    updateKeyboardLayout();
+    keyboardFocusViewportHeight = window.visualViewport?.height ?? window.innerHeight;
+    updateKeyboardLayout(true);
   });
-  elements.input.addEventListener('blur', () => document.documentElement.classList.remove('keyboard-open'));
+  elements.input.addEventListener('blur', () => {
+    keyboardFocusViewportHeight = null;
+    document.documentElement.classList.remove('keyboard-open');
+  });
 
   initialize();
 })();
