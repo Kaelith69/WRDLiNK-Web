@@ -475,6 +475,9 @@
       chain: [start], completed: false
     };
     saveProgress();
+    const cleanUrl = new URL(window.location.href);
+    cleanUrl.searchParams.delete('challenge');
+    window.history?.replaceState?.({}, '', cleanUrl.pathname + cleanUrl.search + cleanUrl.hash);
     return true;
   }
 
