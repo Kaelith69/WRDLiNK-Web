@@ -460,6 +460,7 @@
   }
 
   function loadChallengeFromUrl() {
+    if (!window.location?.search) return false;
     const value = new URLSearchParams(window.location.search).get('challenge');
     const match = value && /^([A-Z]{4})-([A-Z]{4})$/i.exec(value);
     if (!match) return false;
@@ -484,19 +485,30 @@
     const start = state.puzzle.start;
     const target = state.puzzle.target;
     const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350"><defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#172322"/><stop offset="1" stop-color="#30443e"/></linearGradient></defs><rect width="1080" height="1350" fill="url(#bg)"/><rect x="64" y="64" width="952" height="1222" rx="42" fill="#263936" stroke="#0b1715" stroke-width="12"/><rect x="112" y="118" width="78" height="78" rx="19" fill="#e8ad45"/><text x="151" y="174" text-anchor="middle" font-family="Arial" font-size="54" font-weight="900" fill="#33230b">W</text><text x="218" y="171" font-family="Arial" font-size="42" font-weight="900" fill="#f3f0e8">WRDLINK</text><text x="116" y="282" font-family="Arial" font-size="22" font-weight="800" letter-spacing="5" fill="#aabbb1">WORD LADDER</text><text x="112" y="405" font-family="Arial" font-size="78" font-weight="900" fill="#f3f0e8">CONNECTED.</text><text x="116" y="490" font-family="Arial" font-size="24" font-weight="800" fill="#aabbb1">START</text><text x="592" y="490" font-family="Arial" font-size="24" font-weight="800" fill="#aabbb1">TARGET</text><text x="116" y="610" font-family="Arial" font-size="64" font-weight="900" fill="#52b6a6">' + start + '</text><text x="592" y="610" font-family="Arial" font-size="64" font-weight="900" fill="#e8ad45">' + target + '</text><text x="116" y="724" font-family="Arial" font-size="22" font-weight="800" fill="#aabbb1">MOVES</text><text x="560" y="724" font-family="Arial" font-size="22" font-weight="800" fill="#aabbb1">LEVEL SCORE</text><text x="116" y="832" font-family="Arial" font-size="92" font-weight="900" fill="#f3f0e8">' + result.movesUsed + '</text><text x="560" y="832" font-family="Arial" font-size="92" font-weight="900" fill="#f3f0e8">+' + points + '</text><text x="116" y="930" font-family="Arial" font-size="24" font-weight="800" fill="#d5a34d">' + (result.movesUsed === state.puzzle.optimalMoves ? 'SHORTEST ROUTE FOUND' : 'PUZZLE SOLVED') + '</text><path d="M116 1000H964" stroke="#aabbb1" stroke-opacity=".35" stroke-width="2"/><text x="116" y="1070" font-family="Arial" font-size="30" font-weight="800" fill="#f3f0e8">Can you build the ladder?</text><text x="116" y="1190" font-family="Arial" font-size="22" font-weight="800" fill="#d5a34d">KAELITH69.GITHUB.IO/WRDLINK-WEB</text></svg>';
-    const blob = new Blob([svg], { type: 'image/svg+xml' });
-    const file = new File([blob], 'wrdlink-result.svg', { type: 'image/svg+xml' });
     try {
+      const svgBlob = new Blob([svg], { type: 'image/svg+xml' });
+      const image = new Image();
+      const imageUrl = URL.createObjectURL(svgBlob);
+      image.src = imageUrl;
+      await image.decode();
+      const canvas = document.createElement('canvas');
+      canvas.width = 1080;
+      canvas.height = 1350;
+      const context = canvas.getContext('2d');
+      context.drawImage(image, 0, 0);
+      URL.revokeObjectURL(imageUrl);
+      const blob = await new Promise((resolve, reject) => canvas.toBlob((value) => value ? resolve(value) : reject(new Error('PNG export failed.')), 'image/png'));
+      const file = new File([blob], 'wrdlink-result.png', { type: 'image/png' });
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
         await navigator.share({ files: [file], title: 'My WRDLINK result', text: 'I solved ' + start + ' to ' + target + ' in ' + result.movesUsed + ' moves.' });
       } else {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = 'wrdlink-result.svg';
+        link.download = 'wrdlink-result.png';
         link.click();
         URL.revokeObjectURL(url);
-        setMessage('Your result card was downloaded. Share it from your gallery.');
+        setMessage('Your result card was downloaded. Share the PNG from your gallery.');
       }
     } catch (error) {
       if (error.name !== 'AbortError') setMessage('Could not create the result card on this device.', 'error');
