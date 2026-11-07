@@ -14,7 +14,7 @@
   const elements = {
     loading: $('loading'), game: $('game'), errorPanel: $('error-panel'),
     errorMessage: $('error-message'), startWord: $('start-word'), targetWord: $('target-word'),
-    chainList: $('chain-list'), chainMoveCount: $('chain-move-count'),
+    chainList: $('chain-list'),
     scoreLabel: $('score-label'), movesLabel: $('moves-label'), levelLabel: $('level-label'),
     form: $('move-form'), input: $('word-entry'), submit: $('submit-button'),
     message: $('message'), entryPanel: $('entry-panel'), finishPanel: $('finish-panel'),
@@ -221,16 +221,15 @@
       elements.chainList.append(item);
     });
     const moves = state.chain.length - 1;
-    elements.chainMoveCount.textContent = `${moves} ${moves === 1 ? 'move' : 'moves'}`;
-    elements.movesLabel.textContent = `${moves} ${moves === 1 ? 'move' : 'moves'}`;
+    elements.movesLabel.textContent = String(moves);
     // Keep the newest move visible without allowing a long ladder to push
     // the entry controls indefinitely down the page.
     elements.chainList.lastElementChild?.scrollIntoView?.({ block: 'nearest' });
   }
 
   function renderHeader() {
-    elements.levelLabel.textContent = `Lv ${state.level}`;
-    elements.scoreLabel.textContent = `${state.score} pts`;
+    elements.levelLabel.textContent = `LEVEL ${state.level}`;
+    elements.scoreLabel.textContent = String(state.score);
   }
 
   function setMessage(message, type = 'info') {
@@ -379,32 +378,36 @@
     });
   }
 
+  function renderCompletion(result) {
+    const points = calculatePoints(result.movesUsed);
+    elements.entryPanel.hidden = true;
+    elements.finishPanel.hidden = false;
+    elements.finishTitle.textContent = 'Connected!';
+    elements.finishDescription.textContent = `${state.puzzle.target} reached in ${result.movesUsed} moves. ${result.message}`;
+    elements.nextButton.textContent = `Next level · ${state.level + 1} →`;
+
+    const banner = document.createElement('div');
+    banner.className = 'completion-banner';
+    const score = document.createElement('strong');
+    score.textContent = `+${points} points`;
+    banner.append(score);
+    elements.finishPanel.querySelector('.completion-banner')?.remove();
+    elements.finishPanel.prepend(banner);
+
+    elements.finishTitle.setAttribute('tabindex', '-1');
+    elements.finishTitle.focus({ preventScroll: true });
+  }
+
   function completePuzzle(result) {
     // Defensive guard: a completion can award points only once per puzzle.
     if (state.completed) return;
-    const points = calculatePoints(result.movesUsed);
-    state.score += points;
+    state.score += calculatePoints(result.movesUsed);
     state.completed = true;
     renderChain();
     renderHeader();
-    elements.entryPanel.hidden = true;
-    elements.finishPanel.hidden = false;
-    elements.finishTitle.textContent = 'Complete';
-    elements.finishDescription.textContent = `${state.puzzle.target} reached in ${result.movesUsed} moves. ${result.message} +${points} points. Your score is ${state.score}.`;
-    elements.nextButton.textContent = `Next level · ${state.level + 1} →`;
-    const banner = document.createElement('div');
-    banner.className = 'completion-banner';
-    const label = document.createElement('span');
-    label.textContent = `Level ${state.level} complete`;
-    const score = document.createElement('strong');
-    score.textContent = `+${points} points`;
-    banner.append(label, score);
-    elements.finishPanel.querySelector('.completion-banner')?.remove();
-    elements.finishPanel.prepend(banner);
+    renderCompletion(result);
     saveProgress();
     setBusy(false);
-    elements.finishTitle.setAttribute('tabindex', '-1');
-    elements.finishTitle.focus({ preventScroll: true });
   }
 
   function submitMove(event) {
@@ -476,13 +479,7 @@
       elements.game.hidden = false;
       renderPuzzle();
       if (state.completed) {
-        elements.entryPanel.hidden = true;
-        elements.finishPanel.hidden = false;
-        elements.finishTitle.textContent = 'Complete';
-        elements.finishDescription.textContent = `You have already reached ${state.puzzle.target}. Your score is ${state.score}.`;
-        elements.nextButton.textContent = `Next level · ${state.level + 1} →`;
-        elements.finishTitle.setAttribute('tabindex', '-1');
-        elements.finishTitle.focus({ preventScroll: true });
+        renderCompletion(validateSequence(state.puzzle, state.chain));
       }
       return;
     }
