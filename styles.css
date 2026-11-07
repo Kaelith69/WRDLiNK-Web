@@ -142,7 +142,7 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
   .card-panel { padding: 16px; border-width: 2.5px; border-radius: 18px; box-shadow: 4px 5px 0 var(--line-strong); }
   .chain-panel { margin-top: 6px; }.chain-list { gap: 7px; margin-top: 14px; }.chain-list li { min-height: 44px; grid-template-columns: 29px 1fr; padding: 4px 9px; border-radius: 10px; }.chain-list li b { font-size: 16px; }
   .entry-panel { margin-top: 16px; }.entry-heading { margin-bottom: 13px; }.panel-heading h2, .entry-heading h2 { font-size: 19px; }.eyebrow { font-size: 8px; }
-  .entry-panel form { grid-template-columns: 1fr; gap: 10px; }.entry-panel input { height: 57px; font-size: 21px; }.ink-button { min-height: 51px; }.entry-meta { align-items: flex-start; }.entry-meta p { max-width: 190px; font-size: 10px; }.secondary-button { min-height: 36px; font-size: 10px; }
+  .entry-panel form { grid-template-columns: 1fr; gap: 10px; }.entry-panel input { height: 57px; font-size: 21px; }.ink-button { min-height: 51px; }.entry-meta { align-items: flex-start; }.secondary-button { min-height: 36px; font-size: 10px; }
 }
 @media (max-width: 370px) {
   .wordmark { font-size: 13px; }.brand-mark { width: 27px; height: 27px; }.header-context { font-size: 8px; padding: 6px 7px; }.header-count { gap: 4px; }.score-pill, .moves-pill { padding: 0 5px; }.metric-label { display: none; }
