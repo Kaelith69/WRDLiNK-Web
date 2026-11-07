@@ -185,6 +185,7 @@ async function testInteractions() {
   const resultSvg = challenge.game.createResultSvg(result, challenge.game.calculatePoints(result.movesUsed));
   assert.match(resultSvg, /width="1080" height="1920" viewBox="0 0 1080 1920"/);
   assert.match(resultSvg, /SHORTEST ROUTE FOUND/);
+  assert.match(resultSvg, /textLength="908" lengthAdjust="spacingAndGlyphs"/, 'result footer headline is constrained to the available card width');
   assert.match(resultSvg, /font-size="238"/);
   assert.match(resultSvg, /x="639" y="[^"]+" width="43" height="4"/);
   const resultLayout = challenge.game.cardLayout(5, 112, 34);
