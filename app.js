@@ -450,6 +450,8 @@
   window.WRDLINK = Object.freeze({
     validateSequence,
     validateProgressSnapshot,
+    createRandomPuzzle,
+    neighbors,
     differsByOneLetter,
     shortestDistance,
     calculatePoints,
