@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f3f0e8">
+  <meta name="description" content="WRDLINK. Change one letter at a time and connect the words.">
+  <title>WRDLINK | Word Ladder</title>
+  <script>
+    (() => {
+      try {
+        const saved = localStorage.getItem('wrdlink-theme');
+        const preferred = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.dataset.theme = saved || preferred;
+      } catch (_) {}
+    })();
+  </script>
+  <link rel="stylesheet" href="styles.css">
+  <script src="dictionary.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <main class="game-page">
+    <header class="game-header">
+      <a class="wordmark" href="." aria-label="WRDLINK home"><span class="brand-mark" aria-hidden="true">W</span><span>WRDLINK</span></a>
+      <div class="header-context" id="level-label">LEVEL 1</div>
+      <div class="header-right">
+        <div class="header-count" aria-live="polite">
+          <span class="score-pill"><span class="metric-label">SCORE</span><strong id="score-label">0</strong></span>
+          <span class="moves-pill"><span class="metric-label">MOVES</span><strong id="moves-label">0</strong></span>
+        </div>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to dark mode" title="Switch theme">
+          <svg class="sun-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.7"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg>
+          <svg class="moon-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.4 15.2A8.7 8.7 0 0 1 8.8 3.6 8.9 8.9 0 1 0 20.4 15.2Z"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <section class="game-workspace" aria-label="WRDLINK word puzzle">
+      <div id="loading" class="loading-progress" role="status">
+        <div class="loading-letters" aria-hidden="true"><span>W</span><span>R</span><span>D</span><span>L</span><span>I</span><span>N</span><span>K</span></div>
+        <div class="loading-track"><span></span></div><p>Building your word ladder</p>
+      </div>
+
+      <div id="game" hidden>
+        <section class="route-panel" aria-label="Puzzle route">
+          <div class="route-end">
+            <span class="route-label"><span class="route-dot start-dot"></span> START WORD</span>
+            <div class="word-display" id="start-word" aria-label="Starting word"></div>
+          </div>
+          <div class="route-connector" aria-hidden="true"><span>TO</span><i></i></div>
+          <div class="route-end route-end-target">
+            <span class="route-label"><span class="route-dot target-dot"></span> TARGET WORD</span>
+            <div class="word-display word-display-target" id="target-word" aria-label="Target word"></div>
+          </div>
+        </section>
+
+        <section class="chain-panel card-panel" aria-label="Your word chain">
+          <div class="panel-heading"><div><span class="eyebrow">YOUR PROGRESS</span><h2>Word ladder</h2></div><span class="move-counter" id="chain-move-count">0 moves</span></div>
+          <ol class="chain-list" id="chain-list" aria-live="polite"></ol>
+          <p class="chain-hint">Each step changes exactly one letter.</p>
+        </section>
+
+        <section class="entry-panel card-panel" id="entry-panel">
+          <div class="entry-heading"><div><span class="eyebrow">MAKE YOUR NEXT MOVE</span><h2>One letter at a time.</h2></div><span class="letter-count">4 LETTERS</span></div>
+          <form id="move-form" novalidate>
+            <label class="sr-only" for="word-entry">Enter your next four letter word</label>
+            <input id="word-entry" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="4" placeholder="TYPE WORD" aria-describedby="entry-help message">
+            <button class="ink-button" id="submit-button" type="submit" disabled>LOCK IT IN <span aria-hidden="true">↗</span></button>
+          </form>
+          <div class="entry-meta"><p id="entry-help">Use a valid four letter word from the dictionary.</p><button class="secondary-button" id="new-game-button" type="button">↻ New game</button></div>
+          <p id="message" class="game-message" role="status" hidden></p>
+        </section>
+
+        <section class="finish-panel card-panel" id="finish-panel" hidden>
+          <span class="eyebrow">PUZZLE COMPLETE</span><h2 id="finish-title">Connected.</h2><p id="finish-description"></p>
+          <button class="ink-button" id="next-button" type="button">NEXT LEVEL <span aria-hidden="true">→</span></button>
+        </section>
+      </div>
+
+      <section class="state-error card-panel" id="error-panel" hidden role="alert"><p id="error-message">The puzzle could not be loaded.</p><button class="ink-button" id="retry-button" type="button">TRY AGAIN</button></section>
+    </section>
+    <footer class="game-footer"><span>THINK SHARP. LINK WORDS.</span><span>4 LETTERS <i></i> 1 CHANGE</span></footer>
+  </main>
+</body>
+</html>
