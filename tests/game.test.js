@@ -126,6 +126,25 @@ assert.equal(challenge.game.getState().puzzle.start, 'COLD');
 assert.equal(challenge.game.getState().puzzle.target, 'WARM');
 assert.equal(challenge.game.getState().chain[0], 'COLD');
 assert.equal(challenge.game.getState().score, 0);
+
+// The generated challenge artwork is tested from the production renderer.
+const challengeSvg = challenge.game.createChallengeSvg();
+assert.match(challengeSvg, /width="1080" height="1920" viewBox="0 0 1080 1920"/);
+assert.match(challengeSvg, /stroke-width="12" stroke-dasharray="14 11" stroke-linecap="butt"/);
+assert.match(challengeSvg, /font-size="238"/);
+assert.match(challengeSvg, /LETTERS APART/);
+assert.match(challengeSvg, /MOVES NEEDED/);
+assert.match(challengeSvg, /width="465" height="77"/);
+assert.match(challengeSvg, /M581 1262V1521/);
+const fiveRowLayout = challenge.game.cardLayout(5, 112, 34);
+assert.equal(fiveRowLayout.ladderHeight, 696);
+assert.equal(fiveRowLayout.ladderY, 569);
+assert.equal(fiveRowLayout.statsY, 1281);
+assert.equal(fiveRowLayout.footerY, 1556);
+const threeRowLayout = challenge.game.cardLayout(3, 151, 58);
+assert.equal(threeRowLayout.ladderHeight, 569);
+assert.equal(threeRowLayout.ladderY, 632.5);
+assert.equal(threeRowLayout.footerY, 1555.25);
 assert.equal(typeof challenge.elements.get('share-challenge-button').listeners.click, 'function', 'challenge button has a click handler');
 assert.equal(typeof challenge.elements.get('copy-challenge-button').listeners.click, 'function', 'copy link button has a click handler');
 assert.equal(typeof challenge.elements.get('share-result-button').listeners.click, 'function', 'result button has a click handler');
