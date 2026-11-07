@@ -514,7 +514,7 @@
       '<rect width="1080" height="1920" fill="#14221f"/>' +
       '<rect width="1080" height="1920" filter="url(#paper-grain)" opacity=".07"/>' +
       '<g font-family="Barlow Condensed, Arial Narrow, sans-serif">' +
-      '<rect x="86" y="205" width="78" height="78" rx="15" fill="#efc45c" stroke="#b58c26" stroke-width="5"/>' +
+      '<rect x="86" y="205" width="78" height="78" rx="15" fill="#efc45c"/><rect x="86" y="205" width="78" height="5" rx="2" fill="#ffffff" opacity=".3"/>' +
       '<text x="125" y="263" text-anchor="middle" font-size="56" font-weight="800" fill="#10201c">W</text>' +
       '<text x="200" y="263" font-size="56" font-weight="800" letter-spacing="1" fill="#eef3f0">WRDLINK</text>' +
       '</g>' + content + '</svg>';
@@ -525,7 +525,7 @@
   const CARD_LINK_HEIGHT = 58;
   const CARD_X = 86;
 
-  function cardTileRow(word, y, kind, hidden = false, label = '', tileSize = CARD_TILE, tileGap = CARD_GAP) {
+  function cardTileRow(word, y, kind, hidden = false, label = '', tileSize = CARD_TILE, tileGap = CARD_GAP, challenge = false) {
     const colors = kind === 'start'
       ? { fill: '#74c6b2', edge: '#3f8f7d', ink: '#10201c' }
       : kind === 'end'
@@ -536,15 +536,18 @@
     const tiles = [...word].map((letter, index) => {
       const x = CARD_X + index * (tileSize + tileGap);
       const shown = hidden ? '' : letter;
-      return  (kind === 'ghost' ? '' : '<rect x="' + x + '" y="' + (y + 8) + '" width="' + tileSize + '" height="' + tileSize + '" rx="19" fill="#091512" opacity=".45"/>') +
-        '<rect x="' + x + '" y="' + y + '" width="' + tileSize + '" height="' + tileSize + '" rx="19" fill="' + colors.fill + '" stroke="' + colors.edge + '" stroke-width="5"' + (kind === 'ghost' ? ' stroke-dasharray="9 8"' : '') + '/>' +
+      const tileShadow = kind === 'ghost' ? '' : '<rect x="' + x + '" y="' + (y + tileSize - 1) + '" width="' + tileSize + '" height="11" rx="8" fill="' + colors.edge + '"/>';
+      return tileShadow +
+        '<rect x="' + x + '" y="' + y + '" width="' + tileSize + '" height="' + tileSize + '" rx="19" fill="' + colors.fill + '"' + (kind === 'ghost' ? ' stroke="' + colors.edge + '" stroke-width="5.4" stroke-dasharray="9 8"' : '') + '/>' +
         (kind === 'start' || kind === 'end' ? '<rect x="' + (x + 3) + '" y="' + (y + 3) + '" width="' + (tileSize - 6) + '" height="5" rx="2" fill="#ffffff" opacity=".3"/>' : '') +
         (shown ? '<text x="' + (x + tileSize / 2) + '" y="' + (y + tileSize * .68) + '" text-anchor="middle" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="' + (tileSize * .67) + '" font-weight="800" fill="' + colors.ink + '">' + escapeSvgText(shown) + '</text>' : '');
     }).join('');
     if (!label) return tiles;
     const color = kind === 'start' ? '#74c6b2' : '#efc45c';
-    const labelX = CARD_X + 4 * tileSize + 3 * tileGap + (kind === 'start' ? 39 : 15);
-    return tiles + '<rect x="' + (labelX - 60) + '" y="' + (y + 75) + '" width="43" height="4" fill="' + color + '" opacity=".5"/><text x="' + labelX + '" y="' + (y + 91) + '" font-family="DM Mono, monospace" font-size="23" letter-spacing="4" fill="' + color + '">' + label.toUpperCase() + '</text>';
+    const labelMargin = kind === 'start' && challenge ? 39 : 15;
+    const labelLineX = CARD_X + 4 * tileSize + 3 * tileGap + labelMargin;
+    const labelX = labelLineX + 43 + 17;
+    return tiles + '<rect x="' + labelLineX + '" y="' + (y + 74) + '" width="43" height="4" fill="' + color + '" opacity=".5"/><text x="' + labelX + '" y="' + (y + 84) + '" font-family="DM Mono, monospace" font-size="23" letter-spacing="4" fill="' + color + '">' + label.toUpperCase() + '</text>';
   }
 
   function changedLetterIndex(first, second) {
@@ -564,7 +567,7 @@
       const x = CARD_X + index * (tileSize + tileGap) + tileSize / 2;
       const changed = changedLetterIndex(first, second) === index;
       if (dotted) {
-        return '<path d="M' + x + ' ' + y + 'v' + linkHeight + '" stroke="#4a655d" stroke-width="6" stroke-dasharray="7 7" stroke-linecap="round"/>';
+        return '<path d="M' + x + ' ' + y + 'v' + linkHeight + '" stroke="#4a655d" stroke-width="6" stroke-dasharray="2 11" stroke-linecap="round"/>';
       }
       return '<rect x="' + (x - (changed ? 5 : 3)) + '" y="' + y + '" width="' + (changed ? 10 : 6) + '" height="' + linkHeight + '" rx="4" fill="' + (changed ? '#efc45c' : '#2d423c') + '"/>';
     }).join('');
@@ -595,11 +598,11 @@
     const url = escapeSvgText(challengeUrl().replace(/^https?:\/\//, ''));
     const ladderY = 650;
     const ladder = [
-      cardTileRow(start, ladderY, 'start', false, 'Start'),
+      cardTileRow(start, ladderY, 'start', false, 'Start', CARD_TILE, CARD_GAP, true),
       cardConnectorRow(start, '????', ladderY + CARD_TILE - 12, true),
       cardTileRow('????', ladderY + CARD_TILE + CARD_LINK_HEIGHT, 'ghost', false),
       cardConnectorRow('????', target, ladderY + 2 * (CARD_TILE + CARD_LINK_HEIGHT) + CARD_TILE - 12, true),
-      cardTileRow(target, ladderY + 2 * (CARD_TILE + CARD_LINK_HEIGHT), 'end', false, 'Target')
+      cardTileRow(target, ladderY + 2 * (CARD_TILE + CARD_LINK_HEIGHT), 'end', false, 'Target', CARD_TILE, CARD_GAP, true)
     ].join('');
     const content =
       '<text x="86" y="500" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="156" font-weight="800" letter-spacing="-1" fill="#eef3f0">YOUR MOVE<tspan fill="#74c6b2">.</tspan></text>' +
