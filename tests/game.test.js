@@ -116,6 +116,7 @@ assert.equal(challenge.game.getState().chain[0], 'COLD');
 assert.equal(challenge.game.getState().score, 0);
 assert.equal(typeof challenge.elements.get('share-challenge-button').listeners.click, 'function', 'challenge button has a click handler');
 assert.equal(typeof challenge.elements.get('share-result-button').listeners.click, 'function', 'result button has a click handler');
+assert.equal(typeof challenge.elements.get('download-result-button').listeners.click, 'function', 'download button has a click handler');
 assert.equal(typeof challenge.elements.get('new-game-button').listeners.click, 'function', 'new game button has a click handler');
 assert.equal(typeof challenge.elements.get('next-button').listeners.click, 'function', 'next level button has a click handler');
 assert.equal(typeof challenge.elements.get('theme-toggle').listeners.click, 'function', 'theme button has a click handler');
