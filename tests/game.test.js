@@ -127,6 +127,7 @@ assert.equal(challenge.game.getState().puzzle.target, 'WARM');
 assert.equal(challenge.game.getState().chain[0], 'COLD');
 assert.equal(challenge.game.getState().score, 0);
 assert.equal(typeof challenge.elements.get('share-challenge-button').listeners.click, 'function', 'challenge button has a click handler');
+assert.equal(typeof challenge.elements.get('copy-challenge-button').listeners.click, 'function', 'copy link button has a click handler');
 assert.equal(typeof challenge.elements.get('share-result-button').listeners.click, 'function', 'result button has a click handler');
 assert.equal(typeof challenge.elements.get('download-result-button').listeners.click, 'function', 'download button has a click handler');
 assert.equal(typeof challenge.elements.get('new-game-button').listeners.click, 'function', 'new game button has a click handler');
@@ -143,6 +144,8 @@ assert.equal([...challenge.storage.keys()].some((key) => key.includes(':progress
 async function testInteractions() {
   await new Promise((resolve) => setImmediate(resolve));
   await challenge.elements.get('share-challenge-button').dispatch('click');
+  await challenge.elements.get('copy-challenge-button').dispatch('click');
+  assert.match(challenge.copied.at(-1), /challenge=COLD-WARM/, 'copy link button copies the exact challenge URL');
   assert.equal(challenge.shareCalls.length, 1, 'challenge button opens the native share sheet');
   assert.match(challenge.shareCalls[0].url, /challenge=COLD-WARM/, 'native share includes the exact puzzle URL');
   assert.equal(challenge.shareCalls[0].files[0].name, 'wrdlink-challenge.png', 'native share includes a branded challenge card');
