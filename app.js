@@ -520,6 +520,14 @@
       '</g>' + content + '</svg>';
   }
 
+  async function waitForCardFonts() {
+    if (!document.fonts?.load) return;
+    await Promise.all([
+      document.fonts.load('800 156px "Barlow Condensed"'),
+      document.fonts.load('500 23px "DM Mono"')
+    ]);
+  }
+
   const CARD_TILE = 151;
   const CARD_GAP = 24;
   const CARD_LINK_HEIGHT = 58;
@@ -610,9 +618,9 @@
       '<g>' + ladder + '</g>' +
       '<text x="86" y="1390" font-family="DM Mono, monospace" font-size="25" letter-spacing="4" fill="#7f948d">LETTERS APART</text>' +
       '<text x="86" y="1555" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="178" font-weight="800" fill="#eef3f0">' + apart + '</text>' +
-      '<path d="M550 1370V1585" stroke="#2d423c" stroke-width="4"/>' +
-      '<text x="610" y="1390" font-family="DM Mono, monospace" font-size="25" letter-spacing="4" fill="#7f948d">MOVES NEEDED</text>' +
-      '<text x="610" y="1555" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="178" font-weight="800" fill="#efc45c">?</text>' +
+      '<path d="M581 1370V1585" stroke="#2d423c" stroke-width="4"/>' +
+      '<text x="646" y="1390" font-family="DM Mono, monospace" font-size="25" letter-spacing="4" fill="#7f948d">MOVES NEEDED</text>' +
+      '<text x="646" y="1555" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="178" font-weight="800" fill="#efc45c">?</text>' +
       '<path d="M86 1590H994" stroke="#2d423c" stroke-width="4"/>' +
       '<text x="86" y="1675" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="82" font-weight="800" fill="#eef3f0">CAN YOU BRIDGE THE GAP<tspan fill="#efc45c">?</tspan></text>' +
       '<text x="86" y="1745" font-family="DM Mono, monospace" font-size="27" fill="#efc45c">' + url + ' →</text>';
@@ -625,6 +633,7 @@
     challengeCardFile = null;
     let imageUrl = null;
     try {
+      await waitForCardFonts();
       const image = new Image();
       imageUrl = URL.createObjectURL(new Blob([createChallengeSvg()], { type: 'image/svg+xml' }));
       image.src = imageUrl;
@@ -751,9 +760,9 @@
       '<g>' + ladder + '</g>' +
       '<text x="86" y="1435" font-family="DM Mono, monospace" font-size="25" letter-spacing="4" fill="#7f948d">LEVEL SCORE</text>' +
       '<text x="86" y="1600" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="178" font-weight="800" fill="#efc45c">+' + points + '</text>' +
-      '<path d="M550 1390V1630" stroke="#2d423c" stroke-width="4"/>' +
-      '<text x="610" y="1435" font-family="DM Mono, monospace" font-size="25" letter-spacing="4" fill="#7f948d">MOVES</text>' +
-      '<text x="610" y="1600" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="178" font-weight="800" fill="#eef3f0">' + result.movesUsed + '</text>' +
+      '<path d="M581 1390V1630" stroke="#2d423c" stroke-width="4"/>' +
+      '<text x="646" y="1435" font-family="DM Mono, monospace" font-size="25" letter-spacing="4" fill="#7f948d">MOVES</text>' +
+      '<text x="646" y="1600" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="178" font-weight="800" fill="#eef3f0">' + result.movesUsed + '</text>' +
       '<path d="M86 1610H994" stroke="#2d423c" stroke-width="4"/>' +
       '<text x="86" y="1690" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="82" font-weight="800" fill="#eef3f0">CAN YOU BUILD THE LADDER<tspan fill="#efc45c">?</tspan></text>' +
       '<text x="86" y="1755" font-family="DM Mono, monospace" font-size="27" fill="#efc45c">' + url + ' →</text>';
@@ -770,6 +779,7 @@
     elements.shareStatus.textContent = 'Preparing your share image…';
     let imageUrl = null;
     try {
+      await waitForCardFonts();
       const svgBlob = new Blob([createResultSvg(result, calculatePoints(result.movesUsed))], { type: 'image/svg+xml' });
       const image = new Image();
       imageUrl = URL.createObjectURL(svgBlob);
