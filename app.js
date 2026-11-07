@@ -509,6 +509,7 @@
       '<linearGradient id="field" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#14221f"/><stop offset="1" stop-color="#0d1714"/></linearGradient>' +
       '<linearGradient id="panel" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#2b463e"/><stop offset="1" stop-color="#253d36"/></linearGradient>' +
       '<pattern id="grain" width="220" height="220" patternUnits="userSpaceOnUse"><circle cx="14" cy="19" r="1.5" fill="#eef3f0" opacity=".13"/><circle cx="84" cy="70" r="1" fill="#eef3f0" opacity=".12"/><circle cx="174" cy="151" r="1.4" fill="#eef3f0" opacity=".1"/><circle cx="45" cy="180" r="1" fill="#eef3f0" opacity=".12"/></pattern>' +
+      '<pattern id="midtiles" width="18" height="18" patternUnits="userSpaceOnUse" patternTransform="rotate(135)"><rect width="18" height="18" fill="#2b463e"/><rect width="7" height="18" fill="#253d36"/></pattern>' +
       '</defs>' +
       '<rect width="1080" height="1920" fill="url(#field)"/><rect width="1080" height="1920" fill="url(#grain)"/>' +
       '<rect x="48" y="48" width="984" height="1824" rx="44" fill="#091512" opacity=".72"/>' +
@@ -528,7 +529,9 @@
       ? { fill: '#74c6b2', edge: '#3f8f7d', ink: '#10201c' }
       : kind === 'end'
         ? { fill: '#efc45c', edge: '#b58c26', ink: '#10201c' }
-        : { fill: '#2b463e', edge: '#1a2d27', ink: '#eef3f0' };
+        : kind === 'ghost'
+          ? { fill: 'none', edge: '#4a655d', ink: '#7a978d' }
+          : { fill: 'url(#midtiles)', edge: '#1a2d27', ink: '#eef3f0' };
     const tile = 112;
     const gap = 22;
     return [...word].map((letter, index) => {
@@ -538,7 +541,7 @@
       const ink = kind === 'mid' && index === changedIndex ? '#10201c' : colors.ink;
       const shown = hidden ? '' : letter;
       return '<rect x="' + left + '" y="' + (y + 8) + '" width="' + tile + '" height="' + tile + '" rx="17" fill="#091512" opacity=".55"/>' +
-        '<rect x="' + left + '" y="' + y + '" width="' + tile + '" height="' + tile + '" rx="17" fill="' + (kind === 'mid' && hidden ? 'none' : fill) + '" stroke="' + (kind === 'mid' && hidden ? '#4a655d' : edge) + '" stroke-width="6"' + (kind === 'mid' && hidden ? ' stroke-dasharray="12 9"' : '') + '/>' +
+        '<rect x="' + left + '" y="' + y + '" width="' + tile + '" height="' + tile + '" rx="17" fill="' + (kind === 'ghost' ? 'none' : fill) + '" stroke="' + edge + '" stroke-width="6"' + (kind === 'ghost' ? ' stroke-dasharray="12 9"' : '') + '/>' +
         (shown ? '<text x="' + (left + tile / 2) + '" y="' + (y + 76) + '" text-anchor="middle" font-family="Arial,sans-serif" font-size="74" font-weight="900" fill="' + ink + '">' + escapeSvgText(shown) + '</text>' : '');
     }).join('');
   }
@@ -560,9 +563,9 @@
     const connectorHeight = 24;
     const parts = [];
     words.forEach((word, index) => {
-      const kind = index === 0 ? 'start' : index === words.length - 1 ? 'end' : 'mid';
+      const kind = index === 0 ? 'start' : index === words.length - 1 ? 'end' : word === '????' && !reveal ? 'ghost' : 'mid';
       const changed = index > 0 ? changedLetterIndex(words[index - 1], word) : -1;
-      const hidden = kind === 'mid' && !reveal;
+      const hidden = (kind === 'mid' && !reveal) || kind === 'ghost';
       const rowY = y + index * (rowHeight + connectorHeight);
       parts.push(cardTileRow(word, x, rowY, kind, changed, hidden));
       if (index === 0 || index === words.length - 1) {
@@ -577,7 +580,11 @@
         for (let tileIndex = 0; tileIndex < 4; tileIndex += 1) {
           const cx = x + tileIndex * (112 + 22) + 56;
           const active = highlightChanges && changedNext >= 0 && tileIndex === changedNext;
-          parts.push('<rect x="' + (cx - (active ? 5 : 3)) + '" y="' + connectorY + '" width="' + (active ? 10 : 6) + '" height="' + connectorHeight + '" rx="4" fill="' + (active ? '#efc45c' : '#2d423c') + '"/>');
+          if (!highlightChanges) {
+            parts.push('<path d="M' + cx + ' ' + connectorY + 'v' + connectorHeight + '" stroke="#4a655d" stroke-width="6" stroke-dasharray="7 7" stroke-linecap="round"/>');
+          } else {
+            parts.push('<rect x="' + (cx - (active ? 5 : 3)) + '" y="' + connectorY + '" width="' + (active ? 10 : 6) + '" height="' + connectorHeight + '" rx="4" fill="' + (active ? '#efc45c' : '#2d423c') + '"/>');
+          }
         }
       }
     });
