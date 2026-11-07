@@ -9,6 +9,8 @@ const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 const html = read('index.html');
 const manifest = JSON.parse(read('manifest.webmanifest'));
 const worker = read('sw.js');
+const styles = read('styles.css');
+const game = read('app.js');
 const deploy = read('.github/workflows/deploy-pages.yml');
 
 assert(html.includes('rel="manifest" href="./manifest.webmanifest"'));
@@ -45,5 +47,14 @@ assert(deploy.includes('rsvg-convert --width 180 --height 180'));
 assert(read('README.md').includes('## Install the app'));
 assert(read('README.md').includes('assets/readme-banner.svg'));
 assert(read('LICENSE').includes('MIT License'));
+assert(styles.includes(':root.keyboard-open .game-page'));
+assert(styles.includes(':root.keyboard-open .chain-list'));
+assert(styles.includes('overflow-y: auto'));
+assert(styles.includes('flex: 1 1 auto'));
+assert(game.includes('if (wasAtBottom) list.scrollTop = list.scrollHeight'));
+assert(game.includes('const shareRequest = navigator.share(shareData)'));
+assert(game.includes('window.setTimeout(() => URL.revokeObjectURL(url), 60000)'));
+assert(game.includes('prepareResultCard(result)'));
+assert(html.includes('id="share-status"'));
 
 console.log('WRDLINK PWA metadata and deployment checks passed.');
