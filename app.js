@@ -481,6 +481,8 @@
         elements.finishTitle.textContent = 'Complete';
         elements.finishDescription.textContent = `You have already reached ${state.puzzle.target}. Your score is ${state.score}.`;
         elements.nextButton.textContent = `Next level · ${state.level + 1} →`;
+        elements.finishTitle.setAttribute('tabindex', '-1');
+        elements.finishTitle.focus({ preventScroll: true });
       }
       return;
     }
@@ -492,6 +494,8 @@
   window.addEventListener('storage', (event) => {
     if (event.key === PROGRESS_KEY && event.newValue !== event.oldValue) {
       externalProgressChanged = true;
+      // Freeze this tab so later interactions cannot overwrite the newer save.
+      setBusy(true);
       setMessage('Game progress changed in another tab. Reload this page to use the latest saved game.', 'error');
     }
   });
