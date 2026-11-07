@@ -544,7 +544,7 @@
     }).join('');
     if (!label) return tiles;
     const color = kind === 'start' ? '#74c6b2' : '#efc45c';
-    const labelMargin = kind === 'start' && challenge ? 39 : 15;
+    const labelMargin = challenge ? 39 : 15;
     const labelLineX = CARD_X + 4 * tileSize + 3 * tileGap + labelMargin;
     const labelX = labelLineX + 43 + 17;
     return tiles + '<rect x="' + labelLineX + '" y="' + (y + 74) + '" width="43" height="4" fill="' + color + '" opacity=".5"/><text x="' + labelX + '" y="' + (y + 84) + '" font-family="DM Mono, monospace" font-size="23" letter-spacing="4" fill="' + color + '">' + label.toUpperCase() + '</text>';
@@ -567,7 +567,7 @@
       const x = CARD_X + index * (tileSize + tileGap) + tileSize / 2;
       const changed = changedLetterIndex(first, second) === index;
       if (dotted) {
-        return '<path d="M' + x + ' ' + y + 'v' + linkHeight + '" stroke="#4a655d" stroke-width="6" stroke-dasharray="2 11" stroke-linecap="round"/>';
+        return '<path d="M' + x + ' ' + y + 'v' + linkHeight + '" stroke="#4a655d" stroke-width="6" stroke-dasharray="14 11" stroke-linecap="round"/>';
       }
       return '<rect x="' + (x - (changed ? 5 : 3)) + '" y="' + y + '" width="' + (changed ? 10 : 6) + '" height="' + linkHeight + '" rx="4" fill="' + (changed ? '#efc45c' : '#2d423c') + '"/>';
     }).join('');
