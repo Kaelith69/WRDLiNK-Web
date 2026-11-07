@@ -3,7 +3,6 @@
 const CACHE_PREFIX = 'wrdlink-shell-';
 const CACHE_NAME = `${CACHE_PREFIX}v1`;
 const APP_SHELL = [
-  './',
   './index.html',
   './styles.css',
   './app.js',
