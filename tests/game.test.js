@@ -135,7 +135,7 @@ assert.match(challengeSvg, /font-size="238"/);
 assert.match(challengeSvg, /stroke-width="12" stroke-dasharray="14 11" stroke-linecap="butt"/);
 assert.match(challengeSvg, /LETTERS APART/);
 assert.match(challengeSvg, /MOVES NEEDED/);
-assert.match(challengeSvg, /textLength="820" lengthAdjust="spacingAndGlyphs"[^>]*>CAN YOU BRIDGE THE GAP<\/text>/, 'challenge footer headline fits within the card width');
+assert.match(challengeSvg, /font-size="64"[^>]*textLength="820"[^>]*>CAN YOU BRIDGE THE GAP<\\/text>/, 'challenge footer headline uses reduced type size and fits within the card width');
 assert.match(challengeSvg, /<text x="925" y="[^"]+"[^>]*fill="#efc45c">\?<\/text>/, 'challenge footer punctuation is positioned independently inside the card');
 assert.doesNotMatch(challengeSvg, /CAN YOU BRIDGE THE GAP<tspan/, 'challenge footer punctuation cannot expand the headline beyond its measured width');
 assert.match(challengeSvg, /width="465" height="77"/);
