@@ -8,7 +8,10 @@ const APP_SHELL = [
   './app.js',
   './dictionary.js',
   './manifest.webmanifest',
-  './assets/wrdlink-icon.svg'
+  './assets/wrdlink-icon.svg',
+  './assets/wrdlink-icon-192.png',
+  './assets/wrdlink-icon-512.png',
+  './assets/wrdlink-icon-180.png'
 ];
 
 const scopedUrl = (path) => new URL(path, self.registration.scope).href;
