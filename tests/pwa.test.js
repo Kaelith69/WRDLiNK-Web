@@ -102,7 +102,8 @@ assert(game.includes('const ladder = cardLadderRows(visibleWords, compactLadder 
 assert(game.includes("font-size=\"' + (tileSize * .67) + '\""));
 assert(game.includes("y + 'v' + linkHeight + '"));
 assert(game.includes("labelX - 60"));
-assert(game.includes('KAELITH69.GITHUB.IO/WRDLINK-WEB'));
+assert(game.includes('window.location.host || window.location.hostname ||'));
+assert(game.includes('challengeUrl().replace(/^https?:\\/\\//, \'\')'));
 assert(game.includes('async function copyChallengeLink()'));
 assert(game.includes('elements.copyChallengeButton.addEventListener'));
 assert(game.includes('Can you solve this WRDLINK word ladder?'));
