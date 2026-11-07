@@ -19,8 +19,10 @@ function makeElement() {
     children: [],
     style: {},
     focusCalls: 0,
+    listeners: {},
     classList: { add() {}, remove() {}, toggle() {} },
-    addEventListener() {},
+    addEventListener(type, callback) { this.listeners[type] = callback; },
+    dispatch(type, event = {}) { return this.listeners[type]?.({ preventDefault() {}, ...event }); },
     setAttribute(name, value) { attributes.set(name, String(value)); },
     getAttribute(name) { return attributes.get(name); },
     append(...items) { this.children.push(...items); },
@@ -38,7 +40,7 @@ function makeElement() {
 function loadGame({ includeDictionary = true, search = '' } = {}) {
   const elements = new Map();
   const document = {
-    documentElement: { dataset: { theme: 'light' } },
+    documentElement: { dataset: { theme: 'light' }, classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } }, style: { setProperty() {} } },
     getElementById(id) {
       if (!elements.has(id)) {
         const element = makeElement();
@@ -56,13 +58,19 @@ function loadGame({ includeDictionary = true, search = '' } = {}) {
     setItem(key, value) { storage.set(key, String(value)); },
     removeItem(key) { storage.delete(key); }
   };
+  const copied = [];
   const window = {
+    isSecureContext: true,
+    innerWidth: 390,
+    matchMedia() { return { matches: true }; },
+    setTimeout(callback) { callback(); },
     addEventListener() {},
     location: { search, href: 'https://example.test/WRDLiNK-Web/' },
     requestAnimationFrame(callback) { callback(); }
   };
+  const navigator = { clipboard: { async writeText(value) { copied.push(value); } } };
   const context = vm.createContext({
-    window, document, localStorage, URLSearchParams, URL,
+    window, document, localStorage, navigator, URLSearchParams, URL,
     crypto: { randomUUID: () => 'test-session' },
     structuredClone: (value) => JSON.parse(JSON.stringify(value)),
     console: { warn() {}, error() {}, log() {} }
@@ -71,7 +79,7 @@ function loadGame({ includeDictionary = true, search = '' } = {}) {
   const dictionary = window.WRDLINK_DICTIONARY || new Set();
   if (includeDictionary) assert.equal(dictionary.size, 3889, 'the complete bundled dictionary is unchanged');
   vm.runInContext(appSource, context, { filename: 'app.js' });
-  return { game: window.WRDLINK, dictionary, storage, elements };
+  return { game: window.WRDLINK, dictionary, storage, elements, copied };
 }
 
 const { game, dictionary, elements } = loadGame();
@@ -106,7 +114,20 @@ assert.equal(challenge.game.getState().puzzle.start, 'COLD');
 assert.equal(challenge.game.getState().puzzle.target, 'WARM');
 assert.equal(challenge.game.getState().chain[0], 'COLD');
 assert.equal(challenge.game.getState().score, 0);
+assert.equal(typeof challenge.elements.get('share-challenge-button').listeners.click, 'function', 'challenge button has a click handler');
+assert.equal(typeof challenge.elements.get('share-result-button').listeners.click, 'function', 'result button has a click handler');
+assert.equal(typeof challenge.elements.get('new-game-button').listeners.click, 'function', 'new game button has a click handler');
+assert.equal(typeof challenge.elements.get('next-button').listeners.click, 'function', 'next level button has a click handler');
+assert.equal(typeof challenge.elements.get('theme-toggle').listeners.click, 'function', 'theme button has a click handler');
+challenge.elements.get('word-entry').value = 'cord';
+challenge.elements.get('word-entry').dispatch('input');
+assert.equal(challenge.elements.get('word-entry').value, 'CORD', 'input normalizes words before submission');
+assert.equal(challenge.elements.get('submit-button').disabled, false, 'valid length enables submit');
+challenge.elements.get('move-form').dispatch('submit');
+assert.deepEqual(challenge.game.getState().chain, ['COLD', 'CORD'], 'submitting a valid move updates the live game');
 assert.equal([...challenge.storage.keys()].some((key) => key.includes(':progress')), false, 'friend challenges do not overwrite campaign progress');
+await challenge.elements.get('share-challenge-button').dispatch('click');
+assert.match(challenge.copied[0], /challenge=COLD-WARM/, 'challenge button copies the exact puzzle URL');
 
 const puzzle = {
   id: 'test-puzzle', title: 'Test puzzle', start: 'COLD', target: 'WARM',
