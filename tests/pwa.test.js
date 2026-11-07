@@ -36,7 +36,7 @@ for (const asset of ['./index.html', './styles.css', './app.js', './dictionary.j
   assert(worker.includes(asset), 'service worker app shell includes ' + asset);
 }
 assert(worker.includes("const CACHE_PREFIX = 'wrdlink-shell-'"));
-assert(worker.includes('const CACHE_NAME = `' + '${CACHE_PREFIX}' + 'v8`'));
+assert(worker.includes('const CACHE_NAME = `' + '${CACHE_PREFIX}' + 'v9`'));
 assert(worker.includes("request.mode === 'navigate'"));
 assert(worker.includes('self.clients.claim()'));
 assert(deploy.includes('manifest.webmanifest sw.js'));
@@ -70,6 +70,18 @@ assert(game.includes('Native sharing was unavailable. Use Download PNG instead.'
 assert(game.includes('navigator.share(data)'));
 assert(game.includes('wrdlink-challenge.png'));
 assert(game.includes('width="1080" height="1920"'));
+assert(game.includes('canvas.height = 1920'));
+assert(!game.includes('canvas.height = 1350'));
+assert(game.includes('font-family:Barlow Condensed, Arial Narrow, sans-serif'));
+assert(game.includes('font-family:DM Mono, monospace'));
+assert(game.includes('baseFrequency=".85"'));
+assert(game.includes('fill="#14221f"'));
+assert(game.includes('cardConnectorRow(first, second, y, dotted = false)'));
+assert(game.includes('cardLadderRows(visibleWords, 625, false, false)'));
+assert(game.includes('const hidden = kind === \'mid\' && !reveal'));
+assert(game.includes('const visibleWords = sequence.length > 5'));
+assert(!game.includes('height="1824"'));
+assert(!game.includes('THINK SHARP. LINK WORDS.'));
 assert(game.includes('function cardSvgShell(content)'));
 assert(game.includes('pattern id="midtiles"'));
 assert(game.includes("word === '????' && !reveal ? 'ghost' : 'mid'"));
