@@ -514,7 +514,9 @@
       '<rect width="1080" height="1920" fill="#14221f"/>' +
       '<rect width="1080" height="1920" filter="url(#paper-grain)" opacity=".07"/>' +
       '<g font-family="Barlow Condensed, Arial Narrow, sans-serif">' +
-      '<rect x="86" y="205" width="78" height="78" rx="15" fill="#efc45c"/><rect x="86" y="205" width="78" height="5" rx="2" fill="#ffffff" opacity=".3"/>' +
+      '<rect x="86" y="213" width="78" height="78" rx="15" fill="#b58c26"/>' +
+      '<rect x="86" y="205" width="78" height="78" rx="15" fill="#efc45c"/>' +
+      '<rect x="86" y="205" width="78" height="5" rx="2" fill="#ffffff" opacity=".3"/>' +
       '<text x="125" y="263" text-anchor="middle" font-size="56" font-weight="800" fill="#10201c">W</text>' +
       '<text x="200" y="263" font-size="56" font-weight="800" letter-spacing="1" fill="#eef3f0">WRDLINK</text>' +
       '</g>' + content + '</svg>';
@@ -532,8 +534,24 @@
   const CARD_GAP = 24;
   const CARD_LINK_HEIGHT = 58;
   const CARD_X = 86;
+  const CARD_LAYOUT = Object.freeze({
+    top: 205, bottom: 1747, brand: 78, heading: 254,
+    stats: 259, footer: 191
+  });
 
-  function cardTileRow(word, y, kind, hidden = false, label = '', tileSize = CARD_TILE, tileGap = CARD_GAP, challenge = false) {
+  function cardLayout(rowCount, tileSize, linkHeight) {
+    const ladderHeight = rowCount * tileSize + Math.max(0, rowCount - 1) * linkHeight;
+    const contentHeight = CARD_LAYOUT.bottom - CARD_LAYOUT.top;
+    const gap = Math.max(0, (contentHeight - CARD_LAYOUT.brand - CARD_LAYOUT.heading -
+      ladderHeight - CARD_LAYOUT.stats - CARD_LAYOUT.footer) / 4);
+    const headingTop = CARD_LAYOUT.top + CARD_LAYOUT.brand + gap;
+    const ladderY = headingTop + CARD_LAYOUT.heading + gap;
+    const statsY = ladderY + ladderHeight + gap;
+    const footerY = statsY + CARD_LAYOUT.stats + gap;
+    return { headingTop, ladderY, statsY, footerY, ladderHeight, gap };
+  }
+
+  function cardTileRow(word, y, kind, hidden = false, label = '', tileSize = CARD_TILE, tileGap = CARD_GAP) {
     const colors = kind === 'start'
       ? { fill: '#74c6b2', edge: '#3f8f7d', ink: '#10201c' }
       : kind === 'end'
@@ -552,7 +570,7 @@
     }).join('');
     if (!label) return tiles;
     const color = kind === 'start' ? '#74c6b2' : '#efc45c';
-    const labelMargin = challenge ? 39 : 15;
+    const labelMargin = 39;
     const labelLineX = CARD_X + 4 * tileSize + 3 * tileGap + labelMargin;
     const labelX = labelLineX + 43 + 17;
     return tiles + '<rect x="' + labelLineX + '" y="' + (y + 74) + '" width="43" height="4" fill="' + color + '" opacity=".5"/><text x="' + labelX + '" y="' + (y + 84) + '" font-family="DM Mono, monospace" font-size="23" letter-spacing="4" fill="' + color + '">' + label.toUpperCase() + '</text>';
@@ -575,9 +593,9 @@
       const x = CARD_X + index * (tileSize + tileGap) + tileSize / 2;
       const changed = changedLetterIndex(first, second) === index;
       if (dotted) {
-        return '<path d="M' + x + ' ' + y + 'v' + linkHeight + '" stroke="#4a655d" stroke-width="12" stroke-dasharray="14 11" stroke-linecap="round"/>';
+        return '<path d="M' + x + ' ' + (y - 15) + 'v' + (linkHeight + 30) + '" stroke="#4a655d" stroke-width="12" stroke-dasharray="14 11" stroke-linecap="butt"/>';
       }
-      return '<rect x="' + (x - (changed ? 5 : 3)) + '" y="' + y + '" width="' + (changed ? 19 : 12) + '" height="' + linkHeight + '" rx="4" fill="' + (changed ? '#efc45c' : '#2d423c') + '"/>';
+      return '<rect x="' + (x - (changed ? 9.5 : 6)) + '" y="' + (y - 15) + '" width="' + (changed ? 19 : 12) + '" height="' + (linkHeight + 30) + '" rx="4" fill="' + (changed ? '#efc45c' : '#2d423c') + '"/>';
     }).join('');
   }
 
@@ -593,7 +611,7 @@
       const rowY = y + index * (tileSize + linkHeight);
       parts.push(cardTileRow(word, rowY, kind, hidden, label, tileSize, tileGap));
       if (index < words.length - 1) {
-        parts.push(cardConnectorRow(word, words[index + 1], rowY + tileSize - 12, dotted, tileSize, tileGap, linkHeight));
+        parts.push(cardConnectorRow(word, words[index + 1], rowY + tileSize, dotted, tileSize, tileGap, linkHeight));
       }
     });
     return parts.join('');
@@ -604,26 +622,31 @@
     const target = state.puzzle.target;
     const apart = [...start].filter((letter, index) => letter !== target[index]).length;
     const url = escapeSvgText(challengeUrl().replace(/^https?:\/\//, ''));
-    const ladderY = 650;
+    const layout = cardLayout(3, CARD_TILE, CARD_LINK_HEIGHT);
+    const ladderY = layout.ladderY;
     const ladder = [
-      cardTileRow(start, ladderY, 'start', false, 'Start', CARD_TILE, CARD_GAP, true),
-      cardConnectorRow(start, '????', ladderY + CARD_TILE - 12, true),
+      cardTileRow(start, ladderY, 'start', false, 'Start'),
+      cardConnectorRow(start, '????', ladderY + CARD_TILE, true),
       cardTileRow('????', ladderY + CARD_TILE + CARD_LINK_HEIGHT, 'ghost', false),
-      cardConnectorRow('????', target, ladderY + 2 * (CARD_TILE + CARD_LINK_HEIGHT) + CARD_TILE - 12, true),
-      cardTileRow(target, ladderY + 2 * (CARD_TILE + CARD_LINK_HEIGHT), 'end', false, 'Target', CARD_TILE, CARD_GAP, true)
+      cardConnectorRow('????', target, ladderY + 2 * (CARD_TILE + CARD_LINK_HEIGHT) + CARD_TILE, true),
+      cardTileRow(target, ladderY + 2 * (CARD_TILE + CARD_LINK_HEIGHT), 'end', false, 'Target')
     ].join('');
+    const headingBaseline = layout.headingTop + 112;
+    const pillTop = layout.headingTop + 138 + 39;
+    const statsLabelY = layout.statsY + 25;
+    const statsValueY = layout.statsY + 225;
     const content =
-      '<text x="86" y="500" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="156" font-weight="800" letter-spacing="-1" fill="#eef3f0">YOUR MOVE<tspan fill="#74c6b2">.</tspan></text>' +
-      '<rect x="86" y="535" width="497" height="62" rx="31" fill="none" stroke="#74c6b2" stroke-width="5"/><circle cx="119" cy="566" r="8" fill="#74c6b2"/><text x="156" y="575" font-family="DM Mono, monospace" font-size="25" letter-spacing="4" fill="#74c6b2">ONE LETTER PER MOVE</text>' +
+      '<text x="86" y="' + headingBaseline + '" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="156" font-weight="800" letter-spacing="-1" fill="#eef3f0">YOUR MOVE<tspan fill="#74c6b2">.</tspan></text>' +
+      '<rect x="86" y="' + pillTop + '" width="465" height="77" rx="39" fill="none" stroke="#74c6b2" stroke-width="5"/><circle cx="119" cy="' + (pillTop + 38) + '" r="8" fill="#74c6b2"/><text x="156" y="' + (pillTop + 48) + '" font-family="DM Mono, monospace" font-size="25" letter-spacing="4" fill="#74c6b2">ONE LETTER PER MOVE</text>' +
       '<g>' + ladder + '</g>' +
-      '<text x="86" y="1390" font-family="DM Mono, monospace" font-size="25" letter-spacing="4" fill="#7f948d">LETTERS APART</text>' +
-      '<text x="86" y="1555" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="178" font-weight="800" fill="#eef3f0">' + apart + '</text>' +
-      '<path d="M581 1370V1585" stroke="#2d423c" stroke-width="4"/>' +
-      '<text x="646" y="1390" font-family="DM Mono, monospace" font-size="25" letter-spacing="4" fill="#7f948d">MOVES NEEDED</text>' +
-      '<text x="646" y="1555" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="178" font-weight="800" fill="#efc45c">?</text>' +
-      '<path d="M86 1590H994" stroke="#2d423c" stroke-width="4"/>' +
-      '<text x="86" y="1675" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="82" font-weight="800" fill="#eef3f0">CAN YOU BRIDGE THE GAP<tspan fill="#efc45c">?</tspan></text>' +
-      '<text x="86" y="1745" font-family="DM Mono, monospace" font-size="27" fill="#efc45c">' + url + ' →</text>';
+      '<text x="86" y="' + statsLabelY + '" font-family="DM Mono, monospace" font-size="25" letter-spacing="4" fill="#7f948d">LETTERS APART</text>' +
+      '<text x="86" y="' + statsValueY + '" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="238" font-weight="800" fill="#eef3f0">' + apart + '</text>' +
+      '<path d="M581 ' + layout.statsY + 'V' + (layout.statsY + CARD_LAYOUT.stats) + '" stroke="#2d423c" stroke-width="4"/>' +
+      '<text x="646" y="' + statsLabelY + '" font-family="DM Mono, monospace" font-size="25" letter-spacing="4" fill="#7f948d">MOVES NEEDED</text>' +
+      '<text x="646" y="' + statsValueY + '" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="238" font-weight="800" fill="#efc45c">?</text>' +
+      '<path d="M86 ' + layout.footerY + 'H994" stroke="#2d423c" stroke-width="4"/>' +
+      '<text x="86" y="' + (layout.footerY + 109) + '" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="82" font-weight="800" fill="#eef3f0">CAN YOU BRIDGE THE GAP<tspan fill="#efc45c">?</tspan></text>' +
+      '<text x="86" y="' + (layout.footerY + 179) + '" font-family="DM Mono, monospace" font-size="27" fill="#efc45c">' + url + ' →</text>';
     return cardSvgShell(content);
   }
 
@@ -750,22 +773,29 @@
     const visibleWords = sequence.length > 5
       ? [sequence[0], sequence[1], sequence[2], sequence[3], sequence[sequence.length - 1]]
       : sequence;
-    const compactLadder = visibleWords.length === 5;
-    const ladder = cardLadderRows(visibleWords, compactLadder ? 650 : 625, false, false, compactLadder);
+    const compactLadder = visibleWords.length >= 4;
+    const tileSize = compactLadder ? 112 : CARD_TILE;
+    const linkHeight = compactLadder ? 34 : CARD_LINK_HEIGHT;
+    const layout = cardLayout(visibleWords.length, tileSize, linkHeight);
+    const ladder = cardLadderRows(visibleWords, layout.ladderY, false, false, compactLadder);
     const status = shortest ? 'SHORTEST ROUTE FOUND' : 'ROUTE FOUND';
     const url = escapeSvgText((window.location.host || window.location.hostname || '') + (window.location.pathname || '').replace(/\/$/, ''));
+    const headingBaseline = layout.headingTop + 112;
+    const pillTop = layout.headingTop + 138 + 39;
+    const statsLabelY = layout.statsY + 25;
+    const statsValueY = layout.statsY + 225;
     const content =
-      '<text x="86" y="500" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="156" font-weight="800" letter-spacing="-1" fill="#eef3f0">CONNECTED<tspan fill="#efc45c">.</tspan></text>' +
-      '<rect x="86" y="535" width="690" height="62" rx="31" fill="none" stroke="#efc45c" stroke-width="5"/><path d="M118 566l13 13 26 -28" fill="none" stroke="#efc45c" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><text x="177" y="575" font-family="DM Mono, monospace" font-size="24" letter-spacing="3" fill="#efc45c">' + status + '</text>' +
+      '<text x="86" y="' + headingBaseline + '" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="156" font-weight="800" letter-spacing="-1" fill="#eef3f0">CONNECTED<tspan fill="#efc45c">.</tspan></text>' +
+      '<rect x="86" y="' + pillTop + '" width="540" height="77" rx="39" fill="none" stroke="#efc45c" stroke-width="5"/><path d="M118 ' + (pillTop + 38) + 'l13 13 26 -28" fill="none" stroke="#efc45c" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><text x="177" y="' + (pillTop + 48) + '" font-family="DM Mono, monospace" font-size="24" letter-spacing="3" fill="#efc45c">' + status + '</text>' +
       '<g>' + ladder + '</g>' +
-      '<text x="86" y="1435" font-family="DM Mono, monospace" font-size="25" letter-spacing="4" fill="#7f948d">LEVEL SCORE</text>' +
-      '<text x="86" y="1600" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="178" font-weight="800" fill="#efc45c">+' + points + '</text>' +
-      '<path d="M581 1390V1630" stroke="#2d423c" stroke-width="4"/>' +
-      '<text x="646" y="1435" font-family="DM Mono, monospace" font-size="25" letter-spacing="4" fill="#7f948d">MOVES</text>' +
-      '<text x="646" y="1600" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="178" font-weight="800" fill="#eef3f0">' + result.movesUsed + '</text>' +
-      '<path d="M86 1610H994" stroke="#2d423c" stroke-width="4"/>' +
-      '<text x="86" y="1690" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="82" font-weight="800" fill="#eef3f0">CAN YOU BUILD THE LADDER<tspan fill="#efc45c">?</tspan></text>' +
-      '<text x="86" y="1755" font-family="DM Mono, monospace" font-size="27" fill="#efc45c">' + url + ' →</text>';
+      '<text x="86" y="' + statsLabelY + '" font-family="DM Mono, monospace" font-size="25" letter-spacing="4" fill="#7f948d">LEVEL SCORE</text>' +
+      '<text x="86" y="' + statsValueY + '" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="238" font-weight="800" fill="#efc45c">+' + points + '</text>' +
+      '<path d="M581 ' + layout.statsY + 'V' + (layout.statsY + CARD_LAYOUT.stats) + '" stroke="#2d423c" stroke-width="4"/>' +
+      '<text x="646" y="' + statsLabelY + '" font-family="DM Mono, monospace" font-size="25" letter-spacing="4" fill="#7f948d">MOVES</text>' +
+      '<text x="646" y="' + statsValueY + '" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="238" font-weight="800" fill="#eef3f0">' + result.movesUsed + '</text>' +
+      '<path d="M86 ' + layout.footerY + 'H994" stroke="#2d423c" stroke-width="4"/>' +
+      '<text x="86" y="' + (layout.footerY + 109) + '" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="82" font-weight="800" fill="#eef3f0">CAN YOU BUILD THE LADDER<tspan fill="#efc45c">?</tspan></text>' +
+      '<text x="86" y="' + (layout.footerY + 179) + '" font-family="DM Mono, monospace" font-size="27" fill="#efc45c">' + url + ' →</text>';
     return cardSvgShell(content);
   }
 
@@ -890,6 +920,9 @@
     shortestDistance,
     calculatePoints,
     loadChallengeFromUrl,
+    createChallengeSvg,
+    createResultSvg,
+    cardLayout,
     getState: () => structuredClone(state),
     dictionarySize: WORD_SET.size
   });
