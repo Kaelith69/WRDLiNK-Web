@@ -74,7 +74,7 @@ function loadGame({ includeDictionary = true, search = '' } = {}) {
   return { game: window.WRDLINK, dictionary, storage, elements };
 }
 
-const { game, dictionary } = loadGame();
+const { game, dictionary, elements } = loadGame();
 assert.equal(game.dictionarySize, 3889);
 
 // A missing dictionary must reach the existing recovery UI, not throw while
