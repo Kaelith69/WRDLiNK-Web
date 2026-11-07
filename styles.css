@@ -180,3 +180,96 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 @media (max-width: 370px) {
   .theme-toggle { width: 44px; height: 44px; }
 }
+
+
+/* Keyboard aware mobile layout. The entry panel stays reachable while the
+   word history becomes its own scroll region. */
+.entry-actions, .finish-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.finish-actions { justify-content: center; }
+.finish-actions .ink-button { flex: 1 1 170px; }
+@media (max-width: 620px) {
+  .entry-actions { justify-content: flex-end; }
+  .entry-actions .secondary-button { min-height: 42px; }
+}
+@media (max-width: 620px) {
+  :root.keyboard-open .game-header {
+    min-height: 48px;
+    padding-block: 4px;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: var(--canvas);
+  }
+  :root.keyboard-open .brand-mark { width: 26px; height: 26px; }
+  :root.keyboard-open .wordmark { font-size: 13px; }
+  :root.keyboard-open .header-context { padding: 5px 7px; }
+  :root.keyboard-open .score-pill,
+  :root.keyboard-open .moves-pill { min-height: 30px; }
+  :root.keyboard-open .theme-toggle { width: 36px; height: 36px; }
+  :root.keyboard-open .game-workspace {
+    width: calc(100% - 20px);
+    padding-block: 7px 12px;
+  }
+  :root.keyboard-open .route-panel {
+    grid-template-columns: 1fr 22px 1fr;
+    gap: 3px;
+    padding-bottom: 8px;
+  }
+  :root.keyboard-open .route-end { gap: 4px; }
+  :root.keyboard-open .route-label { font-size: 7px; }
+  :root.keyboard-open .route-connector { height: 31px; }
+  :root.keyboard-open .word-display span {
+    width: clamp(25px, 7.4vw, 34px);
+    height: 34px;
+    border-radius: 7px;
+    font-size: 19px;
+    box-shadow: 1px 2px 0 var(--tile-shadow);
+  }
+  :root.keyboard-open .card-panel {
+    padding: 10px 12px;
+    border-radius: 14px;
+    box-shadow: 2px 3px 0 var(--line-strong);
+  }
+  :root.keyboard-open .chain-panel { margin-top: 2px; }
+  :root.keyboard-open .panel-heading h2,
+  :root.keyboard-open .entry-heading h2 { font-size: 16px; }
+  :root.keyboard-open .chain-list {
+    max-height: clamp(76px, 16dvh, 140px);
+    gap: 4px;
+    margin-top: 7px;
+  }
+  :root.keyboard-open .chain-list li {
+    min-height: 32px;
+    grid-template-columns: 25px 1fr;
+    padding: 2px 7px;
+  }
+  :root.keyboard-open .chain-list li b { font-size: 14px; }
+  :root.keyboard-open .chain-hint { margin-top: 5px; font-size: 9px; }
+  :root.keyboard-open .entry-panel {
+    position: sticky;
+    bottom: max(6px, env(safe-area-inset-bottom));
+    z-index: 4;
+    margin-top: 8px;
+    background: var(--paper);
+  }
+  :root.keyboard-open .entry-heading { margin-bottom: 7px; }
+  :root.keyboard-open .entry-panel form {
+    grid-template-columns: minmax(0, 1fr) 116px;
+    gap: 7px;
+  }
+  :root.keyboard-open .entry-panel input {
+    height: 48px;
+    padding-inline: 11px;
+    font-size: 19px;
+  }
+  :root.keyboard-open .ink-button { min-height: 46px; padding-inline: 9px; font-size: 9px; }
+  :root.keyboard-open .entry-meta { margin-top: 6px; }
+  :root.keyboard-open .entry-meta p { font-size: 9px; }
+  :root.keyboard-open .entry-actions .secondary-button {
+    min-height: 32px;
+    padding-inline: 8px;
+    font-size: 9px;
+  }
+  :root.keyboard-open .game-message { margin-top: 6px; padding: 7px 9px; font-size: 10px; }
+  :root.keyboard-open .game-footer { display: none; }
+}

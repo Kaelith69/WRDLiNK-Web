@@ -34,7 +34,7 @@ The browser edition is a small, dependency free web app. It runs locally in the 
 5. Reach the target word to complete the level.
 6. Continue to the next level and build your cumulative score.
 
-Invalid entries do not change the chain or consume a move.
+Invalid entries do not change the chain or consume a move. Use **Challenge a friend** to copy a link to the exact puzzle. Anyone opening that link receives the same start and target words and can solve it independently.
 
 ### Rules at a glance
 
@@ -46,13 +46,13 @@ Invalid entries do not change the chain or consume a move.
 
 ### Scoring
 
-Each level starts at **50 points**. One point is deducted for each valid move, with a minimum level score of zero.
+Each level starts at **25 points**. One point is deducted for each valid move, with a minimum level score of zero.
 
 ```text
-Level score = max(0, 50 - valid moves)
+Level score = max(0, 25 - valid moves)
 ```
 
-Completed level scores accumulate during the current game. Selecting **New game** resets the level and total score.
+Completed level scores accumulate during the current game. After a win, choose **Share result** to create a branded PNG card with the start and target words, move count, and points. Supported browsers open the native share sheet; other browsers download the image so it can be posted manually. Selecting **New game** resets the level and total score.
 
 Puzzles are generated from connected paths in the bundled dictionary. Breadth first search calculates the shortest possible distance between the start and target. You may use a longer valid route and still complete the puzzle.
 
@@ -92,7 +92,9 @@ Game progress and theme preference are stored locally by the browser. Offline su
 - **Random puzzles** generated from valid paths in the dictionary.
 - **Shortest route calculation** using breadth first search.
 - **Move validation** for dictionary membership, letter changes, and duplicate words.
-- **Level scoring** with cumulative progression.
+- **Level scoring** with 25 starting points per level and cumulative progression.
+- **Friend challenges** with shareable links that reopen the exact start and target words.
+- **Shareable result cards** exported as PNG images for messaging and social stories.
 - **Persistent progress** using browser `localStorage`.
 - **Light and dark themes** with saved preference and system theme detection.
 - **Installable PWA** with a web app manifest, custom SVG app icon, and service worker.
@@ -121,7 +123,7 @@ Node.js 18 or newer is required for the test suite.
 npm test
 ```
 
-The tests exercise the production game logic, dictionary, adjacency rules, scoring, puzzle generation, and saved progress validation.
+The tests exercise the production game logic, dictionary, adjacency rules, 25 point scoring, puzzle generation, shared challenge loading, and saved progress validation.
 
 ## Project structure
 
