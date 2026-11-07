@@ -107,7 +107,6 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 .ink-button:hover:not(:disabled) { filter: brightness(1.04); transform: translate(-1px, -1px); box-shadow: 4px 5px 0 var(--line-strong); }
 .ink-button:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: 1px 2px 0 var(--line-strong); }
 .ink-button:disabled { border-color: var(--line); background: var(--disabled); color: color-mix(in srgb, var(--ink) 60%, transparent); box-shadow: none; cursor: not-allowed; }
-.entry-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 13px; }
 .secondary-button { min-height: 39px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; background: transparent; color: var(--ink-soft); cursor: pointer; font-size: 11px; font-weight: 850; white-space: nowrap; }
 .secondary-button:hover { background: var(--paper-strong); }
 .game-message { margin: 13px 0 0; padding: 11px 13px; border: 2px solid var(--success); border-radius: 11px; background: var(--success-bg); color: var(--success); font-size: 12px; font-weight: 750; line-height: 1.5; }
@@ -357,11 +356,9 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 }
 
 /* Prevent the help text and action buttons from overflowing narrow screens. */
-.entry-meta { flex-wrap: wrap; }
-.entry-actions { display: flex; width: 100%; flex-wrap: wrap; gap: 8px; }
+.entry-actions { display: flex; width: 100%; flex-wrap: wrap; gap: 8px; margin-top: 13px; }
 .entry-actions .secondary-button { flex: 1 1 125px; }
 @media (max-width: 370px) {
-  .entry-meta { gap: 8px; }
   .entry-actions .secondary-button { flex: 1 1 100%; }
 }
 
