@@ -142,7 +142,8 @@ The tests exercise the production game logic, dictionary, adjacency rules, scori
 ├── dictionary.js             # 3,889 four letter words
 ├── package.json              # Test command
 ├── tests/
-│   └── game.test.js          # Production game logic checks
+│   ├── game.test.js          # Production game logic checks
+│   └── pwa.test.js           # PWA metadata and deployment checks
 ├── LICENSE
 └── README.md
 ```
