@@ -363,6 +363,9 @@
         const puzzle = createRandomPuzzle();
         if (resetScore) {
           challengeSession = false;
+          const cleanUrl = new URL(window.location.href);
+          cleanUrl.searchParams.delete('challenge');
+          window.history?.replaceState?.({}, '', cleanUrl.pathname + cleanUrl.search + cleanUrl.hash);
           state.score = 0;
           state.level = 1;
         } else if (nextLevel) {
