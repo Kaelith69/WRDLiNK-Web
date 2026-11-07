@@ -39,7 +39,11 @@ function loadGame({ includeDictionary = true } = {}) {
   const document = {
     documentElement: { dataset: { theme: 'light' } },
     getElementById(id) {
-      if (!elements.has(id)) elements.set(id, makeElement());
+      if (!elements.has(id)) {
+        const element = makeElement();
+        if (id === 'game' || id === 'error-panel' || id === 'finish-panel') element.hidden = true;
+        elements.set(id, element);
+      }
       return elements.get(id);
     },
     createElement: makeElement,
