@@ -634,7 +634,7 @@
     const headingBaseline = layout.headingTop + 112;
     const pillTop = layout.headingTop + 138 + 39;
     const statsLabelY = layout.statsY + 25;
-    const statsValueY = layout.statsY + 235;
+    const statsValueY = layout.statsY + 225;
     const content =
       '<text x="86" y="' + headingBaseline + '" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="156" font-weight="800" letter-spacing="-1" fill="#eef3f0">YOUR MOVE<tspan fill="#74c6b2">.</tspan></text>' +
       '<rect x="86" y="' + pillTop + '" width="465" height="77" rx="39" fill="none" stroke="#74c6b2" stroke-width="5"/><circle cx="119" cy="' + (pillTop + 38) + '" r="8" fill="#74c6b2"/><text x="156" y="' + (pillTop + 48) + '" font-family="DM Mono, monospace" font-size="25" letter-spacing="4" fill="#74c6b2">ONE LETTER PER MOVE</text>' +
