@@ -31,8 +31,9 @@ jobs:
 
       - name: Prepare static site
         run: |
-          mkdir _site
-          cp index.html styles.css app.js dictionary.js _site/
+          mkdir -p _site/assets
+          cp index.html styles.css app.js dictionary.js manifest.webmanifest sw.js _site/
+          cp assets/wrdlink-icon.svg _site/assets/
           touch _site/.nojekyll
 
       - name: Upload Pages artifact
