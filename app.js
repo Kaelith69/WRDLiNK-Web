@@ -611,7 +611,7 @@
       const rowY = y + index * (tileSize + linkHeight);
       parts.push(cardTileRow(word, rowY, kind, hidden, label, tileSize, tileGap));
       if (index < words.length - 1) {
-        parts.push(cardConnectorRow(word, words[index + 1], rowY + tileSize - 12, dotted, tileSize, tileGap, linkHeight));
+        parts.push(cardConnectorRow(word, words[index + 1], rowY + tileSize, dotted, tileSize, tileGap, linkHeight));
       }
     });
     return parts.join('');
@@ -626,9 +626,9 @@
     const ladderY = layout.ladderY;
     const ladder = [
       cardTileRow(start, ladderY, 'start', false, 'Start'),
-      cardConnectorRow(start, '????', ladderY + CARD_TILE - 12, true),
+      cardConnectorRow(start, '????', ladderY + CARD_TILE, true),
       cardTileRow('????', ladderY + CARD_TILE + CARD_LINK_HEIGHT, 'ghost', false),
-      cardConnectorRow('????', target, ladderY + 2 * (CARD_TILE + CARD_LINK_HEIGHT) + CARD_TILE - 12, true),
+      cardConnectorRow('????', target, ladderY + 2 * (CARD_TILE + CARD_LINK_HEIGHT) + CARD_TILE, true),
       cardTileRow(target, ladderY + 2 * (CARD_TILE + CARD_LINK_HEIGHT), 'end', false, 'Target')
     ].join('');
     const headingBaseline = layout.headingTop + 112;
@@ -637,7 +637,7 @@
     const statsValueY = layout.statsY + 235;
     const content =
       '<text x="86" y="' + headingBaseline + '" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="156" font-weight="800" letter-spacing="-1" fill="#eef3f0">YOUR MOVE<tspan fill="#74c6b2">.</tspan></text>' +
-      '<rect x="86" y="' + pillTop + '" width="497" height="77" rx="39" fill="none" stroke="#74c6b2" stroke-width="5"/><circle cx="119" cy="' + (pillTop + 38) + '" r="8" fill="#74c6b2"/><text x="156" y="' + (pillTop + 48) + '" font-family="DM Mono, monospace" font-size="25" letter-spacing="4" fill="#74c6b2">ONE LETTER PER MOVE</text>' +
+      '<rect x="86" y="' + pillTop + '" width="465" height="77" rx="39" fill="none" stroke="#74c6b2" stroke-width="5"/><circle cx="119" cy="' + (pillTop + 38) + '" r="8" fill="#74c6b2"/><text x="156" y="' + (pillTop + 48) + '" font-family="DM Mono, monospace" font-size="25" letter-spacing="4" fill="#74c6b2">ONE LETTER PER MOVE</text>' +
       '<g>' + ladder + '</g>' +
       '<text x="86" y="' + statsLabelY + '" font-family="DM Mono, monospace" font-size="25" letter-spacing="4" fill="#7f948d">LETTERS APART</text>' +
       '<text x="86" y="' + statsValueY + '" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="238" font-weight="800" fill="#eef3f0">' + apart + '</text>' +
@@ -786,7 +786,7 @@
     const statsValueY = layout.statsY + 235;
     const content =
       '<text x="86" y="' + headingBaseline + '" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="156" font-weight="800" letter-spacing="-1" fill="#eef3f0">CONNECTED<tspan fill="#efc45c">.</tspan></text>' +
-      '<rect x="86" y="' + pillTop + '" width="690" height="77" rx="39" fill="none" stroke="#efc45c" stroke-width="5"/><path d="M118 ' + (pillTop + 38) + 'l13 13 26 -28" fill="none" stroke="#efc45c" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><text x="177" y="' + (pillTop + 48) + '" font-family="DM Mono, monospace" font-size="24" letter-spacing="3" fill="#efc45c">' + status + '</text>' +
+      '<rect x="86" y="' + pillTop + '" width="540" height="77" rx="39" fill="none" stroke="#efc45c" stroke-width="5"/><path d="M118 ' + (pillTop + 38) + 'l13 13 26 -28" fill="none" stroke="#efc45c" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><text x="177" y="' + (pillTop + 48) + '" font-family="DM Mono, monospace" font-size="24" letter-spacing="3" fill="#efc45c">' + status + '</text>' +
       '<g>' + ladder + '</g>' +
       '<text x="86" y="' + statsLabelY + '" font-family="DM Mono, monospace" font-size="25" letter-spacing="4" fill="#7f948d">LEVEL SCORE</text>' +
       '<text x="86" y="' + statsValueY + '" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="238" font-weight="800" fill="#efc45c">+' + points + '</text>' +
