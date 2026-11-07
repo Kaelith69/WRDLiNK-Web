@@ -464,9 +464,9 @@
     if (!result.valid) {
       setMessage(result.message, 'error');
       // Rejected moves never alter the chain or consume a move.
+      setBusy(false);
       elements.input.focus({ preventScroll: true });
       elements.input.select();
-      setBusy(false);
       return;
     }
 
@@ -477,11 +477,10 @@
       completePuzzle(result);
     } else {
       setMessage(result.message);
-      elements.input.focus({ preventScroll: true });
       saveProgress();
       setBusy(false);
-      // Do not force focus here. Enter keeps the input active naturally,
-      // while tapping the submit button should allow the mobile keyboard to close.
+      // Keep the input active so the next word can be entered immediately.
+      elements.input.focus({ preventScroll: true });
     }
   }
 
