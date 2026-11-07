@@ -90,7 +90,7 @@ assert(!game.includes('height="1824"'));
 assert(!game.includes('THINK SHARP. LINK WORDS.'));
 assert(game.includes('function cardSvgShell(content)'));
 assert(game.includes('pattern id="midtiles"'));
-assert(game.includes('stroke-dasharray="7 7"'));
+assert(game.includes('stroke-dasharray="14 11"'));
 assert(game.includes('width=\"1080\" height=\"1920\" viewBox=\"0 0 1080 1920\"'));
 assert(game.includes('YOUR MOVE'));
 assert(game.includes('LETTERS APART'));
