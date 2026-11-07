@@ -19,16 +19,20 @@ assert.equal(manifest.short_name, 'WRDLINK');
 assert.equal(manifest.start_url, './');
 assert.equal(manifest.scope, './');
 assert.equal(manifest.display, 'standalone');
-assert(manifest.icons.some((icon) =>
-  icon.src === './assets/wrdlink-icon.svg' &&
-  icon.type === 'image/svg+xml' &&
-  icon.sizes === 'any' &&
-  icon.purpose.includes('maskable')
-));
+for (const size of ['192x192', '512x512']) {
+  assert(manifest.icons.some((icon) =>
+    icon.src === './assets/wrdlink-icon.svg' &&
+    icon.type === 'image/svg+xml' &&
+    icon.sizes === size &&
+    icon.purpose === 'any'
+  ), `manifest declares a ${size} app icon`);
+}
 assert.match(read('assets/wrdlink-icon.svg'), /<svg[^>]+viewBox="0 0 512 512"/);
 for (const asset of ['./index.html', './styles.css', './app.js', './dictionary.js', './manifest.webmanifest', './assets/wrdlink-icon.svg']) {
   assert(worker.includes(asset), `service worker app shell includes ${asset}`);
 }
+assert.match(worker, /const CACHE_PREFIX = 'wrdlink-shell-'/);
+assert.match(worker, /const CACHE_NAME = `\$\{CACHE_PREFIX\}v2`/);
 assert.match(worker, /request\.mode === 'navigate'/);
 assert.match(worker, /self\.clients\.claim\(\)/);
 assert.match(deploy, /manifest\.webmanifest sw\.js/);
