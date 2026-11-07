@@ -525,7 +525,7 @@
   const CARD_LINK_HEIGHT = 58;
   const CARD_X = 86;
 
-  function cardTileRow(word, y, kind, hidden = false, label = '') {
+  function cardTileRow(word, y, kind, hidden = false, label = '', tileSize = CARD_TILE, tileGap = CARD_GAP) {
     const colors = kind === 'start'
       ? { fill: '#74c6b2', edge: '#3f8f7d', ink: '#10201c' }
       : kind === 'end'
@@ -534,15 +534,15 @@
           ? { fill: 'none', edge: '#4a655d', ink: '#7a978d' }
           : { fill: 'url(#midtiles)', edge: '#1a2d27', ink: '#eef3f0' };
     const tiles = [...word].map((letter, index) => {
-      const x = CARD_X + index * (CARD_TILE + CARD_GAP);
+      const x = CARD_X + index * (tileSize + tileGap);
       const shown = hidden ? '' : letter;
-      return '<rect x="' + x + '" y="' + (y + 8) + '" width="' + CARD_TILE + '" height="' + CARD_TILE + '" rx="19" fill="#091512" opacity=".45"/>' +
+      return '<rect x="' + x + '" y="' + (y + 8) + '" width="' + tileSize + '" height="' + tileSize + '" rx="19" fill="#091512" opacity=".45"/>' +
         '<rect x="' + x + '" y="' + y + '" width="' + CARD_TILE + '" height="' + CARD_TILE + '" rx="19" fill="' + colors.fill + '" stroke="' + colors.edge + '" stroke-width="5"' + (kind === 'ghost' ? ' stroke-dasharray="9 8"' : '') + '/>' +
-        (shown ? '<text x="' + (x + CARD_TILE / 2) + '" y="' + (y + 103) + '" text-anchor="middle" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="101" font-weight="800" fill="' + colors.ink + '">' + escapeSvgText(shown) + '</text>' : '');
+        (shown ? '<text x="' + (x + tileSize / 2) + '" y="' + (y + tileSize * .68) + '" text-anchor="middle" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="101" font-weight="800" fill="' + colors.ink + '">' + escapeSvgText(shown) + '</text>' : '');
     }).join('');
     if (!label) return tiles;
     const color = kind === 'start' ? '#74c6b2' : '#efc45c';
-    const labelX = CARD_X + 4 * CARD_TILE + 3 * CARD_GAP + (kind === 'start' ? 39 : 15);
+    const labelX = CARD_X + 4 * tileSize + 3 * tileGap + (kind === 'start' ? 39 : 15);
     return tiles + '<text x="' + labelX + '" y="' + (y + 91) + '" font-family="DM Mono, monospace" font-size="23" letter-spacing="4" fill="' + color + '">' + label.toUpperCase() + '</text>';
   }
 
@@ -558,27 +558,30 @@
     return changed;
   }
 
-  function cardConnectorRow(first, second, y, dotted = false) {
+  function cardConnectorRow(first, second, y, dotted = false, tileSize = CARD_TILE, tileGap = CARD_GAP, linkHeight = CARD_LINK_HEIGHT) {
     return [...first].map((letter, index) => {
-      const x = CARD_X + index * (CARD_TILE + CARD_GAP) + CARD_TILE / 2;
+      const x = CARD_X + index * (tileSize + tileGap) + tileSize / 2;
       const changed = changedLetterIndex(first, second) === index;
       if (dotted) {
         return '<path d="M' + x + ' ' + y + 'v' + CARD_LINK_HEIGHT + '" stroke="#4a655d" stroke-width="6" stroke-dasharray="7 7" stroke-linecap="round"/>';
       }
-      return '<rect x="' + (x - (changed ? 5 : 3)) + '" y="' + y + '" width="' + (changed ? 10 : 6) + '" height="' + CARD_LINK_HEIGHT + '" rx="4" fill="' + (changed ? '#efc45c' : '#2d423c') + '"/>';
+      return '<rect x="' + (x - (changed ? 5 : 3)) + '" y="' + y + '" width="' + (changed ? 10 : 6) + '" height="' + linkHeight + '" rx="4" fill="' + (changed ? '#efc45c' : '#2d423c') + '"/>';
     }).join('');
   }
 
-  function cardLadderRows(words, y, reveal, dotted = false) {
+  function cardLadderRows(words, y, reveal, dotted = false, compact = false) {
+    const tileSize = compact ? 112 : CARD_TILE;
+    const tileGap = compact ? 22 : CARD_GAP;
+    const linkHeight = compact ? 34 : CARD_LINK_HEIGHT;
     const parts = [];
     words.forEach((word, index) => {
       const kind = index === 0 ? 'start' : index === words.length - 1 ? 'end' : 'mid';
       const hidden = kind === 'mid' && !reveal;
       const label = kind === 'start' ? 'Start' : kind === 'end' ? 'Target' : '';
-      const rowY = y + index * (CARD_TILE + CARD_LINK_HEIGHT);
-      parts.push(cardTileRow(word, rowY, kind, hidden, label));
+      const rowY = y + index * (tileSize + linkHeight);
+      parts.push(cardTileRow(word, rowY, kind, hidden, label, tileSize, tileGap));
       if (index < words.length - 1) {
-        parts.push(cardConnectorRow(word, words[index + 1], rowY + CARD_TILE - 12, dotted));
+        parts.push(cardConnectorRow(word, words[index + 1], rowY + tileSize - 12, dotted, tileSize, tileGap, linkHeight));
       }
     });
     return parts.join('');
@@ -606,9 +609,9 @@
       '<path d="M550 1370V1585" stroke="#2d423c" stroke-width="4"/>' +
       '<text x="610" y="1390" font-family="DM Mono, monospace" font-size="25" letter-spacing="4" fill="#7f948d">MOVES NEEDED</text>' +
       '<text x="610" y="1555" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="178" font-weight="800" fill="#efc45c">?</text>' +
-      '<path d="M86 1640H994" stroke="#2d423c" stroke-width="4"/>' +
-      '<text x="86" y="1720" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="82" font-weight="800" fill="#eef3f0">CAN YOU BRIDGE THE GAP<tspan fill="#efc45c">?</tspan></text>' +
-      '<text x="86" y="1790" font-family="DM Mono, monospace" font-size="27" fill="#efc45c">' + url + ' →</text>';
+      '<path d="M86 1590H994" stroke="#2d423c" stroke-width="4"/>' +
+      '<text x="86" y="1675" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="82" font-weight="800" fill="#eef3f0">CAN YOU BRIDGE THE GAP<tspan fill="#efc45c">?</tspan></text>' +
+      '<text x="86" y="1745" font-family="DM Mono, monospace" font-size="27" fill="#efc45c">' + url + ' →</text>';
     return cardSvgShell(content);
   }
 
@@ -734,9 +737,10 @@
     const visibleWords = sequence.length > 5
       ? [sequence[0], sequence[1], sequence[2], sequence[3], sequence[sequence.length - 1]]
       : sequence;
-    const ladder = cardLadderRows(visibleWords, 625, false, false);
+    const compactLadder = visibleWords.length === 5;
+    const ladder = cardLadderRows(visibleWords, compactLadder ? 650 : 625, false, false, compactLadder);
     const status = shortest ? 'SHORTEST ROUTE FOUND' : 'ROUTE FOUND';
-    const url = escapeSvgText(window.location.host + window.location.pathname);
+    const url = escapeSvgText(window.location.host + window.location.pathname.replace(/\/$/, ''));
     const content =
       '<text x="86" y="500" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="156" font-weight="800" letter-spacing="-1" fill="#eef3f0">CONNECTED<tspan fill="#efc45c">.</tspan></text>' +
       '<rect x="86" y="535" width="690" height="62" rx="31" fill="none" stroke="#efc45c" stroke-width="5"/><path d="M118 566l13 13 26 -28" fill="none" stroke="#efc45c" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><text x="177" y="575" font-family="DM Mono, monospace" font-size="24" letter-spacing="3" fill="#efc45c">' + status + '</text>' +
@@ -746,9 +750,9 @@
       '<path d="M550 1390V1630" stroke="#2d423c" stroke-width="4"/>' +
       '<text x="610" y="1435" font-family="DM Mono, monospace" font-size="25" letter-spacing="4" fill="#7f948d">MOVES</text>' +
       '<text x="610" y="1600" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="178" font-weight="800" fill="#eef3f0">' + result.movesUsed + '</text>' +
-      '<path d="M86 1660H994" stroke="#2d423c" stroke-width="4"/>' +
-      '<text x="86" y="1740" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="82" font-weight="800" fill="#eef3f0">CAN YOU BUILD THE LADDER<tspan fill="#efc45c">?</tspan></text>' +
-      '<text x="86" y="1805" font-family="DM Mono, monospace" font-size="27" fill="#efc45c">' + url + ' →</text>';
+      '<path d="M86 1610H994" stroke="#2d423c" stroke-width="4"/>' +
+      '<text x="86" y="1690" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="82" font-weight="800" fill="#eef3f0">CAN YOU BUILD THE LADDER<tspan fill="#efc45c">?</tspan></text>' +
+      '<text x="86" y="1755" font-family="DM Mono, monospace" font-size="27" fill="#efc45c">' + url + ' →</text>';
     return cardSvgShell(content);
   }
 
