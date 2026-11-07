@@ -163,3 +163,25 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
 @media (forced-colors: active) { .word-display span, .ink-button, .card-panel, .theme-toggle { border: 2px solid ButtonText; } }
+
+
+/* Keep long ladders usable while preserving the entry controls on screen. */
+.chain-list {
+  max-height: min(38vh, 320px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 2px 5px 5px 2px;
+  scroll-padding-block: 8px;
+}
+.chain-list li { scroll-margin-block: 8px; }
+
+/* Comfortable minimum touch targets for secondary and theme controls. */
+.theme-toggle { width: 44px; height: 44px; }
+.secondary-button { min-height: 44px; }
+
+@media (max-width: 620px) {
+  .theme-toggle { width: 44px; height: 44px; }
+}
+@media (max-width: 370px) {
+  .theme-toggle { width: 44px; height: 44px; }
+}

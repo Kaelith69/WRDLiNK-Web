@@ -30,7 +30,7 @@ No installation or development server is required for normal play.
 
 ### Run the checks
 
-Node.js is required only for the test suite.
+Node.js 18 or newer is required only for the test suite.
 
 ```bash
 npm test
@@ -73,11 +73,11 @@ Puzzles are generated from connected paths in the dictionary. Breadth first sear
 
 ## Privacy and data
 
-The game runs locally in the browser. Game progress and theme preference are stored in the current browser profile using `localStorage`. No account, server, analytics service, or cross device synchronization is included in this edition.
+The game runs locally in the browser. Game progress and theme preference are stored in the current browser profile using `localStorage`. No account, server, analytics service, or cross device synchronization is included in this edition. If the same game is open in multiple tabs, a tab detects an external progress update and stops overwriting the newer saved snapshot. Reload that tab to continue from the latest saved game.
 
 ## Accessibility
 
-The interface is designed to support keyboard and touch interaction, clear focus visibility, readable contrast, semantic form controls, status announcements for assistive technology, and reduced motion preferences. Colour is not the only way game state is communicated.
+The interface is designed to support keyboard and touch interaction, visible focus, semantic form controls, concise status announcements, reduced motion preferences, and scrollable long word chains. Colour is not the only way game state is communicated. Contrast and browser or screen reader combinations should still be checked on the target devices before release.
 
 ## Technology
 
