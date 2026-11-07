@@ -90,9 +90,9 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 .chain-panel { margin-top: 8px; }
 .panel-heading, .entry-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
 .eyebrow { display: block; color: var(--muted); font-size: 9px; font-weight: 950; letter-spacing: .15em; }
-.panel-heading h2, .entry-heading h2 { margin: 4px 0 0; font-size: clamp(19px, 3vw, 23px); font-weight: 950; letter-spacing: -.045em; }
+.panel-heading h2, .entry-heading h2 { margin: 0; font-size: clamp(19px, 3vw, 23px); font-weight: 950; letter-spacing: -.045em; }
 .chain-list { display: grid; gap: 8px; margin: 18px 0 0; padding: 0; list-style: none; }
-.chain-list li { display: grid; grid-template-columns: 36px 1fr; align-items: center; min-height: 49px; padding: 5px 11px; border: 2px dashed var(--line); border-radius: 12px; background: var(--paper-strong); animation: row-in 200ms ease both; }
+.chain-list li { display: grid; grid-template-columns: 36px 1fr; align-items: center; min-height: 49px; padding: 5px 11px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper-strong); animation: row-in 200ms ease both; }
 .chain-list li > span { color: var(--muted); font-size: 10px; font-weight: 850; font-variant-numeric: tabular-nums; }
 .chain-list li b { font-size: 18px; font-weight: 950; letter-spacing: .16em; }
 .chain-list li.chain-final { border-style: solid; border-color: var(--success); background: var(--success-bg); }
@@ -111,7 +111,7 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 .entry-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 13px; }
 .entry-meta p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
 .secondary-button { min-height: 39px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; background: transparent; color: var(--ink-soft); cursor: pointer; font-size: 11px; font-weight: 850; white-space: nowrap; }
-.secondary-button:hover { border-style: solid; background: var(--paper-strong); }
+.secondary-button:hover { background: var(--paper-strong); }
 .game-message { margin: 13px 0 0; padding: 11px 13px; border: 2px solid var(--success); border-radius: 11px; background: var(--success-bg); color: var(--success); font-size: 12px; font-weight: 750; line-height: 1.5; }
 .game-message.error { border-color: var(--error); background: var(--error-bg); color: var(--error); }
 .finish-panel { margin-top: 20px; text-align: center; }
@@ -144,10 +144,10 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
   .header-right { gap: 7px; }.header-count { gap: 5px; }.score-pill, .moves-pill { min-height: 34px; gap: 5px; padding: 0 7px; border-radius: 9px; }.metric-label { font-size: 8px; }.score-pill strong, .moves-pill strong { font-size: 13px; }
   .theme-toggle { width: 36px; height: 36px; border-radius: 10px; }.theme-toggle svg { width: 17px; height: 17px; }
   .game-workspace { width: calc(100% - 28px); padding: 24px 0 20px; }
-  .route-panel { grid-template-columns: 1fr 34px 1fr; gap: 5px; padding-bottom: 20px; }.route-label { font-size: 8px; gap: 5px; }.route-dot { width: 7px; height: 7px; }.route-connector { height: 43px; font-size: 8px; }
+  .route-panel { grid-template-columns: 1fr 34px 1fr; gap: 5px; padding-bottom: 20px; }.route-label { font-size: 8px; gap: 5px; }.route-dot { width: 7px; height: 7px; }.route-connector { height: 43px; }
   .word-display { gap: 3px; }.word-display span { width: clamp(29px, 8.7vw, 44px); height: clamp(39px, 11vw, 51px); border-radius: 9px; font-size: clamp(20px, 6vw, 25px); box-shadow: 2px 3px 0 var(--tile-shadow); }
   .card-panel { padding: 16px; border-width: 2.5px; border-radius: 18px; box-shadow: 4px 5px 0 var(--line-strong); }
-  .chain-panel { margin-top: 6px; }.chain-list { gap: 7px; margin-top: 14px; }.chain-list li { min-height: 44px; grid-template-columns: 29px 1fr; padding: 4px 9px; border-radius: 10px; }.chain-list li b { font-size: 16px; }.chain-list li::after { font-size: 8px; }.chain-hint { font-size: 10px; }
+  .chain-panel { margin-top: 6px; }.chain-list { gap: 7px; margin-top: 14px; }.chain-list li { min-height: 44px; grid-template-columns: 29px 1fr; padding: 4px 9px; border-radius: 10px; }.chain-list li b { font-size: 16px; }.chain-hint { font-size: 10px; }
   .entry-panel { margin-top: 16px; }.entry-heading { margin-bottom: 13px; }.panel-heading h2, .entry-heading h2 { font-size: 19px; }.eyebrow { font-size: 8px; }
   .entry-panel form { grid-template-columns: 1fr; gap: 10px; }.entry-panel input { height: 57px; font-size: 21px; }.ink-button { min-height: 51px; }.entry-meta { align-items: flex-start; }.entry-meta p { max-width: 190px; font-size: 10px; }.secondary-button { min-height: 36px; font-size: 10px; }
   .game-footer { width: calc(100% - 28px); font-size: 8px; }
