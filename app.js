@@ -783,7 +783,7 @@
     const headingBaseline = layout.headingTop + 112;
     const pillTop = layout.headingTop + 138 + 39;
     const statsLabelY = layout.statsY + 25;
-    const statsValueY = layout.statsY + 235;
+    const statsValueY = layout.statsY + 225;
     const content =
       '<text x="86" y="' + headingBaseline + '" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="156" font-weight="800" letter-spacing="-1" fill="#eef3f0">CONNECTED<tspan fill="#efc45c">.</tspan></text>' +
       '<rect x="86" y="' + pillTop + '" width="540" height="77" rx="39" fill="none" stroke="#efc45c" stroke-width="5"/><path d="M118 ' + (pillTop + 38) + 'l13 13 26 -28" fill="none" stroke="#efc45c" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><text x="177" y="' + (pillTop + 48) + '" font-family="DM Mono, monospace" font-size="24" letter-spacing="3" fill="#efc45c">' + status + '</text>' +
