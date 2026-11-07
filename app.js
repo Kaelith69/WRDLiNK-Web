@@ -19,7 +19,7 @@
     form: $('move-form'), input: $('word-entry'), submit: $('submit-button'),
     message: $('message'), entryPanel: $('entry-panel'), finishPanel: $('finish-panel'),
     finishTitle: $('finish-title'), finishDescription: $('finish-description'), shareStatus: $('share-status'),
-    nextButton: $('next-button'), newGameButton: $('new-game-button'), retryButton: $('retry-button'), themeToggle: $('theme-toggle'), shareChallengeButton: $('share-challenge-button'), shareResultButton: $('share-result-button')
+    nextButton: $('next-button'), newGameButton: $('new-game-button'), retryButton: $('retry-button'), themeToggle: $('theme-toggle'), shareChallengeButton: $('share-challenge-button'), shareResultButton: $('share-result-button'), downloadResultButton: $('download-result-button')
   };
 
   // Game session mirrors server SessionState: accumulated score, level,
@@ -255,6 +255,7 @@
     elements.nextButton.disabled = value;
     elements.shareChallengeButton.disabled = value || state.completed;
     elements.shareResultButton.disabled = value || !state.completed || !preparedResultFile;
+    elements.downloadResultButton.disabled = value || !state.completed || !preparedResultFile;
   }
 
   function renderPuzzle() {
@@ -270,6 +271,7 @@
     resultPreparationPending = false;
     elements.shareResultButton.textContent = 'SHARE RESULT';
     elements.shareResultButton.disabled = true;
+    elements.downloadResultButton.disabled = true;
     elements.shareStatus.textContent = '';
     setBusy(false);
   }
@@ -544,6 +546,7 @@
     resultPreparationPending = true;
     preparedResultFile = null;
     elements.shareResultButton.disabled = true;
+    elements.downloadResultButton.disabled = true;
     elements.shareResultButton.textContent = 'PREPARING CARD';
     elements.shareStatus.textContent = 'Preparing your share image…';
     let imageUrl = null;
@@ -565,6 +568,7 @@
       if (preparationId !== resultPreparationId || !state.completed) return;
       preparedResultFile = new File([blob], 'wrdlink-result.png', { type: 'image/png' });
       elements.shareResultButton.disabled = false;
+      elements.downloadResultButton.disabled = false;
       elements.shareResultButton.textContent = 'SHARE RESULT';
       elements.shareStatus.textContent = 'Your result card is ready to share.';
     } catch (error) {
@@ -620,8 +624,9 @@
       }
     } catch (error) {
       if (error.name === 'AbortError') return;
-      // Native sharing can be unavailable or rejected even after canShare.
-      downloadResultCard(file);
+      // A rejected native share may have consumed the transient user gesture.
+      // Keep download as a separate, reliable user initiated action.
+      elements.shareStatus.textContent = 'Native sharing was unavailable. Use Download PNG instead.';
     }
   }
 
@@ -637,6 +642,9 @@
   elements.retryButton.addEventListener('click', () => startPuzzle());
   elements.shareChallengeButton.addEventListener('click', shareChallenge);
   elements.shareResultButton.addEventListener('click', shareResult);
+  elements.downloadResultButton.addEventListener('click', () => {
+    if (preparedResultFile) downloadResultCard(preparedResultFile);
+  });
 
   // A tiny public API is useful for local testing and debugging without
   // exposing mutable state to the page UI.
