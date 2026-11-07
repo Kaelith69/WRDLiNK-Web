@@ -22,6 +22,9 @@
       } catch (_) {}
     })();
   </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <script src="dictionary.js" defer></script>
   <script src="app.js" defer></script>
@@ -44,7 +47,7 @@
           <span class="score-pill"><span class="metric-label">SCORE</span><strong id="score-label">0</strong></span>
           <span class="moves-pill"><span class="metric-label">MOVES</span><strong id="moves-label">0</strong></span>
         </div>
-        <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to dark mode" title="Switch theme">
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to dark mode">
           <svg class="sun-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.7"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg>
           <svg class="moon-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.4 15.2A8.7 8.7 0 0 1 8.8 3.6 8.9 8.9 0 1 0 20.4 15.2Z"/></svg>
         </button>
@@ -53,7 +56,6 @@
 
     <section class="game-workspace" aria-label="WRDLINK word puzzle">
       <div id="loading" class="loading-progress" role="status">
-        <div class="loading-letters" aria-hidden="true"><span>W</span><span>R</span><span>D</span><span>L</span><span>I</span><span>N</span><span>K</span></div>
         <div class="loading-track"><span></span></div><p>Building your word ladder</p>
       </div>
 
@@ -73,17 +75,16 @@
         <section class="chain-panel card-panel" aria-label="Your word chain">
           <div class="panel-heading"><h2>Word ladder</h2></div>
           <ol class="chain-list" id="chain-list" aria-label="Words used in your current ladder"></ol>
-          <p class="chain-hint">Change one letter per move.</p>
         </section>
 
         <section class="entry-panel card-panel" id="entry-panel">
           <div class="entry-heading"><h2>Your next word</h2></div>
-          <form id="move-form" autocomplete="off" novalidate>
+          <form id="move-form" novalidate>
             <label class="sr-only" for="word-entry">Enter your next four letter word</label>
-            <input id="word-entry" type="text" inputmode="text" enterkeyhint="send" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" writingsuggestions="false" maxlength="4" placeholder="ENTER WORD" aria-label="Enter your next four letter word" aria-describedby="entry-help message">
-            <button class="ink-button send-button" id="submit-button" type="submit" aria-label="Send word" title="Send word" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12 20 4l-5 16-3-7-8-1Zm8 1 8-9"/></svg></button>
+            <input id="word-entry" type="text" inputmode="text" enterkeyhint="send" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" writingsuggestions="false" maxlength="4" aria-describedby="message">
+            <button class="ink-button send-button" id="submit-button" type="submit" aria-label="Send word" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12 20 4l-5 16-3-7-8-1Zm8 1 8-9"/></svg></button>
           </form>
-          <div class="entry-meta"><p id="entry-help">Use a dictionary word.</p><div class="entry-actions"><button class="secondary-button" id="share-challenge-button" type="button">↗ Share challenge</button><button class="secondary-button" id="copy-challenge-button" type="button">Copy challenge link</button><button class="secondary-button" id="new-game-button" type="button">↻ New game</button></div></div>
+          <div class="entry-actions"><button class="secondary-button" id="share-challenge-button" type="button">↗ Share challenge</button><button class="secondary-button" id="copy-challenge-button" type="button">Copy challenge link</button><button class="secondary-button" id="new-game-button" type="button">↻ New game</button></div>
           <p id="message" class="game-message" role="status" aria-live="polite" aria-atomic="true" hidden></p>
         </section>
 
@@ -95,7 +96,6 @@
 
       <section class="state-error card-panel" id="error-panel" hidden role="alert"><p id="error-message">The puzzle could not be loaded.</p><button class="ink-button" id="retry-button" type="button">TRY AGAIN</button></section>
     </section>
-    <footer class="game-footer"><span>THINK SHARP. LINK WORDS.</span></footer>
   </main>
 </body>
 </html>
