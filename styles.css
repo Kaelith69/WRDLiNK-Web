@@ -182,94 +182,196 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 }
 
 
-/* Keyboard aware mobile layout. The entry panel stays reachable while the
-   word history becomes its own scroll region. */
-.entry-actions, .finish-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.finish-actions { justify-content: center; }
-.finish-actions .ink-button { flex: 1 1 170px; }
-@media (max-width: 620px) {
-  .entry-actions { justify-content: flex-end; }
-  .entry-actions .secondary-button { min-height: 42px; }
+
+/* Mobile play mode: the page is fixed to the visible viewport. The route and
+   entry controls stay in place while only the word history scrolls. */
+.share-status {
+  min-height: 1.4em;
+  margin: 10px 0 14px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
 }
+.finish-actions { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+.finish-actions .ink-button { flex: 1 1 180px; }
+
 @media (max-width: 620px) {
-  :root.keyboard-open .game-header {
-    min-height: 48px;
-    padding-block: 4px;
-    position: sticky;
-    top: 0;
-    z-index: 5;
-    background: var(--canvas);
+  :root.keyboard-open,
+  :root.keyboard-open body {
+    height: var(--visual-viewport-height, 100dvh);
+    min-height: 0;
+    overflow: hidden;
   }
-  :root.keyboard-open .brand-mark { width: 26px; height: 26px; }
-  :root.keyboard-open .wordmark { font-size: 13px; }
-  :root.keyboard-open .header-context { padding: 5px 7px; }
+  :root.keyboard-open .game-page {
+    display: flex;
+    width: 100%;
+    height: var(--visual-viewport-height, 100dvh);
+    min-height: 0;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  :root.keyboard-open .game-header {
+    display: grid;
+    min-height: 44px;
+    flex: 0 0 44px;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    padding: 4px 10px;
+    border-bottom-width: 2px;
+  }
+  :root.keyboard-open .wordmark { gap: 6px; font-size: 13px; }
+  :root.keyboard-open .brand-mark {
+    width: 25px;
+    height: 25px;
+    border-radius: 7px;
+    font-size: 14px;
+    box-shadow: 2px 2px 0 var(--line-strong);
+  }
+  :root.keyboard-open .header-context { display: none; }
+  :root.keyboard-open .header-right { gap: 6px; }
+  :root.keyboard-open .header-count { gap: 5px; }
   :root.keyboard-open .score-pill,
-  :root.keyboard-open .moves-pill { min-height: 30px; }
-  :root.keyboard-open .theme-toggle { width: 36px; height: 36px; }
+  :root.keyboard-open .moves-pill {
+    min-height: 32px;
+    gap: 5px;
+    padding-inline: 7px;
+    border-width: 1px;
+  }
+  :root.keyboard-open .metric-label { display: none; }
+  :root.keyboard-open .score-pill strong,
+  :root.keyboard-open .moves-pill strong { font-size: 13px; }
+  :root.keyboard-open .theme-toggle { width: 34px; height: 34px; }
   :root.keyboard-open .game-workspace {
-    width: calc(100% - 20px);
-    padding-block: 7px 12px;
+    display: flex;
+    width: 100%;
+    min-height: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+    overflow: hidden;
+    margin: 0;
+    padding: 6px 10px max(6px, env(safe-area-inset-bottom));
+  }
+  :root.keyboard-open #game:not([hidden]) {
+    display: flex;
+    min-height: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 7px;
+    overflow: hidden;
   }
   :root.keyboard-open .route-panel {
-    grid-template-columns: 1fr 22px 1fr;
-    gap: 3px;
-    padding-bottom: 8px;
+    display: grid;
+    flex: 0 0 auto;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+    padding: 0 2px 5px;
   }
   :root.keyboard-open .route-end { gap: 4px; }
-  :root.keyboard-open .route-label { font-size: 7px; }
-  :root.keyboard-open .route-connector { height: 31px; }
+  :root.keyboard-open .route-end-target { align-items: flex-end; }
+  :root.keyboard-open .route-label { gap: 5px; font-size: 7px; letter-spacing: .08em; }
+  :root.keyboard-open .route-dot { width: 6px; height: 6px; }
+  :root.keyboard-open .route-connector { display: none; }
+  :root.keyboard-open .word-display { gap: 3px; }
   :root.keyboard-open .word-display span {
-    width: clamp(25px, 7.4vw, 34px);
+    width: clamp(27px, 7vw, 34px);
     height: 34px;
     border-radius: 7px;
     font-size: 19px;
     box-shadow: 1px 2px 0 var(--tile-shadow);
   }
-  :root.keyboard-open .card-panel {
-    padding: 10px 12px;
-    border-radius: 14px;
+  :root.keyboard-open .chain-panel {
+    display: flex;
+    min-height: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+    overflow: hidden;
+    margin: 0;
+    padding: 9px 11px;
+    border-width: 2px;
+    border-radius: 13px;
     box-shadow: 2px 3px 0 var(--line-strong);
   }
-  :root.keyboard-open .chain-panel { margin-top: 2px; }
-  :root.keyboard-open .panel-heading h2,
-  :root.keyboard-open .entry-heading h2 { font-size: 16px; }
+  :root.keyboard-open .panel-heading { flex: 0 0 auto; }
+  :root.keyboard-open .panel-heading h2 { font-size: 14px; }
   :root.keyboard-open .chain-list {
-    max-height: clamp(76px, 16dvh, 140px);
+    display: flex;
+    min-height: 0;
+    max-height: none;
+    flex: 1 1 auto;
+    flex-direction: column;
     gap: 4px;
-    margin-top: 7px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    margin: 6px 0 0;
+    padding: 2px 5px 3px 2px;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    -webkit-overflow-scrolling: touch;
   }
   :root.keyboard-open .chain-list li {
-    min-height: 32px;
+    min-height: 29px;
+    flex: 0 0 auto;
     grid-template-columns: 25px 1fr;
     padding: 2px 7px;
+    border-radius: 7px;
   }
+  :root.keyboard-open .chain-list li > span { font-size: 9px; }
   :root.keyboard-open .chain-list li b { font-size: 14px; }
-  :root.keyboard-open .chain-hint { margin-top: 5px; font-size: 9px; }
+  :root.keyboard-open .chain-hint { display: none; }
   :root.keyboard-open .entry-panel {
-    position: sticky;
-    bottom: max(6px, env(safe-area-inset-bottom));
-    z-index: 4;
-    margin-top: 8px;
-    background: var(--paper);
+    position: relative;
+    z-index: 2;
+    flex: 0 0 auto;
+    margin: 0;
+    padding: 9px 10px;
+    border-width: 2px;
+    border-radius: 13px;
+    box-shadow: 2px 3px 0 var(--line-strong);
   }
-  :root.keyboard-open .entry-heading { margin-bottom: 7px; }
+  :root.keyboard-open .entry-heading { display: none; }
   :root.keyboard-open .entry-panel form {
-    grid-template-columns: minmax(0, 1fr) 116px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 112px;
     gap: 7px;
   }
   :root.keyboard-open .entry-panel input {
-    height: 48px;
-    padding-inline: 11px;
+    width: 100%;
+    height: 46px;
+    min-height: 46px;
+    padding-inline: 10px;
+    border-width: 2px;
+    border-radius: 9px;
     font-size: 19px;
+    letter-spacing: .18em;
+    box-shadow: 1px 2px 0 var(--line);
   }
-  :root.keyboard-open .ink-button { min-height: 46px; padding-inline: 9px; font-size: 9px; }
-  :root.keyboard-open .entry-meta { margin-top: 6px; }
-  :root.keyboard-open .entry-meta p { font-size: 9px; }
-  :root.keyboard-open .entry-actions .secondary-button {
-    min-height: 32px;
-    padding-inline: 8px;
+  :root.keyboard-open .entry-panel input::placeholder { font-size: 9px; }
+  :root.keyboard-open .entry-panel .ink-button {
+    min-height: 46px;
+    padding-inline: 7px;
+    border-width: 2px;
+    border-radius: 9px;
     font-size: 9px;
+    letter-spacing: .04em;
+    box-shadow: 1px 2px 0 var(--line-strong);
   }
-  :root.keyboard-open .game-message { margin-top: 6px; padding: 7px 9px; font-size: 10px; }
+  :root.keyboard-open .entry-meta { display: none; }
+  :root.keyboard-open .game-message {
+    margin: 6px 0 0;
+    padding: 6px 8px;
+    border-width: 1px;
+    font-size: 10px;
+  }
   :root.keyboard-open .game-footer { display: none; }
+}
+
+/* Prevent the help text and action buttons from overflowing narrow screens. */
+.entry-meta { flex-wrap: wrap; }
+.entry-meta > p { flex: 1 1 100%; max-width: none; }
+.entry-actions { display: flex; width: 100%; flex-wrap: wrap; gap: 8px; }
+.entry-actions .secondary-button { flex: 1 1 125px; }
+@media (max-width: 370px) {
+  .entry-meta { gap: 8px; }
+  .entry-actions .secondary-button { flex: 1 1 100%; }
 }

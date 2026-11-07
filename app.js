@@ -18,8 +18,8 @@
     scoreLabel: $('score-label'), movesLabel: $('moves-label'), levelLabel: $('level-label'),
     form: $('move-form'), input: $('word-entry'), submit: $('submit-button'),
     message: $('message'), entryPanel: $('entry-panel'), finishPanel: $('finish-panel'),
-    finishTitle: $('finish-title'), finishDescription: $('finish-description'),
-    nextButton: $('next-button'), newGameButton: $('new-game-button'), retryButton: $('retry-button'), themeToggle: $('theme-toggle'), shareChallengeButton: $('share-challenge-button'), shareResultButton: $('share-result-button')
+    finishTitle: $('finish-title'), finishDescription: $('finish-description'), shareStatus: $('share-status'),
+    nextButton: $('next-button'), newGameButton: $('new-game-button'), retryButton: $('retry-button'), themeToggle: $('theme-toggle'), shareChallengeButton: $('share-challenge-button'), shareResultButton: $('share-result-button'), downloadResultButton: $('download-result-button')
   };
 
   // Game session mirrors server SessionState: accumulated score, level,
@@ -34,6 +34,11 @@
   let busy = false;
   let externalProgressChanged = false;
   let challengeSession = false;
+  let puzzleTransition = false;
+  let preparedResultFile = null;
+  let resultPreparationId = 0;
+  let resultPreparationPending = false;
+  let keyboardFocusViewportHeight = null;
 
   // Theme choice is independent from game progress and persists per browser.
   function applyTheme(theme) {
@@ -210,7 +215,9 @@
   }
 
   function renderChain() {
-    elements.chainList.replaceChildren();
+    const list = elements.chainList;
+    const wasAtBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 24;
+    list.replaceChildren();
     state.chain.forEach((word, index) => {
       const item = document.createElement('li');
       if (word === state.puzzle.target) item.classList.add('chain-final');
@@ -225,7 +232,7 @@
     elements.movesLabel.textContent = String(moves);
     // Keep the newest move visible without allowing a long ladder to push
     // the entry controls indefinitely down the page.
-    elements.chainList.scrollTop = elements.chainList.scrollHeight;
+    if (wasAtBottom) list.scrollTop = list.scrollHeight;
   }
 
   function renderHeader() {
@@ -248,6 +255,8 @@
     elements.newGameButton.disabled = value;
     elements.nextButton.disabled = value;
     elements.shareChallengeButton.disabled = value || state.completed;
+    elements.shareResultButton.disabled = value || !state.completed || !preparedResultFile;
+    elements.downloadResultButton.disabled = value || !state.completed || !preparedResultFile;
   }
 
   function renderPuzzle() {
@@ -259,6 +268,12 @@
     elements.entryPanel.hidden = false;
     elements.finishPanel.hidden = true;
     elements.input.value = '';
+    preparedResultFile = null;
+    resultPreparationPending = false;
+    elements.shareResultButton.textContent = 'SHARE RESULT';
+    elements.shareResultButton.disabled = true;
+    elements.downloadResultButton.disabled = true;
+    elements.shareStatus.textContent = '';
     setBusy(false);
   }
 
@@ -354,6 +369,14 @@
   }
 
   function startPuzzle({ resetScore = false, nextLevel = false } = {}) {
+    if (puzzleTransition || busy || externalProgressChanged) return;
+    puzzleTransition = true;
+    elements.newGameButton.disabled = true;
+    elements.nextButton.disabled = true;
+    elements.retryButton.disabled = true;
+    elements.shareChallengeButton.disabled = true;
+    preparedResultFile = null;
+    resultPreparationId += 1;
     hideError();
     elements.loading.hidden = false;
     elements.game.hidden = true;
@@ -383,8 +406,12 @@
         renderPuzzle();
         elements.loading.hidden = true;
         elements.game.hidden = false;
+        puzzleTransition = false;
+        elements.retryButton.disabled = false;
       } catch (error) {
         console.error('WRDLINK puzzle generation failed:', error);
+        puzzleTransition = false;
+        elements.retryButton.disabled = false;
         showError('A puzzle could not be generated. Please try again.');
       }
     });
@@ -408,6 +435,7 @@
 
     elements.finishTitle.setAttribute('tabindex', '-1');
     elements.finishTitle.focus({ preventScroll: true });
+    prepareResultCard(result);
   }
 
   function completePuzzle(result) {
@@ -436,6 +464,7 @@
     if (!result.valid) {
       setMessage(result.message, 'error');
       // Rejected moves never alter the chain or consume a move.
+      elements.input.focus({ preventScroll: true });
       elements.input.select();
       setBusy(false);
       return;
@@ -448,6 +477,7 @@
       completePuzzle(result);
     } else {
       setMessage(result.message);
+      elements.input.focus({ preventScroll: true });
       saveProgress();
       setBusy(false);
       // Do not force focus here. Enter keeps the input active naturally,
@@ -478,7 +508,10 @@
         field.select();
         const copied = document.execCommand?.('copy');
         field.remove();
-        if (!copied) throw new Error('Clipboard access is unavailable.');
+        if (!copied) {
+          const manualCopy = window.prompt?.('Copy this challenge link:', link);
+          if (!manualCopy) throw new Error('Clipboard access is unavailable.');
+        }
       }
       setMessage('Challenge link copied. Send it to a friend and see if they can solve it.');
     } catch (error) {
@@ -505,40 +538,98 @@
     return true;
   }
 
-  async function shareResult() {
-    const result = validateSequence(state.puzzle, state.chain);
-    if (!result.valid || !result.complete) return;
-    const points = calculatePoints(result.movesUsed);
+  function createResultSvg(result, points) {
     const start = state.puzzle.start;
     const target = state.puzzle.target;
-    const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350"><defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#172322"/><stop offset="1" stop-color="#30443e"/></linearGradient></defs><rect width="1080" height="1350" fill="url(#bg)"/><rect x="64" y="64" width="952" height="1222" rx="42" fill="#263936" stroke="#0b1715" stroke-width="12"/><rect x="112" y="118" width="78" height="78" rx="19" fill="#e8ad45"/><text x="151" y="174" text-anchor="middle" font-family="Arial" font-size="54" font-weight="900" fill="#33230b">W</text><text x="218" y="171" font-family="Arial" font-size="42" font-weight="900" fill="#f3f0e8">WRDLINK</text><text x="116" y="282" font-family="Arial" font-size="22" font-weight="800" letter-spacing="5" fill="#aabbb1">WORD LADDER</text><text x="112" y="405" font-family="Arial" font-size="78" font-weight="900" fill="#f3f0e8">CONNECTED.</text><text x="116" y="490" font-family="Arial" font-size="24" font-weight="800" fill="#aabbb1">START</text><text x="592" y="490" font-family="Arial" font-size="24" font-weight="800" fill="#aabbb1">TARGET</text><text x="116" y="610" font-family="Arial" font-size="64" font-weight="900" fill="#52b6a6">' + start + '</text><text x="592" y="610" font-family="Arial" font-size="64" font-weight="900" fill="#e8ad45">' + target + '</text><text x="116" y="724" font-family="Arial" font-size="22" font-weight="800" fill="#aabbb1">MOVES</text><text x="560" y="724" font-family="Arial" font-size="22" font-weight="800" fill="#aabbb1">LEVEL SCORE</text><text x="116" y="832" font-family="Arial" font-size="92" font-weight="900" fill="#f3f0e8">' + result.movesUsed + '</text><text x="560" y="832" font-family="Arial" font-size="92" font-weight="900" fill="#f3f0e8">+' + points + '</text><text x="116" y="930" font-family="Arial" font-size="24" font-weight="800" fill="#d5a34d">' + (result.movesUsed === state.puzzle.optimalMoves ? 'SHORTEST ROUTE FOUND' : 'PUZZLE SOLVED') + '</text><path d="M116 1000H964" stroke="#aabbb1" stroke-opacity=".35" stroke-width="2"/><text x="116" y="1070" font-family="Arial" font-size="30" font-weight="800" fill="#f3f0e8">Can you build the ladder?</text><text x="116" y="1190" font-family="Arial" font-size="22" font-weight="800" fill="#d5a34d">KAELITH69.GITHUB.IO/WRDLINK-WEB</text></svg>';
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350"><defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#172322"/><stop offset="1" stop-color="#30443e"/></linearGradient></defs><rect width="1080" height="1350" fill="url(#bg)"/><rect x="64" y="64" width="952" height="1222" rx="42" fill="#263936" stroke="#0b1715" stroke-width="12"/><rect x="112" y="118" width="78" height="78" rx="19" fill="#e8ad45"/><text x="151" y="174" text-anchor="middle" font-family="Arial" font-size="54" font-weight="900" fill="#33230b">W</text><text x="218" y="171" font-family="Arial" font-size="42" font-weight="900" fill="#f3f0e8">WRDLINK</text><text x="116" y="282" font-family="Arial" font-size="22" font-weight="800" letter-spacing="5" fill="#aabbb1">WORD LADDER</text><text x="112" y="405" font-family="Arial" font-size="78" font-weight="900" fill="#f3f0e8">CONNECTED.</text><text x="116" y="490" font-family="Arial" font-size="24" font-weight="800" fill="#aabbb1">START</text><text x="592" y="490" font-family="Arial" font-size="24" font-weight="800" fill="#aabbb1">TARGET</text><text x="116" y="610" font-family="Arial" font-size="64" font-weight="900" fill="#52b6a6">' + start + '</text><text x="592" y="610" font-family="Arial" font-size="64" font-weight="900" fill="#e8ad45">' + target + '</text><text x="116" y="724" font-family="Arial" font-size="22" font-weight="800" fill="#aabbb1">MOVES</text><text x="560" y="724" font-family="Arial" font-size="22" font-weight="800" fill="#aabbb1">LEVEL SCORE</text><text x="116" y="832" font-family="Arial" font-size="92" font-weight="900" fill="#f3f0e8">' + result.movesUsed + '</text><text x="560" y="832" font-family="Arial" font-size="92" font-weight="900" fill="#f3f0e8">+' + points + '</text><text x="116" y="930" font-family="Arial" font-size="24" font-weight="800" fill="#d5a34d">' + (result.movesUsed === state.puzzle.optimalMoves ? 'SHORTEST ROUTE FOUND' : 'PUZZLE SOLVED') + '</text><path d="M116 1000H964" stroke="#aabbb1" stroke-opacity=".35" stroke-width="2"/><text x="116" y="1070" font-family="Arial" font-size="30" font-weight="800" fill="#f3f0e8">Can you build the ladder?</text><text x="116" y="1190" font-family="Arial" font-size="22" font-weight="800" fill="#d5a34d">KAELITH69.GITHUB.IO/WRDLINK-WEB</text></svg>';
+  }
+
+  async function prepareResultCard(result) {
+    const preparationId = ++resultPreparationId;
+    resultPreparationPending = true;
+    preparedResultFile = null;
+    elements.shareResultButton.disabled = true;
+    elements.downloadResultButton.disabled = true;
+    elements.shareResultButton.textContent = 'PREPARING CARD';
+    elements.shareStatus.textContent = 'Preparing your share image…';
+    let imageUrl = null;
     try {
-      const svgBlob = new Blob([svg], { type: 'image/svg+xml' });
+      const svgBlob = new Blob([createResultSvg(result, calculatePoints(result.movesUsed))], { type: 'image/svg+xml' });
       const image = new Image();
-      const imageUrl = URL.createObjectURL(svgBlob);
+      imageUrl = URL.createObjectURL(svgBlob);
       image.src = imageUrl;
       await image.decode();
       const canvas = document.createElement('canvas');
       canvas.width = 1080;
       canvas.height = 1350;
       const context = canvas.getContext('2d');
+      if (!context) throw new Error('Canvas is unavailable.');
       context.drawImage(image, 0, 0);
-      URL.revokeObjectURL(imageUrl);
-      const blob = await new Promise((resolve, reject) => canvas.toBlob((value) => value ? resolve(value) : reject(new Error('PNG export failed.')), 'image/png'));
-      const file = new File([blob], 'wrdlink-result.png', { type: 'image/png' });
+      const blob = await new Promise((resolve, reject) => {
+        canvas.toBlob((value) => value ? resolve(value) : reject(new Error('PNG export failed.')), 'image/png');
+      });
+      if (preparationId !== resultPreparationId || !state.completed) return;
+      preparedResultFile = new File([blob], 'wrdlink-result.png', { type: 'image/png' });
+      elements.shareResultButton.disabled = false;
+      elements.downloadResultButton.disabled = false;
+      elements.shareResultButton.textContent = 'SHARE RESULT';
+      elements.shareStatus.textContent = 'Your result card is ready to share.';
+    } catch (error) {
+      if (preparationId !== resultPreparationId) return;
+      elements.shareResultButton.disabled = false;
+      elements.shareResultButton.textContent = 'RETRY IMAGE';
+      elements.shareStatus.textContent = 'The image could not be prepared. Tap to try again.';
+    } finally {
+      if (imageUrl) URL.revokeObjectURL(imageUrl);
+      if (preparationId === resultPreparationId) resultPreparationPending = false;
+    }
+  }
+
+  function downloadResultCard(file) {
+    const url = URL.createObjectURL(file);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'wrdlink-result.png';
+    link.hidden = true;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    // Keep the URL alive long enough for mobile browsers to begin the download.
+    window.setTimeout(() => URL.revokeObjectURL(url), 60000);
+    elements.shareStatus.textContent = 'Your PNG was downloaded. Open it from Downloads or your gallery to share it.';
+  }
+
+  async function shareResult() {
+    if (!state.completed) return;
+    if (!preparedResultFile) {
+      if (!resultPreparationPending) {
+        const result = validateSequence(state.puzzle, state.chain);
+        if (result.valid && result.complete) prepareResultCard(result);
+      }
+      elements.shareStatus.textContent = 'Preparing the image. The Share button will be ready in a moment.';
+      return;
+    }
+    const file = preparedResultFile;
+    const shareData = {
+      files: [file],
+      title: 'My WRDLINK result',
+      text: 'I solved ' + state.puzzle.start + ' to ' + state.puzzle.target +
+        ' in ' + (state.chain.length - 1) + ' moves on WRDLINK.'
+    };
+    try {
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: 'My WRDLINK result', text: 'I solved ' + start + ' to ' + target + ' in ' + result.movesUsed + ' moves.' });
+        // Invoke share synchronously within the click gesture, before awaiting.
+        const shareRequest = navigator.share(shareData);
+        await shareRequest;
+        elements.shareStatus.textContent = 'Your result was shared.';
       } else {
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'wrdlink-result.png';
-        link.click();
-        URL.revokeObjectURL(url);
-        setMessage('Your result card was downloaded. Share the PNG from your gallery.');
+        downloadResultCard(file);
       }
     } catch (error) {
-      if (error.name !== 'AbortError') setMessage('Could not create the result card on this device.', 'error');
+      if (error.name === 'AbortError') return;
+      // A rejected native share may have consumed the transient user gesture.
+      // Keep download as a separate, reliable user initiated action.
+      elements.shareStatus.textContent = 'Native sharing was unavailable. Use Download PNG instead.';
     }
   }
 
@@ -554,6 +645,9 @@
   elements.retryButton.addEventListener('click', () => startPuzzle());
   elements.shareChallengeButton.addEventListener('click', shareChallenge);
   elements.shareResultButton.addEventListener('click', shareResult);
+  elements.downloadResultButton.addEventListener('click', () => {
+    if (preparedResultFile) downloadResultCard(preparedResultFile);
+  });
 
   // A tiny public API is useful for local testing and debugging without
   // exposing mutable state to the page UI.
@@ -607,19 +701,30 @@
     }
   });
 
-  function updateKeyboardLayout() {
+  function updateKeyboardLayout(forceCompact = false) {
     const viewport = window.visualViewport;
-    if (!viewport) return;
-    const obscuredHeight = Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop);
-    const compactMobile = window.matchMedia && window.matchMedia('(pointer: coarse)').matches && window.screen && window.screen.height - viewport.height > 180;
-    const keyboardOpen = document.activeElement === elements.input && (obscuredHeight > 120 || compactMobile);
-    document.documentElement.classList.toggle('keyboard-open', Boolean(keyboardOpen));
+    if (viewport) {
+      document.documentElement.style.setProperty('--visual-viewport-height', Math.round(viewport.height) + 'px');
+    }
+    const mobile = window.matchMedia?.('(max-width: 620px)').matches ?? window.innerWidth <= 620;
+    const focused = document.activeElement === elements.input;
+    const viewportHeight = viewport?.height ?? window.innerHeight;
+    const keyboardVisible = keyboardFocusViewportHeight !== null &&
+      keyboardFocusViewportHeight - viewportHeight > 120;
+    const compact = mobile && focused && (forceCompact || keyboardVisible);
+    document.documentElement.classList.toggle('keyboard-open', Boolean(compact));
   }
-  window.visualViewport?.addEventListener('resize', updateKeyboardLayout);
-  window.visualViewport?.addEventListener('scroll', updateKeyboardLayout);
-  window.addEventListener('resize', updateKeyboardLayout);
-  elements.input.addEventListener('focus', updateKeyboardLayout);
-  elements.input.addEventListener('blur', () => document.documentElement.classList.remove('keyboard-open'));
+  window.visualViewport?.addEventListener('resize', () => updateKeyboardLayout());
+  window.visualViewport?.addEventListener('scroll', () => updateKeyboardLayout());
+  window.addEventListener('resize', () => updateKeyboardLayout());
+  elements.input.addEventListener('focus', () => {
+    keyboardFocusViewportHeight = window.visualViewport?.height ?? window.innerHeight;
+    updateKeyboardLayout(true);
+  });
+  elements.input.addEventListener('blur', () => {
+    keyboardFocusViewportHeight = null;
+    document.documentElement.classList.remove('keyboard-open');
+  });
 
   initialize();
 })();
