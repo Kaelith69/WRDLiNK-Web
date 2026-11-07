@@ -126,8 +126,9 @@ assert.equal(challenge.elements.get('submit-button').disabled, false, 'valid len
 challenge.elements.get('move-form').dispatch('submit');
 assert.deepEqual(challenge.game.getState().chain, ['COLD', 'CORD'], 'submitting a valid move updates the live game');
 assert.equal([...challenge.storage.keys()].some((key) => key.includes(':progress')), false, 'friend challenges do not overwrite campaign progress');
-await challenge.elements.get('share-challenge-button').dispatch('click');
-assert.match(challenge.copied[0], /challenge=COLD-WARM/, 'challenge button copies the exact puzzle URL');
+challenge.elements.get('share-challenge-button').dispatch('click').then(() => {
+  assert.match(challenge.copied[0], /challenge=COLD-WARM/, 'challenge button copies the exact puzzle URL');
+});
 
 const puzzle = {
   id: 'test-puzzle', title: 'Test puzzle', start: 'COLD', target: 'WARM',
