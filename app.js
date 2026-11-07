@@ -794,7 +794,7 @@
       '<text x="646" y="' + statsLabelY + '" font-family="DM Mono, monospace" font-size="25" letter-spacing="4" fill="#7f948d">MOVES</text>' +
       '<text x="646" y="' + statsValueY + '" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="238" font-weight="800" fill="#eef3f0">' + result.movesUsed + '</text>' +
       '<path d="M86 ' + layout.footerY + 'H994" stroke="#2d423c" stroke-width="4"/>' +
-      '<text x="86" y="' + (layout.footerY + 109) + '" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="82" font-weight="800" fill="#eef3f0">CAN YOU BUILD THE LADDER<tspan fill="#efc45c">?</tspan></text>' +
+      '<text x="86" y="' + (layout.footerY + 109) + '" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="82" font-weight="800" textLength="908" lengthAdjust="spacingAndGlyphs" fill="#eef3f0">CAN YOU BUILD THE LADDER<tspan fill="#efc45c">?</tspan></text>' +
       '<text x="86" y="' + (layout.footerY + 179) + '" font-family="DM Mono, monospace" font-size="27" fill="#efc45c">' + url + ' →</text>';
     return cardSvgShell(content);
   }
