@@ -32,7 +32,7 @@ for (const asset of ['./index.html', './styles.css', './app.js', './dictionary.j
   assert(worker.includes(asset), `service worker app shell includes ${asset}`);
 }
 assert.match(worker, /const CACHE_PREFIX = 'wrdlink-shell-'/);
-assert.match(worker, /const CACHE_NAME = `\\$\\{CACHE_PREFIX\\}v2`/);
+assert.match(worker, /const CACHE_NAME = `\$\{CACHE_PREFIX\}v2`/);
 assert.match(worker, /request\.mode === 'navigate'/);
 assert.match(worker, /self\.clients\.claim\(\)/);
 assert.match(deploy, /manifest\.webmanifest sw\.js/);
