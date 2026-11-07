@@ -536,14 +536,15 @@
     const tiles = [...word].map((letter, index) => {
       const x = CARD_X + index * (tileSize + tileGap);
       const shown = hidden ? '' : letter;
-      return '<rect x="' + x + '" y="' + (y + 8) + '" width="' + tileSize + '" height="' + tileSize + '" rx="19" fill="#091512" opacity=".45"/>' +
+      return  (kind === 'ghost' ? '' : '<rect x="' + x + '" y="' + (y + 8) + '" width="' + tileSize + '" height="' + tileSize + '" rx="19" fill="#091512" opacity=".45"/>') +
         '<rect x="' + x + '" y="' + y + '" width="' + tileSize + '" height="' + tileSize + '" rx="19" fill="' + colors.fill + '" stroke="' + colors.edge + '" stroke-width="5"' + (kind === 'ghost' ? ' stroke-dasharray="9 8"' : '') + '/>' +
-        (shown ? '<text x="' + (x + tileSize / 2) + '" y="' + (y + tileSize * .68) + '" text-anchor="middle" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="101" font-weight="800" fill="' + colors.ink + '">' + escapeSvgText(shown) + '</text>' : '');
+        (kind === 'start' || kind === 'end' ? '<rect x="' + (x + 3) + '" y="' + (y + 3) + '" width="' + (tileSize - 6) + '" height="5" rx="2" fill="#ffffff" opacity=".3"/>' : '') +
+        (shown ? '<text x="' + (x + tileSize / 2) + '" y="' + (y + tileSize * .68) + '" text-anchor="middle" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="' + (tileSize * .67) + '" font-weight="800" fill="' + colors.ink + '">' + escapeSvgText(shown) + '</text>' : '');
     }).join('');
     if (!label) return tiles;
     const color = kind === 'start' ? '#74c6b2' : '#efc45c';
     const labelX = CARD_X + 4 * tileSize + 3 * tileGap + (kind === 'start' ? 39 : 15);
-    return tiles + '<text x="' + labelX + '" y="' + (y + 91) + '" font-family="DM Mono, monospace" font-size="23" letter-spacing="4" fill="' + color + '">' + label.toUpperCase() + '</text>';
+    return tiles + '<rect x="' + (labelX - 60) + '" y="' + (y + 75) + '" width="43" height="4" fill="' + color + '" opacity=".5"/><text x="' + labelX + '" y="' + (y + 91) + '" font-family="DM Mono, monospace" font-size="23" letter-spacing="4" fill="' + color + '">' + label.toUpperCase() + '</text>';
   }
 
   function changedLetterIndex(first, second) {
