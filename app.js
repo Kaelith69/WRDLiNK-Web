@@ -543,6 +543,17 @@
     }).join('');
   }
 
+  function changedLetterIndex(first, second) {
+    let changed = -1;
+    for (let index = 0; index < first.length; index += 1) {
+      if (first[index] !== second[index]) {
+        if (changed !== -1) return -1;
+        changed = index;
+      }
+    }
+    return changed;
+  }
+
   function cardLadderRows(words, y, reveal, highlightChanges = true) {
     const x = 112;
     const rowHeight = 112;
@@ -550,7 +561,7 @@
     const parts = [];
     words.forEach((word, index) => {
       const kind = index === 0 ? 'start' : index === words.length - 1 ? 'end' : 'mid';
-      const changed = index > 0 ? [...word].findIndex((letter, pos) => letter !== words[index - 1][pos]) : -1;
+      const changed = index > 0 ? changedLetterIndex(words[index - 1], word) : -1;
       const hidden = kind === 'mid' && !reveal;
       const rowY = y + index * (rowHeight + connectorHeight);
       parts.push(cardTileRow(word, x, rowY, kind, changed, hidden));
@@ -561,11 +572,11 @@
       }
       if (index < words.length - 1) {
         const next = words[index + 1];
-        const changedNext = [...word].findIndex((letter, pos) => letter !== next[pos]);
+        const changedNext = changedLetterIndex(word, next);
         const connectorY = rowY + rowHeight + 3;
         for (let tileIndex = 0; tileIndex < 4; tileIndex += 1) {
           const cx = x + tileIndex * (112 + 22) + 56;
-          const active = highlightChanges && tileIndex === changedNext;
+          const active = highlightChanges && changedNext >= 0 && tileIndex === changedNext;
           parts.push('<rect x="' + (cx - (active ? 5 : 3)) + '" y="' + connectorY + '" width="' + (active ? 10 : 6) + '" height="' + connectorHeight + '" rx="4" fill="' + (active ? '#efc45c' : '#2d423c') + '"/>');
         }
       }
