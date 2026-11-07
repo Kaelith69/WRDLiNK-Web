@@ -180,6 +180,16 @@ async function testInteractions() {
   submitWord('WARD');
   submitWord('WARM');
   assert.equal(challenge.game.getState().completed, true, 'submitting the target completes the puzzle');
+  const result = challenge.game.validateSequence(challenge.game.getState().puzzle, challenge.game.getState().chain);
+  const resultSvg = challenge.game.createResultSvg(result, challenge.game.calculatePoints(result.movesUsed));
+  assert.match(resultSvg, /width="1080" height="1920" viewBox="0 0 1080 1920"/);
+  assert.match(resultSvg, /SHORTEST ROUTE FOUND/);
+  assert.match(resultSvg, /font-size="238"/);
+  assert.match(resultSvg, /x="639" y="[^"]+" width="43" height="4"/);
+  assert.match(resultSvg, /stroke-width="12" stroke-dasharray="14 11" stroke-linecap="butt"/);
+  const resultLayout = challenge.game.cardLayout(5, 112, 34);
+  assert(resultLayout.statsY >= resultLayout.ladderY + resultLayout.ladderHeight, 'result statistics never overlap the ladder');
+  assert(resultLayout.footerY >= resultLayout.statsY + 259, 'result footer never overlaps the statistics');
   await new Promise((resolve) => setImmediate(resolve));
   assert.equal(challenge.elements.get('share-result-button').disabled, false, 'result sharing becomes available after its PNG is prepared');
   assert.equal(challenge.elements.get('download-result-button').disabled, false, 'direct PNG download becomes available after preparation');
