@@ -2,12 +2,13 @@
 'use strict';
 
 (() => {
-  // The source game's dictionary is loaded before this file by index.html.
+  // The dictionary script is loaded before this file. Validate it before
+  // indexing so a missing or malformed asset reaches the designed error UI.
   const DICTIONARY = window.WRDLINK_DICTIONARY;
   const WORD_LENGTH = 4;
   const BASE_LEVEL_POINTS = 50;
   const MAX_PUZZLE_ATTEMPTS = 100;
-  const STORAGE_KEY = 'wrdlink-browser-session-v1';
+  const PROGRESS_KEY = 'wrdlink-browser-session-v1:progress';
 
   const $ = (id) => document.getElementById(id);
   const elements = {
@@ -31,26 +32,6 @@
     completed: false
   };
   let busy = false;
-
-  // Use a durable browser identifier, equivalent in purpose to the Devvit
-  // sessionId. Storage failures degrade gracefully to a page scoped id.
-  function getSessionId() {
-    try {
-      let id = localStorage.getItem(STORAGE_KEY);
-      if (!id) {
-        id = typeof crypto.randomUUID === 'function'
-          ? crypto.randomUUID()
-          : `session-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-        localStorage.setItem(STORAGE_KEY, id);
-      }
-      return id;
-    } catch (error) {
-      console.warn('Persistent browser storage unavailable. Using a temporary session.', error);
-      return `temporary-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-    }
-  }
-
-  const sessionId = getSessionId();
 
   // Theme choice is independent from game progress and persists per browser.
   function applyTheme(theme) {
@@ -90,7 +71,9 @@
   // Precompute dictionary words and one-letter neighborhoods once. The
   // original backend filters the full word list on every neighbor request.
   // This indexed form makes random puzzle generation substantially cheaper.
-  const WORDS = [...DICTIONARY].filter((word) => word.length === WORD_LENGTH);
+  const WORDS = DICTIONARY instanceof Set
+    ? [...DICTIONARY].filter((word) => typeof word === 'string' && /^[A-Z]{4}$/.test(word))
+    : [];
   const WORD_SET = new Set(WORDS);
   const PATTERN_INDEX = new Map();
 
@@ -239,6 +222,9 @@
     const moves = state.chain.length - 1;
     elements.chainMoveCount.textContent = `${moves} ${moves === 1 ? 'move' : 'moves'}`;
     elements.movesLabel.textContent = `${moves} ${moves === 1 ? 'move' : 'moves'}`;
+    // Keep the newest move visible without allowing a long ladder to push
+    // the entry controls indefinitely down the page.
+    elements.chainList.lastElementChild?.scrollIntoView?.({ block: 'nearest' });
   }
 
   function renderHeader() {
@@ -295,39 +281,64 @@
       completed: state.completed
     };
     try {
-      localStorage.setItem(`${STORAGE_KEY}:progress`, JSON.stringify(snapshot));
+      localStorage.setItem(PROGRESS_KEY, JSON.stringify(snapshot));
     } catch (error) {
       console.warn('Could not save game progress in this browser.', error);
     }
   }
 
+  // Validate persisted data without mutating live state. Browser storage is
+  // user-editable and may also contain data from an older or interrupted run.
+  function validateProgressSnapshot(saved) {
+    if (!saved || saved.version !== 1 ||
+        !Number.isSafeInteger(saved.score) || saved.score < 0 ||
+        !Number.isSafeInteger(saved.level) || saved.level < 1 ||
+        !saved.puzzle || !Array.isArray(saved.chain) ||
+        typeof saved.completed !== 'boolean') return false;
+
+    const { puzzle, chain } = saved;
+    if (typeof puzzle.id !== 'string' || puzzle.id.length === 0 ||
+        typeof puzzle.start !== 'string' || typeof puzzle.target !== 'string' ||
+        puzzle.wordLength !== WORD_LENGTH ||
+        !Number.isSafeInteger(puzzle.optimalMoves) || puzzle.optimalMoves < 1 ||
+        !WORD_SET.has(puzzle.start) || !WORD_SET.has(puzzle.target) ||
+        puzzle.start === puzzle.target || chain.length < 1 ||
+        chain[0] !== puzzle.start ||
+        !chain.every((word) => typeof word === 'string' && WORD_SET.has(word))) return false;
+
+    // The stored shortest distance is part of the puzzle definition. Recompute
+    // it so corrupted metadata cannot alter the minimum-move message.
+    if (shortestDistance(puzzle.start, puzzle.target) !== puzzle.optimalMoves) return false;
+
+    const result = validateSequence(puzzle, chain);
+    if (!result.valid || saved.completed !== result.complete) return false;
+    return true;
+  }
+
   function loadProgress() {
     try {
-      const raw = localStorage.getItem(`${STORAGE_KEY}:progress`);
+      const raw = localStorage.getItem(PROGRESS_KEY);
       if (!raw) return false;
       const saved = JSON.parse(raw);
-      if (!saved || saved.version !== 1 ||
-          !Number.isInteger(saved.score) || !Number.isInteger(saved.level) ||
-          !saved.puzzle || !Array.isArray(saved.chain) ||
-          typeof saved.completed !== 'boolean') return false;
-      const { puzzle, chain } = saved;
-      if (typeof puzzle.id !== 'string' || typeof puzzle.start !== 'string' ||
-          typeof puzzle.target !== 'string' || puzzle.wordLength !== WORD_LENGTH ||
-          !Number.isInteger(puzzle.optimalMoves) || chain[0] !== puzzle.start ||
-          !chain.every((word) => typeof word === 'string' && WORD_SET.has(word))) return false;
+      if (!validateProgressSnapshot(saved)) {
+        // Remove only the invalid game snapshot. Theme preference is separate.
+        localStorage.removeItem(PROGRESS_KEY);
+        return false;
+      }
+      // Commit the validated snapshot only after every invariant passes.
       state = {
         score: saved.score,
-        level: Math.max(1, saved.level),
-        puzzle,
-        chain,
+        level: saved.level,
+        puzzle: saved.puzzle,
+        chain: [...saved.chain],
         completed: saved.completed
       };
-      // Revalidate the saved route before trusting local state.
-      if (!state.completed && chain.length > 1 && !validateSequence(puzzle, chain).valid) return false;
-      if (state.completed && (!validateSequence(puzzle, chain).complete)) return false;
       return true;
     } catch (error) {
       console.warn('Saved WRDLINK progress could not be read.', error);
+      try { localStorage.removeItem(PROGRESS_KEY); } catch (_) {
+        // Storage may be disabled. Starting a fresh in-memory game is safe.
+      }
       return false;
     }
   }
@@ -361,6 +372,8 @@
   }
 
   function completePuzzle(result) {
+    // Defensive guard: a completion can award points only once per puzzle.
+    if (state.completed) return;
     const points = calculatePoints(result.movesUsed);
     state.score += points;
     state.completed = true;
@@ -382,6 +395,8 @@
     elements.finishPanel.prepend(banner);
     saveProgress();
     setBusy(false);
+    elements.finishTitle.setAttribute('tabindex', '-1');
+    elements.finishTitle.focus({ preventScroll: true });
   }
 
   function submitMove(event) {
@@ -431,6 +446,7 @@
   // exposing mutable state to the page UI.
   window.WRDLINK = Object.freeze({
     validateSequence,
+    validateProgressSnapshot,
     differsByOneLetter,
     shortestDistance,
     calculatePoints,
@@ -439,7 +455,7 @@
   });
 
   function initialize() {
-    if (!DICTIONARY || !(DICTIONARY instanceof Set) || DICTIONARY.size === 0) {
+    if (!(DICTIONARY instanceof Set) || DICTIONARY.size === 0 || WORDS.length === 0) {
       showError('The word dictionary failed to load. Refresh the page to try again.');
       return;
     }
@@ -460,6 +476,14 @@
     }
     startPuzzle({ resetScore: true });
   }
+
+  // Another tab may update the same browser snapshot. Do not silently replace
+  // the active in-memory game; explain the conflict and let the player reload.
+  window.addEventListener('storage', (event) => {
+    if (event.key === PROGRESS_KEY && event.newValue !== event.oldValue) {
+      setMessage('Game progress changed in another tab. Reload this page to use the latest saved game.', 'error');
+    }
+  });
 
   initialize();
 })();
