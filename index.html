@@ -25,7 +25,7 @@
       <a class="wordmark" href="." aria-label="WRDLINK home"><span class="brand-mark" aria-hidden="true">W</span><span>WRDLINK</span></a>
       <div class="header-context" id="level-label">LEVEL 1</div>
       <div class="header-right">
-        <div class="header-count" aria-live="polite">
+        <div class="header-count">
           <span class="score-pill"><span class="metric-label">SCORE</span><strong id="score-label">0</strong></span>
           <span class="moves-pill"><span class="metric-label">MOVES</span><strong id="moves-label">0</strong></span>
         </div>
@@ -57,7 +57,7 @@
 
         <section class="chain-panel card-panel" aria-label="Your word chain">
           <div class="panel-heading"><div><span class="eyebrow">YOUR PROGRESS</span><h2>Word ladder</h2></div><span class="move-counter" id="chain-move-count">0 moves</span></div>
-          <ol class="chain-list" id="chain-list" aria-live="polite"></ol>
+          <ol class="chain-list" id="chain-list" aria-label="Words used in your current ladder"></ol>
           <p class="chain-hint">Each step changes exactly one letter.</p>
         </section>
 
@@ -69,7 +69,7 @@
             <button class="ink-button" id="submit-button" type="submit" disabled>LOCK IT IN <span aria-hidden="true">↗</span></button>
           </form>
           <div class="entry-meta"><p id="entry-help">Use a valid four letter word from the dictionary.</p><button class="secondary-button" id="new-game-button" type="button">↻ New game</button></div>
-          <p id="message" class="game-message" role="status" hidden></p>
+          <p id="message" class="game-message" role="status" aria-live="polite" aria-atomic="true" hidden></p>
         </section>
 
         <section class="finish-panel card-panel" id="finish-panel" hidden>
