@@ -309,7 +309,7 @@
         !WORD_SET.has(puzzle.start) || !WORD_SET.has(puzzle.target) ||
         puzzle.start === puzzle.target || chain.length < 1 ||
         chain[0] !== puzzle.start ||
-        !chain.every((word) => typeof word === 'string' && WORD_SET.has(word))) return false;
+        !Array.from(chain).every((word) => typeof word === 'string' && WORD_SET.has(word))) return false;
 
     // The stored shortest distance is part of the puzzle definition. Recompute
     // it so corrupted metadata cannot alter the minimum-move message.
