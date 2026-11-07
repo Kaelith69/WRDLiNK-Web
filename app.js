@@ -545,8 +545,8 @@
 
   function cardLadderRows(words, y, reveal) {
     const x = 112;
-    const rowHeight = 138;
-    const connectorHeight = 42;
+    const rowHeight = 112;
+    const connectorHeight = 24;
     const parts = [];
     words.forEach((word, index) => {
       const kind = index === 0 ? 'start' : index === words.length - 1 ? 'end' : 'mid';
