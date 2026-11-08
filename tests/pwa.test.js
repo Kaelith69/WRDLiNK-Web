@@ -145,8 +145,6 @@ assert(game.includes('elements.input.focus({ preventScroll: true })'));
 assert(styles.includes(':root.keyboard-open .entry-panel .send-button'));
 assert(styles.includes(':root.keyboard-open .entry-actions { display: none; }'));
 
-
-
 // README rendering and documentation contracts. GitHub renders these local
 // SVGs reliably when they are embedded as Markdown images, not plain links.
 const fs = require('node:fs');
