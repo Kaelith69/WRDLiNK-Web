@@ -149,6 +149,7 @@ for (const word of finishFirstLevel.slice(1)) {
 assert.equal(campaignReload.game.getState().completed, true, 'campaign level completes before advancing');
 campaignReload.elements.get('next-button').dispatch('click');
 assert.equal(campaignReload.game.getState().level, 2, 'campaign advances to the second level');
+assert.equal(campaignReload.elements.get('level-label').textContent, 'LV1', 'second level is visibly labeled LV1');
 assert.equal(campaignReload.game.getState().hintsUsed, 2, 'hint count carries into the next level');
 assert.equal(campaignReload.game.getState().hintPenalty, 11, 'cumulative hint penalty carries into the next level');
 assert.equal(campaignReload.elements.get('hint-cost-chip').textContent, '−8', 'level two shows the third hint price plus its move point');
