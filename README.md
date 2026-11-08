@@ -276,7 +276,7 @@ Campaign progress is stored in browser `localStorage`. The saved snapshot includ
 - Campaign wide hint count and accumulated hint penalty.
 - Pending hint state where applicable to older save formats.
 
-The current save schema is **version 6**. On load, saved data is validated before it is applied to the live game. Validation checks the puzzle fields, dictionary membership, chain structure, legal transitions, completion state, and shortest distance metadata. Current snapshots also enforce the hint and score invariants.
+The current save schema is **version 6**. On load, saved data is validated before it is applied to the live game. Validation checks the puzzle fields, dictionary membership, chain structure, legal transitions, completion state, and shortest distance metadata. The current schema requires a valid hint count, a matching accumulated hint penalty, and no unresolved pending hint. Older pending hint states are migrated before normal play resumes.
 
 Older save versions are migrated. Legacy pending hints are handled so their suggested move and deductions are applied without charging twice. Invalid or malformed snapshots are discarded rather than trusted.
 
