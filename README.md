@@ -105,7 +105,7 @@ Game progress and theme preference are stored locally by the browser. Offline su
 - **Shortest route calculation** using breadth first search.
 - **Move validation** for dictionary membership, letter changes, and duplicate words.
 - **Level scoring** with 25 starting points, move deductions, escalating paid hints, and cumulative progression.
-- **Paid hints** in the top bar, with an explicit cost confirmation and automatic input filling. Costs escalate by one point per hint.
+- **Paid hints** in the top bar, with an explicit cost confirmation, immediate current score deduction, and automatic move submission. Costs escalate by one point per hint.
 - **Friend challenges** with shareable links that reopen the exact start and target words.
 - **Shareable result cards** exported as PNG images for messaging and social stories.
 - **Persistent progress** using browser `localStorage`.
