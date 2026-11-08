@@ -228,9 +228,24 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
     padding-inline: 7px;
     border-width: 1px;
   }
-  :root.keyboard-open .metric-label { display: none; }
+  :root.keyboard-open .score-pill,
+  :root.keyboard-open .moves-pill {
+    display: grid;
+    min-width: 42px;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    align-content: center;
+    gap: 1px;
+    padding: 3px 5px;
+  }
+  :root.keyboard-open .metric-label {
+    display: block;
+    font-size: 6px;
+    line-height: 1;
+    letter-spacing: .04em;
+  }
   :root.keyboard-open .score-pill strong,
-  :root.keyboard-open .moves-pill strong { font-size: 13px; }
+  :root.keyboard-open .moves-pill strong { font-size: 13px; line-height: 1; }
   :root.keyboard-open .theme-toggle { width: 34px; height: 34px; }
   :root.keyboard-open .game-workspace {
     display: flex;

@@ -29,7 +29,7 @@
   // Game session mirrors server SessionState: accumulated score, level,
   // current puzzle and whether the current puzzle has already been completed.
   let state = {
-    score: 0,
+    score: BASE_LEVEL_POINTS,
     level: 1,
     puzzle: null,
     chain: [],
@@ -324,15 +324,16 @@
     if (!state.puzzle || !elements.hintButton) return;
     const available = state.score;
     const cost = calculateHintCost(state.hintsUsed);
+    const totalCost = cost + 1;
     const currentWord = state.chain[state.chain.length - 1];
     const hintIsActive = Boolean(state.activeHint && state.activeHint.from === currentWord);
     const routeExists = Boolean(nextHintWord());
-    elements.hintButton.disabled = busy || state.completed || hintIsActive || available < cost || !routeExists;
-    elements.hintCostChip.textContent = hintIsActive ? 'READY' : `−${cost}`;
+    elements.hintButton.disabled = busy || state.completed || hintIsActive || available < totalCost || !routeExists;
+    elements.hintCostChip.textContent = hintIsActive ? 'READY' : `−${totalCost}`;
     elements.hintButton.setAttribute('aria-label', hintIsActive
       ? 'Hint entered. Submit the word to continue'
-      : available < cost ? `Not enough score for hint. Costs ${cost}, current score ${available}`
-        : `Use hint for ${cost} points`);
+      : available < totalCost ? `Not enough score for hint and move. Total deduction ${totalCost}, current score ${available}`
+        : `Use hint and submit the next move for ${totalCost} points`);
     elements.hintButton.setAttribute('aria-describedby', 'hint-confirm-description');
   }
 
@@ -352,14 +353,15 @@
       setMessage('No unused route to the target remains from this word. Start a new puzzle to try another route.', 'error');
       return false;
     }
-    if (available < cost) {
-      setMessage(`Not enough score. This hint costs ${cost}, but your current score is ${available}.`, 'error');
+    const totalCost = cost + 1;
+    if (available < totalCost) {
+      setMessage(`Not enough score. This hint and its move cost ${totalCost} points, but your current score is ${available}.`, 'error');
       renderHintUI();
       return false;
     }
-    elements.hintConfirmCost.textContent = String(cost);
-    elements.hintConfirmBalance.textContent = String(available - cost);
-    elements.hintConfirmButton.textContent = `USE HINT · −${cost}`;
+    elements.hintConfirmCost.textContent = String(totalCost);
+    elements.hintConfirmBalance.textContent = String(available - totalCost);
+    elements.hintConfirmButton.textContent = `USE HINT · −${totalCost}`;
     elements.hintConfirmation.hidden = false;
     elements.hintCancelButton.focus({ preventScroll: true });
     return true;
@@ -370,8 +372,9 @@
     const currentWord = state.chain[state.chain.length - 1];
     const available = state.score;
     const cost = calculateHintCost(state.hintsUsed);
+    const totalCost = cost + 1;
     const word = nextHintWord();
-    if (!word || available < cost) {
+    if (!word || available < totalCost) {
       elements.hintConfirmation.hidden = true;
       setMessage('This hint is no longer available. Your points were not deducted.', 'error');
       renderHintUI();
@@ -385,7 +388,7 @@
     elements.input.value = word;
     renderHeader();
     renderHintUI();
-    setMessage(`Hint used: ${word}. ${cost} points deducted from your score. Submitting the move automatically.`);
+    setMessage(`Hint used: ${word}. ${totalCost} points deducted, including the submitted move.`);
     submitMove({ preventDefault() {} });
     return true;
   }
@@ -434,7 +437,7 @@
     // Never overwrite a newer snapshot written by another open tab.
     if (externalProgressChanged) return;
     const snapshot = {
-      version: 3,
+      version: 5,
       score: state.score,
       level: state.level,
       puzzle: state.puzzle,
@@ -454,7 +457,7 @@
   // Validate persisted data without mutating live state. Browser storage is
   // user-editable and may also contain data from an older or interrupted run.
   function validateProgressSnapshot(saved) {
-    if (!saved || (saved.version !== 1 && saved.version !== 2 && saved.version !== 3) ||
+    if (!saved || (saved.version !== 1 && saved.version !== 2 && saved.version !== 3 && saved.version !== 4 && saved.version !== 5) ||
         !Number.isSafeInteger(saved.score) || saved.score < 0 ||
         !Number.isSafeInteger(saved.level) || saved.level < 1 ||
         !saved.puzzle || !Array.isArray(saved.chain) ||
@@ -480,10 +483,11 @@
       : validateSequence(puzzle, chain);
     if (!result.valid || saved.completed !== result.complete) return false;
 
-    if (saved.version === 2 || saved.version === 3) {
+    if (saved.version >= 2) {
       if (!Number.isSafeInteger(saved.hintsUsed) || saved.hintsUsed < 0 ||
           !Number.isSafeInteger(saved.hintPenalty) || saved.hintPenalty !== calculateHintPenalty(saved.hintsUsed)) return false;
       if (calculateHintPenalty(saved.hintsUsed) > Number.MAX_SAFE_INTEGER) return false;
+      if (saved.version === 5 && saved.activeHint !== null) return false;
       if (saved.activeHint !== null) {
         const current = chain[chain.length - 1];
         const expected = shortestPath(current, puzzle.target, chain.slice(0, -1));
@@ -512,13 +516,15 @@
         puzzle: saved.puzzle,
         chain: [...saved.chain],
         completed: saved.completed,
-        score: saved.version === 2 && !saved.completed
-          ? Math.max(0, saved.score - saved.hintPenalty) : saved.score,
+        score: saved.version >= 4
+          ? saved.score
+          : Math.max(0, BASE_LEVEL_POINTS - (saved.chain.length - 1) -
+              (saved.version >= 2 ? saved.hintPenalty : 0)),
         hintsUsed: saved.version >= 2 ? saved.hintsUsed : 0,
         hintPenalty: saved.version >= 2 ? saved.hintPenalty : 0,
         activeHint: saved.version >= 2 ? saved.activeHint : null
       };
-      legacyHintNeedsSubmission = saved.version === 2 && !saved.completed && Boolean(saved.activeHint);
+      legacyHintNeedsSubmission = saved.version >= 2 && saved.version < 5 && !saved.completed && Boolean(saved.activeHint);
       return true;
     } catch (error) {
       console.warn('Saved WRDLINK progress could not be read.', error);
@@ -550,7 +556,7 @@
           const cleanUrl = new URL(window.location.href);
           cleanUrl.searchParams.delete('challenge');
           window.history?.replaceState?.({}, '', cleanUrl.pathname + cleanUrl.search + cleanUrl.hash);
-          state.score = 0;
+          state.score = BASE_LEVEL_POINTS;
           state.level = 1;
         } else if (nextLevel) {
           state.level += 1;
@@ -582,7 +588,7 @@
   }
 
   function renderCompletion(result) {
-    const points = calculatePoints(result.movesUsed);
+    const points = state.score;
     elements.entryPanel.hidden = true;
     elements.finishPanel.hidden = false;
     elements.finishTitle.textContent = 'Connected!';
@@ -592,7 +598,7 @@
     const banner = document.createElement('div');
     banner.className = 'completion-banner';
     const score = document.createElement('strong');
-    score.textContent = `+${points} points`;
+    score.textContent = `${points} points remaining`;
     banner.append(score);
     elements.finishPanel.querySelector('.completion-banner')?.remove();
     elements.finishPanel.prepend(banner);
@@ -605,7 +611,7 @@
   function completePuzzle(result) {
     // Defensive guard: a completion can award points only once per puzzle.
     if (state.completed) return;
-    state.score += calculatePoints(result.movesUsed);
+    state.score += BASE_LEVEL_POINTS;
     state.completed = true;
     renderChain();
     renderHeader();
@@ -635,7 +641,9 @@
     }
 
     state.chain.push(candidate);
+    state.score = Math.max(0, state.score - 1);
     state.activeHint = null;
+    renderHeader();
     elements.input.value = '';
     renderChain();
     if (result.complete) {
@@ -951,7 +959,7 @@
       '<rect x="86" y="' + pillTop + '" width="540" height="77" rx="39" fill="none" stroke="#efc45c" stroke-width="5"/><path d="M118 ' + (pillTop + 38) + 'l13 13 26 -28" fill="none" stroke="#efc45c" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><text x="177" y="' + (pillTop + 48) + '" font-family="DM Mono, monospace" font-size="24" letter-spacing="3" fill="#efc45c">' + status + '</text>' +
       '<g>' + ladder + '</g>' +
       '<text x="86" y="' + statsLabelY + '" font-family="DM Mono, monospace" font-size="25" letter-spacing="4" fill="#7f948d">LEVEL SCORE</text>' +
-      '<text x="86" y="' + statsValueY + '" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="238" font-weight="800" fill="#efc45c">+' + points + '</text>' +
+      '<text x="86" y="' + statsValueY + '" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="238" font-weight="800" fill="#efc45c">' + points + '</text>' +
       '<path d="M581 ' + layout.statsY + 'V' + (layout.statsY + CARD_LAYOUT.stats) + '" stroke="#2d423c" stroke-width="4"/>' +
       '<text x="646" y="' + statsLabelY + '" font-family="DM Mono, monospace" font-size="25" letter-spacing="4" fill="#7f948d">MOVES</text>' +
       '<text x="646" y="' + statsValueY + '" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-size="238" font-weight="800" fill="#eef3f0">' + result.movesUsed + '</text>' +
@@ -972,7 +980,7 @@
     let imageUrl = null;
     try {
       await waitForCardFonts();
-      const svgBlob = new Blob([createResultSvg(result, calculatePoints(result.movesUsed))], { type: 'image/svg+xml' });
+      const svgBlob = new Blob([createResultSvg(result, state.score)], { type: 'image/svg+xml' });
       const image = new Image();
       imageUrl = URL.createObjectURL(svgBlob);
       image.src = imageUrl;
