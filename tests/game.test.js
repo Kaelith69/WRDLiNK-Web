@@ -97,27 +97,35 @@ function loadGame({ includeDictionary = true, search = '', savedProgress = null 
 const { game, dictionary, elements } = loadGame();
 assert.equal(game.dictionarySize, 3889);
 
-// Campaign hints must survive a real save and reload, not only snapshot validation.
-const campaignHintSession = loadGame();
+// Campaign hints deduct from the persisted current score and submit the
+// shortest route move immediately, including across a browser reload.
+const campaignPuzzle = {
+  id: 'campaign-hint-test', title: 'Campaign hint test', start: 'COLD', target: 'WARM',
+  wordLength: 4, optimalMoves: game.shortestDistance('COLD', 'WARM')
+};
+const campaignHintSession = loadGame({ savedProgress: {
+  version: 1, score: 25, level: 1, puzzle: campaignPuzzle,
+  chain: ['COLD'], completed: false
+} });
+const campaignNextWord = game.shortestPath('COLD', 'WARM')[1];
 assert.equal(campaignHintSession.game.useHint(), true, 'campaign hint opens confirmation');
-assert.equal(campaignHintSession.game.getState().hintsUsed, 0, 'opening confirmation does not charge points');
-assert.equal(campaignHintSession.game.confirmHint(), true, 'confirming the hint applies it');
-assert.equal(campaignHintSession.elements.get('word-entry').value, campaignHintSession.game.getState().activeHint.word, 'confirmed hint fills the input');
+assert.equal(campaignHintSession.game.getState().score, 25, 'opening confirmation does not change current score');
+assert.equal(campaignHintSession.game.confirmHint(), true, 'confirming the hint submits the suggested move');
+const campaignState = campaignHintSession.game.getState();
+assert.equal(campaignState.score, 20, 'five points are deducted directly from the current score');
+assert.deepEqual(campaignState.chain, ['COLD', campaignNextWord], 'hint word is submitted into the ladder immediately');
+assert.equal(campaignState.activeHint, null, 'auto submitted hint is no longer pending');
 const campaignSavedProgress = JSON.parse(campaignHintSession.storage.get('wrdlink-browser-session-v1:progress'));
-assert.equal(campaignSavedProgress.version, 2);
+assert.equal(campaignSavedProgress.score, 20, 'deducted current score is persisted');
 assert.equal(campaignSavedProgress.hintsUsed, 1);
 assert.equal(campaignSavedProgress.hintPenalty, 5);
-assert.equal(typeof campaignSavedProgress.activeHint.word, 'string');
 const campaignReload = loadGame({ savedProgress: campaignSavedProgress });
-assert.equal(campaignReload.game.getState().hintsUsed, 1, 'hint count survives reload');
-assert.equal(campaignReload.game.getState().hintPenalty, 5, 'hint deduction survives reload');
-assert.equal(campaignReload.game.getState().activeHint.word, campaignSavedProgress.activeHint.word, 'the revealed word survives reload');
-assert.equal(campaignReload.elements.get('word-entry').value, campaignSavedProgress.activeHint.word, 'confirmed hint is restored into the input after reload');
-assert.equal(campaignReload.elements.get('submit-button').disabled, false, 'restored hint remains ready to submit');
-assert.equal(campaignReload.elements.get('hint-button').disabled, true, 'the same revealed hint cannot be charged again after reload');
+assert.equal(campaignReload.game.getState().score, 20, 'deducted score survives reload');
+assert.deepEqual(campaignReload.game.getState().chain, ['COLD', campaignNextWord], 'auto submitted move survives reload');
+assert.equal(campaignReload.game.getState().activeHint, null, 'reload does not restore a stale pending hint');
 const legacyReload = loadGame({ savedProgress: {
-  version: 1, score: 7, level: 2, puzzle: campaignSavedProgress.puzzle,
-  chain: campaignSavedProgress.chain, completed: false
+  version: 1, score: 7, level: 2, puzzle: campaignPuzzle,
+  chain: ['COLD'], completed: false
 } });
 assert.equal(legacyReload.game.getState().hintsUsed, 0, 'legacy saves migrate with no hint usage');
 assert.equal(legacyReload.game.getState().hintPenalty, 0, 'legacy saves migrate with no hint penalty');
@@ -225,35 +233,37 @@ async function testInteractions() {
   };
   const hintButton = challenge.elements.get('hint-button');
   assert.equal(typeof hintButton.listeners.click, 'function', 'hint button has a click handler');
-  const pathFromCord = challenge.game.shortestPath('CORD', 'WARM', ['COLD']);
+  const pathFromCold = challenge.game.shortestPath('COLD', 'WARM');
   hintButton.dispatch('click');
   assert.equal(challenge.elements.get('hint-confirmation').hidden, false, 'hint click opens a confirmation dialog');
   assert.equal(challenge.elements.get('hint-confirm-cost').textContent, '5', 'confirmation displays exact hint cost');
-  assert.equal(challenge.elements.get('hint-confirm-balance').textContent, '19', 'confirmation displays post purchase balance');
-  assert.equal(challenge.game.getState().hintsUsed, 0, 'hint is not charged before confirmation');
+  assert.equal(challenge.elements.get('hint-confirm-balance').textContent, '20', 'confirmation displays score after deduction');
+  assert.equal(challenge.game.getState().score, 25, 'opening confirmation does not deduct score');
   challenge.elements.get('hint-cancel-button').dispatch('click');
-  assert.equal(challenge.game.getState().hintsUsed, 0, 'cancel leaves hint points untouched');
+  assert.equal(challenge.game.getState().score, 25, 'cancel leaves current score untouched');
   hintButton.dispatch('click');
   challenge.elements.get('hint-confirm-button').dispatch('click');
   let hintedState = challenge.game.getState();
-  assert.equal(challenge.elements.get('word-entry').value, hintedState.activeHint.word, 'confirmed hint automatically fills the move input');
-  assert.equal(challenge.elements.get('submit-button').disabled, false, 'confirmed hint enables submission');
-  assert.equal(hintedState.hintPenalty, 5, 'first hint deducts five points');
-  assert.equal(hintedState.activeHint.word, pathFromCord[1], 'hint reveals the next word on a shortest valid route');
-  hintButton.dispatch('click');
-  hintedState = challenge.game.getState();
-  assert.equal(hintedState.hintsUsed, 1, 'repeated tap on the same revealed hint is free and does not charge twice');
-  assert.equal(hintedState.hintPenalty, 5);
-  submitWord(pathFromCord[1]);
-  assert.equal(challenge.game.getState().activeHint, null, 'submitting a move dismisses the previous reveal');
+  assert.equal(hintedState.score, 20, 'confirmed hint deducts directly from current score');
+  assert.deepEqual(hintedState.chain, ['COLD', pathFromCold[1]], 'confirmed hint submits the shortest route word automatically');
+  assert.equal(hintedState.activeHint, null, 'automatically submitted hint is not left pending');
+  assert.equal(hintedState.hintsUsed, 1, 'first hint increments hint count');
+  assert.equal(hintedState.hintPenalty, 5, 'first hint records five points deducted');
   hintButton.dispatch('click');
   assert.equal(challenge.elements.get('hint-confirm-cost').textContent, '6', 'second confirmation shows escalating six point cost');
   challenge.elements.get('hint-confirm-button').dispatch('click');
   hintedState = challenge.game.getState();
-  assert.equal(hintedState.hintsUsed, 2, 'a hint after advancing uses the next tier');
-  assert.equal(hintedState.hintPenalty, 11, 'second hint adds six points to the cumulative deduction');
-  const secondHintWord = hintedState.activeHint.word;
-  submitWord(secondHintWord);
+  assert.equal(hintedState.score, 14, 'second hint deducts six more points from current score');
+  assert.equal(hintedState.hintsUsed, 2, 'second hint increments count');
+  assert.equal(hintedState.hintPenalty, 11, 'cumulative hint deduction is tracked');
+  assert.equal(hintedState.chain.length, 3, 'second hint also submits the move automatically');
+  assert.equal(hintedState.chain[2], challenge.game.shortestPath(hintedState.chain[1], 'WARM', hintedState.chain.slice(0, -1))[1], 'second hint follows a valid shortest route');
+  const submitWord = (word) => {
+    const input = challenge.elements.get('word-entry');
+    input.value = word;
+    input.dispatch('input');
+    challenge.elements.get('move-form').dispatch('submit');
+  };
   if (challenge.game.getState().chain.at(-1) !== 'WARM') {
     const continuation = challenge.game.shortestPath(challenge.game.getState().chain.at(-1), 'WARM', challenge.game.getState().chain.slice(0, -1));
     for (const word of continuation.slice(1)) submitWord(word);
@@ -262,8 +272,8 @@ async function testInteractions() {
   assert.equal(challenge.game.getState().completed, true, 'submitting the target completes the puzzle');
   const result = challenge.game.validateSequence(challenge.game.getState().puzzle, challenge.game.getState().chain);
   const finalHintState = challenge.game.getState();
-  const finalAward = challenge.game.calculatePoints(result.movesUsed, finalHintState.hintPenalty);
-  assert.equal(finalAward, challenge.game.getState().score, 'the banked score includes all hint deductions');
+  const finalAward = challenge.game.calculatePoints(result.movesUsed);
+  assert.equal(finalHintState.score, 14 + finalAward, 'the final award is added after hint costs have already been deducted from current score');
   const resultSvg = challenge.game.createResultSvg(result, finalAward);
   assert.match(resultSvg, new RegExp('LEVEL SCORE[\\s\\S]*?>\\+' + finalAward + '<'));
 
@@ -339,8 +349,8 @@ const lowBudget = loadGame({ savedProgress: {
 } });
 assert.equal(lowBudget.game.getState().hintsUsed, 3);
 assert.equal(lowBudget.game.getState().hintPenalty, 18);
-assert.equal(lowBudget.elements.get('hint-button').disabled, true, 'hint is disabled when the next cost exceeds remaining puzzle points');
-assert.match(lowBudget.elements.get('hint-button').getAttribute('aria-label'), /Not enough points.*Costs 8, 4 available/);
+assert.equal(lowBudget.elements.get('hint-button').disabled, true, 'hint is disabled when the current score cannot cover the next cost');
+assert.match(lowBudget.elements.get('hint-button').getAttribute('aria-label'), /Not enough score.*Costs 8, current score 0/);
 assert.equal(lowBudget.elements.get('hint-confirmation').hidden, true, 'an unaffordable hint never opens confirmation');
 assert.equal(lowBudget.game.useHint(), false, 'an unaffordable hint cannot be used');
 assert.equal(lowBudget.game.getState().hintsUsed, 3, 'an unaffordable hint does not increment the hint count');
