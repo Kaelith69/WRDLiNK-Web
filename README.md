@@ -1,197 +1,418 @@
 ![WRDLINK banner](assets/readme-banner.svg)
 
 <p align="center">
-  <strong>A focused four letter word ladder game.</strong><br>
-  Change one letter per move. Find the route. Reach the target.
+  <strong>A four letter word ladder game built around graph search.</strong><br>
+  Change one letter per move. Build a valid chain. Reach the target in as few moves as you can.
 </p>
 
 <p align="center">
-  <a href="https://kaelith69.github.io/WRDLiNK-Web/">Play WRDLINK</a>
+  <a href="https://kaelith69.github.io/WRDLiNK-Web/">PLAY WRDLINK</a>
   ·
-  <a href="https://github.com/Kaelith69/WRDLiNK-Web/issues">Report a bug</a>
+  <a href="https://github.com/Kaelith69/WRDLiNK-Web/issues">REPORT A BUG</a>
   ·
-  <a href="LICENSE">MIT License</a>
+  <a href="LICENSE">MIT LICENSE</a>
 </p>
 
 ---
 
-## The game
+## Contents
 
-WRDLINK gives you a start word and a target word. Build a chain of valid four letter words between them, changing exactly one letter with every move.
+- [What is WRDLINK?](#what-is-wrdlink)
+- [How to play](#how-to-play)
+- [Worked example](#worked-example)
+- [Rules and validation](#rules-and-validation)
+- [Scoring and hint economy](#scoring-and-hint-economy)
+- [How the algorithms work](#how-the-algorithms-work)
+- [Application architecture](#application-architecture)
+- [Progress, storage, and migration](#progress-storage-and-migration)
+- [Friend challenges and sharing](#friend-challenges-and-sharing)
+- [Install and offline play](#install-and-offline-play)
+- [Run locally and test](#run-locally-and-test)
+- [Project structure](#project-structure)
+- [Technology](#technology)
 
-The browser edition is a small, dependency free web app. It runs locally in the browser, remembers your current game, and can be installed on supported devices as a **Progressive Web App (PWA)**. After its first successful load, the game shell and dictionary are available offline.
+## What is WRDLINK?
 
-## Play
+WRDLINK is a browser based word ladder game. Each puzzle gives you a four letter start word and a four letter target word. Your job is to connect them by entering valid dictionary words, changing **exactly one letter** each time.
 
-**[Open WRDLINK](https://kaelith69.github.io/WRDLiNK-Web/)**
+The game is designed as a small, dependency free client side application. The dictionary, validation, puzzle generation, graph search, scoring, persistence, sharing, and interface all run in the browser. There is no game server or external dictionary API.
 
-### How to play
+**[Play WRDLINK](https://kaelith69.github.io/WRDLiNK-Web/)**
 
-1. Read the four letter **start word** and **target word**.
-2. Enter a dictionary word that differs from your latest word by exactly one letter.
-3. Submit the word to add it to your ladder.
-4. Do not repeat a word already used in the current ladder.
-5. Reach the target word to complete the level.
-6. Continue to the next level and build your cumulative score.
+## How to play
 
-Invalid entries do not change the chain or consume a move. Use **Share challenge** to send a branded 9:16 story card and the exact puzzle URL through your device's native share sheet. Use **Copy challenge link** separately when a destination such as Instagram Stories needs its own Link sticker. Anyone opening the URL receives the same start and target words and can solve it independently.
+1. Read the **START** word and the **TARGET** word.
+2. Enter a four letter word that differs from the most recent word by exactly one letter.
+3. Submit it. A valid word is added to your chain and consumes one move.
+4. Continue changing one letter at a time until the target is reached.
+5. Complete the level to receive its completion bonus and unlock the next puzzle.
+6. Keep an eye on the score and the hint price. Hint prices increase throughout the campaign, including after a level change.
 
-Browsers can request that autocomplete, autocorrection, spell checking, and writing suggestions be disabled for the game input. The operating system's keyboard toolbar and autofill service remain under device and keyboard control, so a website cannot guarantee that every suggestion strip or toolbar is hidden.
+The word entry is case insensitive. The game normalizes entries to uppercase before validation. You can use the keyboard or the on screen send control. Invalid entries are rejected without changing the chain or consuming a move.
 
-### Rules at a glance
+### The interface
 
-- Every word contains exactly four letters.
-- Every submitted word must exist in the bundled dictionary.
-- Each move changes exactly one letter.
-- A word cannot appear twice in the same chain.
-- The target word must be the final word in the chain.
+- **Start and target:** the two endpoints of the current puzzle.
+- **Level:** the campaign level indicator. The visible labels begin at LV0, then LV1, LV2, and onward.
+- **Score:** the current campaign balance.
+- **Moves:** the number of accepted transitions in the current chain.
+- **Word entry:** the next candidate word.
+- **Hint:** asks the shortest path solver for the next word and submits that word after confirmation.
+- **Share challenge:** prepares a link and a share card for the current start and target.
+- **Theme:** switches between light and dark appearance.
+- **Next level:** appears after a successful solve.
+- **New game:** starts a fresh run and resets the campaign score and hint sequence.
 
-### Scoring
+## Worked example
 
-A new game starts with **25 points**. Every valid move immediately deducts **1 point**. Invalid entries do not change the score. A confirmed hint deducts its escalating hint price and automatically submits the suggested word, which also costs **1 move point**.
+This example connects **COLD** to **WARM**. Every adjacent pair differs in one position.
+
+![Example word ladder from COLD to WARM](assets/readme-ladder.svg)
+
+| Step | Word | Change |
+|---:|---|---|
+| Start | COLD | Starting word |
+| 1 | CORD | L becomes R |
+| 2 | CARD | O becomes A |
+| 3 | WARD | C becomes W |
+| 4 | WARM | D becomes M, target reached |
+
+This is a valid four move chain if all words are present in the bundled dictionary. The game also calculates the shortest possible route for a puzzle, so the completion message can distinguish a minimum move solution from a longer valid solution.
+
+## Rules and validation
+
+A submitted chain must satisfy all of the following:
+
+- Every word has exactly four letters.
+- Every word exists in the bundled dictionary.
+- Every move changes exactly one letter.
+- No word may be repeated in the same chain.
+- The start word must remain the first word.
+- The target word may only appear as the final word.
+- The final word must equal the puzzle target.
+
+Validation happens locally before the chain is changed. A rejected word does not increment the move count, deduct a move point, or enter the saved chain.
+
+## Scoring and hint economy
+
+Each new campaign starts with **25 points**. The score is carried between levels. It is not reset when a new level begins.
+
+### Normal moves
+
+Every accepted move deducts **1 point**. Invalid entries cost nothing.
+
+### Hints
+
+Hints use the shortest route solver to reveal the next word on a valid shortest path. Confirming a hint automatically submits that word, so the deduction has two parts:
+
+- The hint price.
+- One additional point for the move that the hint submits.
+
+The hint price increases by one for every confirmed hint across the entire campaign. **It does not reset between levels.** Cancelling the confirmation does not deduct points.
+
+| Hint number in the campaign | Hint price | Move cost | Total deduction |
+|---:|---:|---:|---:|
+| 1 | 5 | 1 | 6 |
+| 2 | 6 | 1 | 7 |
+| 3 | 7 | 1 | 8 |
+| 4 | 8 | 1 | 9 |
+| 5 | 9 | 1 | 10 |
+| n | 5 + (n − 1) | 1 | 6 + (n − 1) |
+
+The hint counter and accumulated hint penalty persist across level changes and browser reloads. Only **New game** resets the hint sequence to 5.
+
+### Level completion
+
+Completing a level adds **25 points** to the remaining balance. The next level begins with that resulting balance. The score is never allowed to fall below zero.
+
+For example, if a player begins with 25 points, uses two hints, and makes no other moves:
+
+- Hint 1 deducts 5 hint points and 1 move point.
+- Hint 2 deducts 6 hint points and 1 move point.
+- The balance before the completion bonus is 12.
+- Completing the level adds 25, giving a balance of 37.
+- The first hint on the next level costs 7 hint points plus 1 move point.
+
+![Campaign scoring and hint progression](assets/readme-scoring.svg)
+
+The completion banner and result card show the post completion balance. The next level carries that balance forward. A new game starts a separate run at 25 points.
+
+## How the algorithms work
+
+The game models the dictionary as an **implicit, unweighted graph**:
+
+- Each valid four letter word is a vertex.
+- An edge connects two words when they differ at exactly one character position.
+- Every edge represents one legal move.
+- A route is a sequence of connected vertices from the start to the target.
+
+The graph is not stored as a large list of every possible edge. Instead, the application builds a pattern index and generates neighbors when needed.
+
+### 1. Dictionary loading and indexing
+
+`dictionary.js` exposes a bundled set of **3,889 four letter words**. At startup, the application filters the set to uppercase four letter entries and builds a pattern index.
+
+For each word, the index creates four patterns by replacing one character with an underscore.
+
+Example:
 
 ```text
-Starting score = 25
-Hint 1 = 5 points
-Hint 2 = 6 points
-Hint 3 = 7 points
-Hint n = 5 + (n - 1)
+COLD
+_COLD  not used
+_COLD is not a four character pattern
 
-Normal valid move = -1 point
-Confirmed hint = -(hint price + 1 move point)
-Level completion reward = +25 points
-Score cannot fall below zero
+COLD -> _OLD
+COLD -> C_LD
+COLD -> CO_D
+COLD -> COL_
 ```
 
-The score is cumulative across levels. When a level is completed, **25 points are added** to the remaining score. The next level carries that balance forward rather than resetting it. Every new game starts a fresh run at 25 points. Hint prices are cumulative across the entire run, including level changes. For example, after using hints costing 5 and 6 on the first level, the next level begins at 7, then 8, and so on. Only starting a new game resets the hint sequence.
+Every word sharing a pattern differs only at the wildcard position, so it is a possible one move neighbor. To find the neighbors of a word, the game looks up its four patterns, collects the matching words, removes the word itself, and deduplicates the results.
 
-The start word route label displays each stage as LV0, LV1, LV2, and onward, including on narrow mobile screens. The challenge area has one share action, with a dedicated share icon and teal treatment, plus a contrasting amber new game action. The redundant standalone copy link button is removed. The top bar keeps the score and move count identifiable on mobile, including while the keyboard is open. The hint button displays the hint price itself, so the sequence remains visible as 5, 6, 7, 8, and onward across levels. Its confirmation dialog displays the full deduction, including the automatically submitted 1 point move. Before confirmation, the dialog previews the exact total deduction and remaining balance. Cancelling costs nothing. Confirming submits the next word on a shortest valid route automatically.
+This avoids comparing every dictionary word against every other word whenever a neighbor list is needed.
 
-Progress saves the cumulative score, current level, moves, and hint deductions. Result cards display the score after the level completion reward.
+### 2. One letter comparison
 
-## Install the app
+The direct validator compares words character by character:
 
-WRDLINK is a Progressive Web App. It does not need an app store or a separate installer.
+1. Reject immediately if their lengths differ.
+2. Count positions where the characters differ.
+3. Reject as soon as the count exceeds one.
+4. Accept the transition only when the final difference count is exactly one.
+
+A word identical to the previous word is not a move. A word differing in two or more positions is also invalid.
+
+### 3. Breadth first search for shortest distance
+
+The graph is unweighted because every legal move costs one move. The application uses **breadth first search (BFS)** to calculate the shortest distance between two words.
+
+BFS explores the graph in layers:
+
+1. Put the start word in a queue with distance zero.
+2. Remove the next queued word.
+3. Visit each unvisited neighbor and assign its distance as the current distance plus one.
+4. Add those neighbors to the queue.
+5. Stop when the target is reached.
+6. Return the target distance. If the queue becomes empty first, no route exists.
+
+Because every edge has equal weight, BFS discovers the target at its minimum possible number of moves.
+
+![Breadth first search expansion](assets/readme-bfs.svg)
+
+### 4. Shortest path reconstruction
+
+The hint system needs the actual route, not only its length. The shortest path routine performs BFS while recording a **parent** for every discovered word.
+
+When the target is found, the algorithm follows the parent links backward from target to start, then reverses the collected sequence. This produces a shortest valid word ladder.
+
+The routine accepts an exclusion list. Words already used earlier in the current chain are blocked, except for the current word at the search origin. This prevents a hint from suggesting a repeated word.
+
+A hint takes the second word in the reconstructed path. That is the next legal move along a shortest remaining route.
+
+### 5. Random puzzle generation
+
+Random puzzles are generated from the same indexed graph:
+
+1. Choose a random dictionary word as the start.
+2. Perform a random walk through unused neighboring words.
+3. Choose a desired walk length between three and seven moves.
+4. Stop the walk if no unused neighbor is available.
+5. Use the last word as the target.
+6. Run BFS from start to target to calculate the optimal move count.
+7. Accept the puzzle only when the target differs from the start, a route exists, and the generated walk contains enough words.
+8. Retry up to 100 times before reporting a generation error.
+
+The random walk creates a connected pair of endpoints. BFS then measures the actual shortest distance between them. The random walk itself is not necessarily the shortest solution.
+
+### 6. Complexity
+
+Let (V) be the number of dictionary words and (E) the number of legal one letter transitions.
+
+- **Pattern index construction:** each word contributes four patterns, so index construction is proportional to (4V), excluding the cost of storing the buckets.
+- **Neighbor lookup:** examines the four relevant pattern buckets. Its practical cost depends on the sizes of those buckets.
+- **BFS:** (O(V + E)) time and (O(V)) auxiliary space in the usual adjacency list graph model.
+- **Path reconstruction:** (O(L)), where (L) is the number of words in the returned path.
+- **Sequence validation:** linear in the number of submitted words, with a fixed four character comparison per transition.
+
+The implementation generates neighbors from the pattern index rather than materializing every graph edge up front.
+
+## Application architecture
+
+WRDLINK is a static browser application. It has no backend service, account system, build pipeline, or runtime package dependencies.
+
+![WRDLINK browser architecture](assets/readme-architecture.svg)
+
+| File | Responsibility |
+|---|---|
+| `index.html` | Semantic interface, controls, dialogs, initial score display, and app metadata |
+| `styles.css` | Responsive layout, themes, keyboard open layout, focus states, and motion preferences |
+| `app.js` | Game state, validation, graph indexing, BFS, puzzle generation, scoring, sharing, and persistence |
+| `dictionary.js` | Bundled word set |
+| `manifest.webmanifest` | Installable PWA metadata and icon declarations |
+| `sw.js` | App shell caching, offline navigation fallback, and cache version cleanup |
+| `assets/` | App icons and README illustrations |
+| `tests/game.test.js` | Production game logic, scoring, hint progression, challenge, and persistence tests |
+| `tests/pwa.test.js` | HTML, responsive behavior, PWA metadata, service worker, and deployment checks |
+
+### Browser state
+
+The application keeps the active puzzle and campaign in one state object. It includes the score, level, puzzle endpoints, current word chain, completion state, number of hints used, accumulated hint penalty, and pending hint state.
+
+The interface is rendered from this state. The score and move labels update when a valid move is accepted, when a hint is confirmed, and when a level is completed.
+
+### Result cards
+
+The application builds shareable result artwork as SVG and renders it to a PNG using browser image and canvas APIs. The generated card includes puzzle information, the word ladder, move information, and the result score. Challenge cards use a tall 9:16 layout designed for mobile sharing.
+
+## Progress, storage, and migration
+
+Campaign progress is stored in browser `localStorage`. The saved snapshot includes:
+
+- Save schema version.
+- Current score and level.
+- Puzzle ID, start, target, word length, and shortest distance.
+- Submitted word chain.
+- Completion state.
+- Campaign wide hint count and accumulated hint penalty.
+- Pending hint state where applicable to older save formats.
+
+The current save schema is **version 6**. On load, saved data is validated before it is applied to the live game. Validation checks the puzzle fields, dictionary membership, chain structure, legal transitions, completion state, and shortest distance metadata. Current snapshots also enforce the hint and score invariants.
+
+Older save versions are migrated. Legacy pending hints are handled so their suggested move and deductions are applied without charging twice. Invalid or malformed snapshots are discarded rather than trusted.
+
+Progress is local to the browser profile. There is no account sync or automatic transfer between devices. Friend challenge sessions do not overwrite the player's saved campaign.
+
+The theme preference is stored separately from game progress.
+
+## Friend challenges and sharing
+
+A challenge URL contains the exact start and target words in a query parameter. Opening the link starts that same puzzle for the recipient, who can solve it independently.
+
+The challenge feature supports:
+
+- A shareable challenge link.
+- A generated challenge image.
+- The device's native share sheet when available.
+- PNG download as a fallback when native sharing is unavailable.
+
+Result sharing is separate from challenge sharing. The result card is generated after the puzzle is completed and reflects the final score shown by the game.
+
+## Install and offline play
+
+WRDLINK is a **Progressive Web App (PWA)** and can be installed from a supported browser.
 
 ### Desktop
 
-1. Open the [WRDLINK web app](https://kaelith69.github.io/WRDLiNK-Web/) in a supported browser such as Chrome or Edge.
-2. Wait for the first page load to finish.
-3. Select the install icon in the browser address bar, or use the browser menu and choose **Install WRDLINK**.
+1. Open the [WRDLINK app](https://kaelith69.github.io/WRDLiNK-Web/) in a supported browser.
+2. Wait for the initial load to finish.
+3. Use the browser's install control or menu option to install the app.
 
 ### Android
 
-1. Open the web app in Chrome.
+1. Open WRDLINK in Chrome.
 2. Open the browser menu.
-3. Select **Install app** or **Add to Home screen**, depending on the browser.
+3. Choose **Install app** or **Add to Home screen**, depending on the browser version.
 
 ### iPhone and iPad
 
-1. Open the web app in Safari.
-2. Tap **Share**.
+1. Open WRDLINK in Safari.
+2. Tap the Share control.
 3. Choose **Add to Home Screen**.
 
-Installation wording and availability vary by browser and operating system. The app must be served over HTTPS, which GitHub Pages provides.
+Install options and wording depend on the browser and operating system. PWA installation requires a secure context. GitHub Pages serves the app over HTTPS.
 
-### Offline support
+### Offline behavior
 
-The service worker caches the app shell, styles, game logic, dictionary, manifest, and app icon. The first visit requires an internet connection. Once the service worker has installed and cached those files, the game can load offline.
+The service worker pre caches the app shell:
 
-Game progress and theme preference are stored locally by the browser. Offline support does not provide account sync or cross device progress transfer. A service worker update is activated when the browser installs the newer app shell.
+- HTML entry point.
+- Stylesheet and game logic.
+- Bundled dictionary.
+- Web app manifest.
+- App icons.
 
-## Features
+After the first successful load and service worker installation, the cached app shell can open without a network connection. Navigation requests use the cached HTML as an offline fallback. Same origin static resources are served from cache when available.
 
-- **3,889 word dictionary** bundled locally. No external dictionary API.
-- **Random puzzles** generated from valid paths in the dictionary.
-- **Shortest route calculation** using breadth first search.
-- **Move validation** for dictionary membership, letter changes, and duplicate words.
-- **Level scoring** with 25 starting points, move deductions, escalating paid hints, and cumulative progression.
-- **Paid hints** in the top bar, with an explicit total cost confirmation, immediate current score deduction, and automatic move submission. Costs escalate by one point per hint.
-- **Friend challenges** with shareable links that reopen the exact start and target words.
-- **Shareable result cards** exported as PNG images for messaging and social stories.
-- **Persistent progress** using browser `localStorage`.
-- **Light and dark themes** with saved preference and system theme detection.
-- **Installable PWA** with a web app manifest, custom SVG app icon, and service worker.
-- **Offline play** after the first successful app shell cache.
-- **Responsive layout** for desktop, tablet, and mobile.
-- **Accessibility support** including semantic controls, visible focus, live status announcements, reduced motion preferences, and non colour state cues.
-- **No framework, build step, or runtime dependencies.**
+When a new service worker version installs, it activates and removes older caches that use the WRDLINK cache prefix. The cache version is deliberately updated when app shell resources change.
+
+Offline support does not mean cloud sync. The game can save locally while offline, but local progress remains on that browser and device.
 
 ## Run locally
 
-For basic play, serve the repository root with any local static HTTP server. Opening `index.html` directly with a `file://` URL still runs the game, but service workers and PWA installation require a secure context such as HTTPS or localhost.
-
-For example, with Python installed:
+You can serve the repository root with any static HTTP server. For example, with Python:
 
 ```bash
 python -m http.server 8000
 ```
 
-Then open [http://localhost:8000](http://localhost:8000).
+Then open:
+
+```text
+http://localhost:8000
+```
+
+Opening `index.html` directly through a `file://` URL may allow basic gameplay, but service workers and PWA installation require HTTPS or localhost.
+
+There is no build step and no package installation is required.
 
 ## Run the tests
 
-Node.js 18 or newer is required for the test suite.
+The project uses Node.js built in modules for its test harness. From the repository root:
 
 ```bash
 npm test
 ```
 
-The tests exercise the production game logic, dictionary, adjacency rules, 25 point scoring, escalating hint costs, total hint and move affordability, shortest route auto submission, hint persistence, puzzle generation, shared challenge loading, saved progress validation, and PWA metadata.
+The test command runs:
+
+1. `tests/game.test.js`: executes the production browser game code inside a lightweight DOM harness. It checks dictionary loading, legal transitions, BFS, shortest path reconstruction, scoring, cumulative hints across levels, hint auto submission, persistence, migration, and challenge behavior.
+2. `tests/pwa.test.js`: checks HTML metadata, mobile keyboard layout hooks, accessibility related markup, manifest declarations, service worker assets and cache version, deployment workflow expectations, and README integration.
+
+These tests verify production logic and important static integration contracts. They are not a substitute for manual testing in real browsers, screen sizes, mobile keyboards, and installed PWA environments.
 
 ## Project structure
 
 ```text
-.
+WRDLiNK-Web/
 ├── .github/
 │   └── workflows/
-│       ├── deploy-pages.yml  # Static GitHub Pages deployment
-│       └── test.yml          # Logic and PWA checks
+│       ├── deploy-pages.yml
+│       └── test.yml
 ├── assets/
-│   ├── readme-banner.svg     # Repository README banner
-│   └── wrdlink-icon.svg      # Installable app icon
-├── index.html                # Accessible game shell and PWA metadata
-├── manifest.webmanifest      # App name, display mode, scope, and icon
-├── sw.js                     # Offline app shell and cache lifecycle
-├── styles.css                # Responsive design and light/dark themes
-├── app.js                    # Puzzle generation, validation, scoring
-├── dictionary.js             # 3,889 four letter words
-├── package.json              # Test command
+│   ├── readme-architecture.svg
+│   ├── readme-banner.svg
+│   ├── readme-bfs.svg
+│   ├── readme-ladder.svg
+│   ├── readme-scoring.svg
+│   └── wrdlink-icon.svg
 ├── tests/
-│   ├── game.test.js          # Production game logic checks
-│   └── pwa.test.js           # PWA metadata and deployment checks
-├── LICENSE
+│   ├── game.test.js
+│   └── pwa.test.js
+├── app.js
+├── dictionary.js
+├── index.html
+├── manifest.webmanifest
+├── package.json
+├── styles.css
+├── sw.js
 └── README.md
 ```
 
-## Privacy and local data
-
-WRDLINK does not require an account. It does not include analytics, advertising, a backend, or cross device synchronization. The current game and theme preference are stored in the browser profile using `localStorage`.
-
-If the same game is open in multiple tabs, a tab detects an external progress update and stops overwriting the newer saved snapshot. Reload that tab to continue from the latest saved game.
-
-## Accessibility
-
-The interface supports keyboard and touch interaction, visible focus, semantic form controls, concise status announcements, reduced motion preferences, and scrollable long word chains. Colour is not the only way game state is communicated.
-
-Accessibility can vary across browser, operating system, assistive technology, and user settings. Contributions that improve these combinations are welcome.
-
 ## Technology
 
-- HTML
-- CSS
-- Vanilla JavaScript
-- Web App Manifest
-- Service Workers and Cache Storage
-- Browser `localStorage`
-- Node.js built in test modules
+- **JavaScript:** game state, validation, graph algorithms, scoring, persistence, and sharing.
+- **HTML:** semantic structure and accessible controls.
+- **CSS:** responsive interface, themes, keyboard aware layout, and reduced motion handling.
+- **SVG:** scalable app artwork, README diagrams, and generated share card source.
+- **Canvas and browser image APIs:** PNG result and challenge card export.
+- **Web Storage:** local campaign progress and theme preference.
+- **Service Worker:** offline app shell and cache lifecycle.
+- **Web App Manifest:** installation metadata and icons.
+- **Node.js:** dependency free automated test harness.
+- **GitHub Pages:** static hosting and HTTPS delivery.
 
-## Deployment
-
-The project is a static site and deploys through GitHub Pages. The workflow publishes the game runtime and PWA assets from the repository root when changes reach `main`.
-
-For the first deployment, open **Settings → Pages** and select **GitHub Actions** as the deployment source. Subsequent pushes to `main` deploy automatically. The published app is served over HTTPS, which is required for service workers and PWA installation.
+There are no framework dependencies or runtime API calls.
 
 ## License
 
-WRDLINK is distributed under the **MIT License**. See [LICENSE](LICENSE) for the complete terms.
+WRDLINK is distributed under the [MIT License](LICENSE).
