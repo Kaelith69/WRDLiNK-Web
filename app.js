@@ -324,14 +324,15 @@
     if (!state.puzzle || !elements.hintButton) return;
     const available = state.score;
     const cost = calculateHintCost(state.hintsUsed);
+    const totalCost = cost + 1;
     const currentWord = state.chain[state.chain.length - 1];
     const hintIsActive = Boolean(state.activeHint && state.activeHint.from === currentWord);
     const routeExists = Boolean(nextHintWord());
-    elements.hintButton.disabled = busy || state.completed || hintIsActive || available < cost || !routeExists;
-    elements.hintCostChip.textContent = hintIsActive ? 'READY' : `−${cost}`;
+    elements.hintButton.disabled = busy || state.completed || hintIsActive || available < totalCost || !routeExists;
+    elements.hintCostChip.textContent = hintIsActive ? 'READY' : `−${totalCost}`;
     elements.hintButton.setAttribute('aria-label', hintIsActive
       ? 'Hint entered. Submit the word to continue'
-      : available < cost ? `Not enough score for hint. Costs ${cost}, current score ${available}`
+      : available < totalCost ? `Not enough score for hint and move. Total deduction ${totalCost}, current score ${available}`
         : `Use hint for ${cost} points`);
     elements.hintButton.setAttribute('aria-describedby', 'hint-confirm-description');
   }
@@ -352,14 +353,15 @@
       setMessage('No unused route to the target remains from this word. Start a new puzzle to try another route.', 'error');
       return false;
     }
-    if (available < cost) {
-      setMessage(`Not enough score. This hint costs ${cost}, but your current score is ${available}.`, 'error');
+    const totalCost = cost + 1;
+    if (available < totalCost) {
+      setMessage(`Not enough score. This hint and its move cost ${totalCost} points, but your current score is ${available}.`, 'error');
       renderHintUI();
       return false;
     }
-    elements.hintConfirmCost.textContent = String(cost);
-    elements.hintConfirmBalance.textContent = String(available - cost);
-    elements.hintConfirmButton.textContent = `USE HINT · −${cost}`;
+    elements.hintConfirmCost.textContent = String(totalCost);
+    elements.hintConfirmBalance.textContent = String(available - totalCost);
+    elements.hintConfirmButton.textContent = `USE HINT · −${totalCost}`;
     elements.hintConfirmation.hidden = false;
     elements.hintCancelButton.focus({ preventScroll: true });
     return true;
@@ -370,10 +372,11 @@
     const currentWord = state.chain[state.chain.length - 1];
     const available = state.score;
     const cost = calculateHintCost(state.hintsUsed);
+    const totalCost = cost + 1;
     const word = nextHintWord();
-    if (!word || available < cost) {
+    if (!word || available < totalCost) {
       elements.hintConfirmation.hidden = true;
-      setMessage('This hint is no longer available. Your points were not deducted.', 'error');
+      setMessage('This hint is no longer available or your score is too low. Your points were not deducted.', 'error');
       renderHintUI();
       return false;
     }
