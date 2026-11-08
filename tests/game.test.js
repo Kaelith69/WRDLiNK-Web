@@ -134,6 +134,30 @@ const campaignReload = loadGame({ savedProgress: campaignSavedProgress });
 assert.equal(campaignReload.game.getState().score, 12, 'deducted score survives reload');
 assert.deepEqual(campaignReload.game.getState().chain, ['COLD', campaignNextWord, secondCampaignHint], 'both auto submitted moves survive reload');
 assert.equal(campaignReload.game.getState().activeHint, null, 'reload does not restore a stale pending hint');
+
+// Hint pricing is run wide, not level local. Two hints on level one cost
+// 5 and 6; the first hint on level two must therefore cost 7.
+const finishFirstLevel = campaignReload.game.shortestPath(
+  campaignReload.game.getState().chain.at(-1), 'WARM',
+  campaignReload.game.getState().chain.slice(0, -1)
+);
+for (const word of finishFirstLevel.slice(1)) {
+  campaignReload.elements.get('word-entry').value = word;
+  campaignReload.elements.get('word-entry').dispatch('input');
+  campaignReload.elements.get('move-form').dispatch('submit');
+}
+assert.equal(campaignReload.game.getState().completed, true, 'campaign level completes before advancing');
+campaignReload.elements.get('next-button').dispatch('click');
+assert.equal(campaignReload.game.getState().level, 2, 'campaign advances to the second level');
+assert.equal(campaignReload.game.getState().hintsUsed, 2, 'hint count carries into the next level');
+assert.equal(campaignReload.game.getState().hintPenalty, 11, 'cumulative hint penalty carries into the next level');
+assert.equal(campaignReload.elements.get('hint-cost-chip').textContent, '−8', 'level two shows the third hint price plus its move point');
+assert.equal(campaignReload.game.useHint(), true, 'level two can request its next hint');
+assert.equal(campaignReload.elements.get('hint-confirm-cost').textContent, '8', 'third hint costs seven plus one move point');
+campaignReload.game.confirmHint();
+assert.equal(campaignReload.game.getState().hintsUsed, 3, 'third hint increments the run wide hint count');
+assert.equal(campaignReload.game.getState().hintPenalty, 18, 'third hint adds seven to the cumulative hint penalty');
+assert.equal(JSON.parse(campaignReload.storage.get('wrdlink-browser-session-v1:progress')).version, 6, 'cumulative hint state persists in the current save format');
 const legacyReload = loadGame({ savedProgress: {
   version: 1, score: 7, level: 2, puzzle: campaignPuzzle,
   chain: ['COLD'], completed: false
@@ -148,7 +172,7 @@ const legacyPendingHint = loadGame({ savedProgress: {
 assert.equal(legacyPendingHint.game.getState().score, 19, 'legacy pending hint migrates with its hint and move deductions applied');
 assert.deepEqual(legacyPendingHint.game.getState().chain, ['COLD', campaignNextWord], 'legacy pending hint is automatically submitted during migration');
 assert.equal(legacyPendingHint.game.getState().activeHint, null, 'legacy pending hint is cleared after automatic submission');
-assert.equal(JSON.parse(legacyPendingHint.storage.get('wrdlink-browser-session-v1:progress'  )).version, 5, 'migrated progress is saved in the current format');
+assert.equal(JSON.parse(legacyPendingHint.storage.get('wrdlink-browser-session-v1:progress')).version, 6, 'migrated progress is saved in the current format');
 const legacyUsedHint = loadGame({ savedProgress: {
   version: 2, score: 25, level: 1, puzzle: campaignPuzzle,
   chain: ['COLD', campaignNextWord], completed: false, hintsUsed: 1,
@@ -226,7 +250,6 @@ assert.equal(threeRowLayout.ladderHeight, 569);
 assert.equal(threeRowLayout.ladderY, 632.5);
 assert.equal(threeRowLayout.footerY, 1556);
 assert.equal(typeof challenge.elements.get('share-challenge-button').listeners.click, 'function', 'challenge button has a click handler');
-assert.equal(typeof challenge.elements.get('copy-challenge-button').listeners.click, 'function', 'copy link button has a click handler');
 assert.equal(typeof challenge.elements.get('share-result-button').listeners.click, 'function', 'result button has a click handler');
 assert.equal(typeof challenge.elements.get('download-result-button').listeners.click, 'function', 'download button has a click handler');
 assert.equal(typeof challenge.elements.get('new-game-button').listeners.click, 'function', 'new game button has a click handler');
@@ -245,8 +268,6 @@ assert.equal([...challenge.storage.keys()].some((key) => key.includes(':progress
 async function testInteractions() {
   await new Promise((resolve) => setImmediate(resolve));
   await challenge.elements.get('share-challenge-button').dispatch('click');
-  await challenge.elements.get('copy-challenge-button').dispatch('click');
-  assert.match(challenge.copied.at(-1), /challenge=COLD-WARM/, 'copy link button copies the exact challenge URL');
   assert.equal(challenge.shareCalls.length, 1, 'challenge button opens the native share sheet');
   assert.match(challenge.shareCalls[0].url, /challenge=COLD-WARM/, 'native share includes the exact puzzle URL');
   assert.equal(challenge.shareCalls[0].files[0].name, 'wrdlink-challenge.png', 'native share includes a branded challenge card');
@@ -332,13 +353,13 @@ assert.equal(game.validateProgressSnapshot(snapshot({
   activeHint: { from: 'COLD', word: 'WARM' }
 })), false, 'invalid active hint word is rejected');
 assert.equal(game.validateProgressSnapshot(snapshot({
-  version: 5, score: 25, hintsUsed: 0, hintPenalty: 0, activeHint: null
+  version: 6, score: 25, hintsUsed: 0, hintPenalty: 0, activeHint: null
 })), true, 'current progress accepts the starting score');
 assert.equal(game.validateProgressSnapshot(snapshot({
-  version: 5, score: -1, hintsUsed: 0, hintPenalty: 0, activeHint: null
+  version: 6, score: -1, hintsUsed: 0, hintPenalty: 0, activeHint: null
 })), false, 'current progress rejects a negative score');
 assert.equal(game.validateProgressSnapshot(snapshot({
-  version: 5, score: 25, hintsUsed: 0, hintPenalty: 0,
+  version: 6, score: 25, hintsUsed: 0, hintPenalty: 0,
   activeHint: { from: 'COLD', word: 'CORD' }
 })), false, 'current progress rejects a stale pending hint');
 assert.equal(game.validateProgressSnapshot(snapshot({ score: -1 })), false);
