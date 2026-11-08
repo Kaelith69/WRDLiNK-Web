@@ -569,3 +569,7 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
   .header-hint-button svg { width: 17px; height: 17px; }
 }
 @media (prefers-reduced-motion: reduce) { .hint-confirmation-backdrop { backdrop-filter: none; } }
+
+@media (max-width: 620px) {
+  .header-context { display: none; }
+}
