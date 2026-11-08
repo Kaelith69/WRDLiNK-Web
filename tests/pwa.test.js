@@ -145,4 +145,27 @@ assert(game.includes('elements.input.focus({ preventScroll: true })'));
 assert(styles.includes(':root.keyboard-open .entry-panel .send-button'));
 assert(styles.includes(':root.keyboard-open .entry-actions { display: none; }'));
 
+
+
+// README rendering and documentation contracts. GitHub renders these local
+// SVGs reliably when they are embedded as Markdown images, not plain links.
+const readme = read('README.md');
+assert.match(readme, /^!\\[WRDLINK banner\\]\\(assets\\/readme-banner\\.svg\\)/, 'README begins with an embedded banner');
+for (const asset of [
+  'assets/readme-banner.svg',
+  'assets/readme-ladder.svg',
+  'assets/readme-scoring.svg',
+  'assets/readme-bfs.svg',
+  'assets/readme-architecture.svg'
+]) {
+  assert(readme.includes('](' + asset + ')'), 'README embeds ' + asset);
+  assert(fs.existsSync(path.join(__dirname, '..', asset)), 'README image exists: ' + asset);
+}
+assert.doesNotMatch(readme, /```mermaid/, 'README does not depend on Mermaid rendering');
+assert.match(readme, /Each new level starts with \\*\\*25 points\\*\\*/, 'README documents the 25 point per level reset');
+assert.match(readme, /hint price increases by one for every confirmed hint within the current level/i, 'README documents level scoped hint escalation');
+assert.match(readme, /resets when the next level begins/i, 'README documents the hint reset between levels');
+assert.match(readme, /version 6/, 'README documents the current save schema');
+assert.match(readme, /3,889 four letter words/, 'README documents the bundled dictionary size');
+
 console.log('WRDLINK PWA metadata and deployment checks passed.');
