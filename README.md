@@ -48,13 +48,22 @@ Browsers can request that autocomplete, autocorrection, spell checking, and writ
 
 ### Scoring
 
-Each level starts at **25 points**. One point is deducted for each valid move, with a minimum level score of zero.
+Each level starts at **25 points**. One point is deducted for each valid move, and hints apply an additional escalating deduction. The level score can never fall below zero.
 
 ```text
-Level score = max(0, 25 - valid moves)
+Hint 1 = 5 points
+Hint 2 = 6 points
+Hint 3 = 7 points
+Hint n = 5 + (n - 1)
+
+Level score = max(0, 25 - valid moves - total hint costs)
 ```
 
-Completed level scores accumulate during the current game. After a win, choose **Share result** to create a 1080 × 1920 story card. Result and challenge cards follow the supplied matching 9:16 layouts, with a full bleed textured field, Barlow Condensed display type, DM Mono labels, reference sized letter tiles, and the original connector treatment. Result cards show the connected status, route status, concealed intermediate words, changed letter connectors, move count, and level score. Challenge cards show the dashed mystery route, letter distance, unknown move count, and exact challenge URL. Supported browsers open the native share sheet; other browsers download the image so it can be posted manually. Selecting **New game** resets the level and total score.
+Select **Get next word** when you are stuck. WRDLINK uses breadth first search to reveal the next word on a shortest valid route from your current word to the target. The revealed word is shown as letter tiles, with the changed letter highlighted. You must enter and submit it yourself. Revealing a hint does not consume a move.
+
+The first hint costs 5 points. Every later hint in the same level costs one point more than the previous hint. Repeatedly tapping a hint that is already revealed does not charge again. After you submit a valid move, the next hint becomes available at the higher cost. A hint is disabled when your remaining level points cannot cover its cost. Hint usage and its deduction are saved with your current game and reset when you start the next level or a new game.
+
+Completed level scores, after move and hint deductions, accumulate during the current game. After a win, choose **Share result** to create a 1080 × 1920 story card. Result and challenge cards follow the supplied matching 9:16 layouts, with a full bleed textured field, Barlow Condensed display type, DM Mono labels, reference sized letter tiles, and the original connector treatment. Result cards show the connected status, route status, concealed intermediate words, changed letter connectors, move count, and level score. Challenge cards show the dashed mystery route, letter distance, unknown move count, and exact challenge URL. Supported browsers open the native share sheet; other browsers download the image so it can be posted manually. Selecting **New game** resets the level and total score.
 
 Puzzles are generated from connected paths in the bundled dictionary. Breadth first search calculates the shortest possible distance between the start and target. You may use a longer valid route and still complete the puzzle.
 
@@ -94,7 +103,8 @@ Game progress and theme preference are stored locally by the browser. Offline su
 - **Random puzzles** generated from valid paths in the dictionary.
 - **Shortest route calculation** using breadth first search.
 - **Move validation** for dictionary membership, letter changes, and duplicate words.
-- **Level scoring** with 25 starting points per level and cumulative progression.
+- **Level scoring** with 25 starting points, move deductions, escalating paid hints, and cumulative progression.
+- **Paid hints** that reveal the next word on a shortest route, with costs of 5, 6, 7 points and so on.
 - **Friend challenges** with shareable links that reopen the exact start and target words.
 - **Shareable result cards** exported as PNG images for messaging and social stories.
 - **Persistent progress** using browser `localStorage`.
@@ -125,7 +135,7 @@ Node.js 18 or newer is required for the test suite.
 npm test
 ```
 
-The tests exercise the production game logic, dictionary, adjacency rules, 25 point scoring, puzzle generation, shared challenge loading, and saved progress validation.
+The tests exercise the production game logic, dictionary, adjacency rules, 25 point scoring, escalating hint costs, hint affordability, shortest route reveals, hint persistence, puzzle generation, shared challenge loading, saved progress validation, and PWA metadata.
 
 ## Project structure
 

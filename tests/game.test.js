@@ -96,6 +96,27 @@ function loadGame({ includeDictionary = true, search = '', savedProgress = null 
 const { game, dictionary, elements } = loadGame();
 assert.equal(game.dictionarySize, 3889);
 
+// Campaign hints must survive a real save and reload, not only snapshot validation.
+const campaignHintSession = loadGame();
+assert.equal(campaignHintSession.game.useHint(), true, 'campaign hint is usable');
+const campaignSavedProgress = JSON.parse(campaignHintSession.storage.get('wrdlink-browser-session-v1:progress'));
+assert.equal(campaignSavedProgress.version, 2);
+assert.equal(campaignSavedProgress.hintsUsed, 1);
+assert.equal(campaignSavedProgress.hintPenalty, 5);
+assert.equal(typeof campaignSavedProgress.activeHint.word, 'string');
+const campaignReload = loadGame({ savedProgress: campaignSavedProgress });
+assert.equal(campaignReload.game.getState().hintsUsed, 1, 'hint count survives reload');
+assert.equal(campaignReload.game.getState().hintPenalty, 5, 'hint deduction survives reload');
+assert.equal(campaignReload.game.getState().activeHint.word, campaignSavedProgress.activeHint.word, 'the revealed word survives reload');
+assert.equal(campaignReload.elements.get('hint-reveal').hidden, false, 'the revealed word remains visible after reload');
+assert.equal(campaignReload.elements.get('hint-button').disabled, true, 'the same revealed hint cannot be charged again after reload');
+const legacyReload = loadGame({ savedProgress: {
+  version: 1, score: 7, level: 2, puzzle: campaignSavedProgress.puzzle,
+  chain: campaignSavedProgress.chain, completed: false
+} });
+assert.equal(legacyReload.game.getState().hintsUsed, 0, 'legacy saves migrate with no hint usage');
+assert.equal(legacyReload.game.getState().hintPenalty, 0, 'legacy saves migrate with no hint penalty');
+
 // A missing dictionary must reach the existing recovery UI, not throw while
 // building the word index at script evaluation time.
 const missingDictionary = loadGame({ includeDictionary: false });
@@ -249,6 +270,9 @@ async function testInteractions() {
 
   challenge.elements.get('new-game-button').dispatch('click');
   assert.match(challenge.game.getState().puzzle.id, /^random-/, 'New game starts a fresh puzzle');
+  assert.equal(challenge.game.getState().hintsUsed, 0, 'new game resets hint count');
+  assert.equal(challenge.game.getState().hintPenalty, 0, 'new game resets hint deductions');
+  assert.equal(challenge.game.getState().activeHint, null, 'new game clears the revealed word');
   challenge.elements.get('theme-toggle').dispatch('click');
   assert.equal(challenge.elements.get('theme-toggle').getAttribute('aria-pressed'), 'true', 'theme button toggles the theme state');
 }
