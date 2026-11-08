@@ -1,12 +1,17 @@
-# WRDLINK
+![WRDLINK banner](assets/readme-banner.svg)
 
-**A four letter word ladder game built around graph search.**
+<p align="center">
+  <strong>A four letter word ladder game built around graph search.</strong><br>
+  Change one letter per move. Build a valid chain. Reach the target in as few moves as you can.
+</p>
 
-Change one letter per move. Build a valid chain. Reach the target in as few moves as you can.
-
-[**PLAY WRDLINK**](https://kaelith69.github.io/WRDLiNK-Web/) · [Report a bug](https://github.com/Kaelith69/WRDLiNK-Web/issues) · [MIT License](LICENSE)
-
-[View the WRDLINK banner artwork](assets/readme-banner.svg)
+<p align="center">
+  <a href="https://kaelith69.github.io/WRDLiNK-Web/">PLAY WRDLINK</a>
+  ·
+  <a href="https://github.com/Kaelith69/WRDLiNK-Web/issues">REPORT A BUG</a>
+  ·
+  <a href="LICENSE">MIT LICENSE</a>
+</p>
 
 ---
 
@@ -62,13 +67,7 @@ The word entry is case insensitive. The game normalizes entries to uppercase bef
 
 This example connects **COLD** to **WARM**. Every adjacent pair differs in one position.
 
-```mermaid
-flowchart LR
-    A["COLD<br/>START"] --> B["CORD<br/>Move 1"]
-    B --> C["CARD<br/>Move 2"]
-    C --> D["WARD<br/>Move 3"]
-    D --> E["WARM<br/>TARGET"]
-```
+![Example word ladder from COLD to WARM](assets/readme-ladder.svg)
 
 | Step | Word | Change |
 |---:|---|---|
@@ -96,7 +95,7 @@ Validation happens locally before the chain is changed. A rejected word does not
 
 ## Scoring and hint economy
 
-Each new campaign starts with **25 points**. The score is carried between levels. It is not reset when a new level begins.
+Each new level starts with **25 points**. Accepted moves and confirmed hints reduce the current level score. The score never falls below zero.
 
 ### Normal moves
 
@@ -109,9 +108,9 @@ Hints use the shortest route solver to reveal the next word on a valid shortest 
 - The hint price.
 - One additional point for the move that the hint submits.
 
-The hint price increases by one for every confirmed hint across the entire campaign. **It does not reset between levels.** Cancelling the confirmation does not deduct points.
+The hint price increases by one for every confirmed hint within the current level. **It resets when the next level begins.** Cancelling the confirmation does not deduct points.
 
-| Hint number in the campaign | Hint price | Move cost | Total deduction |
+| Hint number in the current level | Hint price | Move cost | Total deduction |
 |---:|---:|---:|---:|
 | 1 | 5 | 1 | 6 |
 | 2 | 6 | 1 | 7 |
@@ -120,29 +119,23 @@ The hint price increases by one for every confirmed hint across the entire campa
 | 5 | 9 | 1 | 10 |
 | n | 5 + (n − 1) | 1 | 6 + (n − 1) |
 
-The hint counter and accumulated hint penalty persist across level changes and browser reloads. Only **New game** resets the hint sequence to 5.
+The hint counter and accumulated hint penalty persist across reloads within the current level. Starting the next level or choosing **New game** resets the hint sequence to 5.
 
 ### Level completion
 
-Completing a level adds **25 points** to the remaining balance. The next level begins with that resulting balance. The score is never allowed to fall below zero.
+Completing a level ends the current score calculation. The next level begins with **25 points**, regardless of the previous level's remaining balance. The score is never allowed to fall below zero.
 
 For example, if a player begins with 25 points, uses two hints, and makes no other moves:
 
 - Hint 1 deducts 5 hint points and 1 move point.
 - Hint 2 deducts 6 hint points and 1 move point.
-- The balance before the completion bonus is 12.
-- Completing the level adds 25, giving a balance of 37.
-- The first hint on the next level costs 7 hint points plus 1 move point.
+- The remaining score is 12.
+- Completing the level records that result.
+- The next level starts at 25 points, and its first hint costs 5 hint points plus 1 move point.
 
-```mermaid
-flowchart LR
-    A["New run<br/>25 points"] --> B["Hint 1 + move<br/>−6"]
-    B --> C["Hint 2 + move<br/>−7"]
-    C --> D["Level complete<br/>+25"]
-    D --> E["Next level<br/>Hint 3 costs 7 + 1 move"]
-```
+![Campaign scoring and hint progression](assets/readme-scoring.svg)
 
-The completion banner and result card show the post completion balance. The next level carries that balance forward. A new game starts a separate run at 25 points.
+The completion banner and result card show the remaining level balance. The next level resets to 25 points. A new game starts a fresh level at 25 points.
 
 ## How the algorithms work
 
@@ -201,13 +194,7 @@ BFS explores the graph in layers:
 
 Because every edge has equal weight, BFS discovers the target at its minimum possible number of moves.
 
-```mermaid
-flowchart TD
-    S["Start word<br/>Distance 0"] --> A["All neighbors<br/>Distance 1"]
-    A --> B["Next frontier<br/>Distance 2"]
-    B --> C["Next frontier<br/>Distance 3"]
-    C --> T["Target found<br/>Shortest distance"]
-```
+![Breadth first search expansion](assets/readme-bfs.svg)
 
 ### 4. Shortest path reconstruction
 
@@ -250,13 +237,7 @@ The implementation generates neighbors from the pattern index rather than materi
 
 WRDLINK is a static browser application. It has no backend service, account system, build pipeline, or runtime package dependencies.
 
-```mermaid
-flowchart LR
-    UI["HTML + CSS<br/>Interface"] --> APP["app.js<br/>Rules and algorithms"]
-    DICT["dictionary.js<br/>3,889 words"] --> APP
-    APP --> STORE["localStorage<br/>Progress and theme"]
-    APP --> SW["Service worker<br/>Offline app shell"]
-```
+![WRDLINK browser architecture](assets/readme-architecture.svg)
 
 | File | Responsibility |
 |---|---|
@@ -339,7 +320,7 @@ Install options and wording depend on the browser and operating system. PWA inst
 
 ### Offline behavior
 
-The service worker pre-caches the app shell:
+The service worker pre caches the app shell:
 
 - HTML entry point.
 - Stylesheet and game logic.
