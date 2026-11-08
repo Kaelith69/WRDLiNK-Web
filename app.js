@@ -508,7 +508,6 @@
       }
       // Commit the validated snapshot only after every invariant passes.
       state = {
-        score: saved.score,
         level: saved.level,
         puzzle: saved.puzzle,
         chain: [...saved.chain],
