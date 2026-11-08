@@ -59,7 +59,7 @@ Hint n = 5 + (n - 1)
 Level score = max(0, 25 - valid moves - total hint costs)
 ```
 
-Select **Get next word** when you are stuck. WRDLINK uses breadth first search to reveal the next word on a shortest valid route from your current word to the target. The revealed word is shown as letter tiles, with the changed letter highlighted. You must enter and submit it yourself. Revealing a hint does not consume a move.
+Select the lightbulb hint control in the top bar when you are stuck. WRDLINK first asks you to confirm the exact point deduction and shows your remaining balance after purchase. Only after confirmation does it use breadth first search to find the next word on a shortest valid route and enter that word directly into the move field. You must still submit it yourself. A hint does not consume a move.
 
 The first hint costs 5 points. Every later hint in the same level costs one point more than the previous hint. Repeatedly tapping a hint that is already revealed does not charge again. After you submit a valid move, the next hint becomes available at the higher cost. A hint is disabled when your remaining level points cannot cover its cost. Hint usage and its deduction are saved with your current game and reset when you start the next level or a new game.
 
@@ -104,7 +104,7 @@ Game progress and theme preference are stored locally by the browser. Offline su
 - **Shortest route calculation** using breadth first search.
 - **Move validation** for dictionary membership, letter changes, and duplicate words.
 - **Level scoring** with 25 starting points, move deductions, escalating paid hints, and cumulative progression.
-- **Paid hints** that reveal the next word on a shortest route, with costs of 5, 6, 7 points and so on.
+- **Paid hints** in the top bar, with an explicit cost confirmation and automatic input filling. Costs escalate by one point per hint.
 - **Friend challenges** with shareable links that reopen the exact start and target words.
 - **Shareable result cards** exported as PNG images for messaging and social stories.
 - **Persistent progress** using browser `localStorage`.
