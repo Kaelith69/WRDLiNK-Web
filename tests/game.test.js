@@ -145,7 +145,7 @@ const legacyPendingHint = loadGame({ savedProgress: {
   chain: ['COLD'], completed: false, hintsUsed: 1, hintPenalty: 5,
   activeHint: { from: 'COLD', word: campaignNextWord }
 } });
-assert.equal(legacyPendingHint.game.getState().score, 20, 'legacy pending hint cost migrates out of the current score');
+assert.equal(legacyPendingHint.game.getState().score, 19, 'legacy pending hint migrates with its hint and move deductions applied');
 assert.deepEqual(legacyPendingHint.game.getState().chain, ['COLD', campaignNextWord], 'legacy pending hint is automatically submitted during migration');
 assert.equal(legacyPendingHint.game.getState().activeHint, null, 'legacy pending hint is cleared after automatic submission');
 assert.equal(JSON.parse(legacyPendingHint.storage.get('wrdlink-browser-session-v1:progress')).version, 3, 'migrated progress is saved in the current format');
