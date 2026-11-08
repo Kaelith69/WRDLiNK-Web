@@ -112,7 +112,8 @@ const campaignReload = loadGame({ savedProgress: campaignSavedProgress });
 assert.equal(campaignReload.game.getState().hintsUsed, 1, 'hint count survives reload');
 assert.equal(campaignReload.game.getState().hintPenalty, 5, 'hint deduction survives reload');
 assert.equal(campaignReload.game.getState().activeHint.word, campaignSavedProgress.activeHint.word, 'the revealed word survives reload');
-assert.equal(campaignReload.elements.get('hint-reveal').hidden, false, 'the revealed word remains visible after reload');
+assert.equal(campaignReload.elements.get('word-entry').value, campaignSavedProgress.activeHint.word, 'confirmed hint is restored into the input after reload');
+assert.equal(campaignReload.elements.get('submit-button').disabled, false, 'restored hint remains ready to submit');
 assert.equal(campaignReload.elements.get('hint-button').disabled, true, 'the same revealed hint cannot be charged again after reload');
 const legacyReload = loadGame({ savedProgress: {
   version: 1, score: 7, level: 2, puzzle: campaignSavedProgress.puzzle,
