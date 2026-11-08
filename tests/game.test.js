@@ -41,7 +41,7 @@ function makeElement() {
   };
 }
 
-function loadGame({ includeDictionary = true, search = '' } = {}) {
+function loadGame({ includeDictionary = true, search = '', savedProgress = null } = {}) {
   const elements = new Map();
   const document = {
     documentElement: { dataset: { theme: 'light' }, classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } }, style: { setProperty() {} } },
@@ -57,6 +57,7 @@ function loadGame({ includeDictionary = true, search = '' } = {}) {
     querySelector() { return makeElement(); }
   };
   const storage = new Map();
+  if (savedProgress) storage.set('wrdlink-browser-session-v1:progress', JSON.stringify(savedProgress));
   const localStorage = {
     getItem(key) { return storage.has(key) ? storage.get(key) : null; },
     setItem(key, value) { storage.set(key, String(value)); },
@@ -223,7 +224,12 @@ async function testInteractions() {
   assert.equal(challenge.game.getState().chain.at(-1), 'WARM', 'the continuation reaches the target without a duplicate move');
   assert.equal(challenge.game.getState().completed, true, 'submitting the target completes the puzzle');
   const result = challenge.game.validateSequence(challenge.game.getState().puzzle, challenge.game.getState().chain);
-  const resultSvg = challenge.game.createResultSvg(result, challenge.game.calculatePoints(result.movesUsed));
+  const finalHintState = challenge.game.getState();
+  const finalAward = challenge.game.calculatePoints(result.movesUsed, finalHintState.hintPenalty);
+  assert.equal(finalAward, challenge.game.getState().score, 'the banked score includes all hint deductions');
+  const resultSvg = challenge.game.createResultSvg(result, finalAward);
+  assert.match(resultSvg, new RegExp('LEVEL SCORE[\\s\\S]*?>\\+' + finalAward + '<'));
+
   assert.match(resultSvg, /width="1080" height="1920" viewBox="0 0 1080 1920"/);
   assert.match(resultSvg, /SHORTEST ROUTE FOUND/);
   assert.match(resultSvg, /font-size="64"[^>]*textLength="820" lengthAdjust="spacingAndGlyphs"/, 'result footer headline is constrained to its measured safe width');
@@ -285,6 +291,20 @@ assert.equal(game.validateProgressSnapshot(snapshot({ puzzle: { ...puzzle, optim
 assert.equal(game.validateProgressSnapshot(snapshot({ chain: ['COLD', 'CORD'], completed: true })), false);
 assert.equal(game.validateProgressSnapshot(snapshot({ chain: ['COLD', 'CORD', 'CARD', 'WARD', 'WARM'], completed: true })), true);
 assert.equal(game.validateProgressSnapshot(snapshot({ chain: ['COLD', 'CORD', 'COLD'] })), false);
+
+const lowBudget = loadGame({ savedProgress: {
+  version: 2, score: 0, level: 1, puzzle,
+  chain: ['COLD', 'CORD', 'CARD', 'WARD'], completed: false,
+  hintsUsed: 3, hintPenalty: 18, activeHint: null
+} });
+assert.equal(lowBudget.game.getState().hintsUsed, 3);
+assert.equal(lowBudget.game.getState().hintPenalty, 18);
+assert.equal(lowBudget.elements.get('hint-button').disabled, true, 'hint is disabled when the next cost exceeds remaining puzzle points');
+assert.equal(lowBudget.elements.get('hint-button-label').textContent, 'NOT ENOUGH POINTS');
+assert.equal(lowBudget.game.useHint(), false, 'an unaffordable hint cannot be used');
+assert.equal(lowBudget.game.getState().hintsUsed, 3, 'an unaffordable hint does not increment the hint count');
+assert.equal(lowBudget.game.getState().hintPenalty, 18, 'an unaffordable hint does not deduct points');
+
 const sparseChain = ['COLD', , 'WARM'];
 assert.equal(game.validateProgressSnapshot(snapshot({ chain: sparseChain })), false);
 
