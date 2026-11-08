@@ -2,7 +2,7 @@
   "name": "wrdlink-browser",
   "version": "1.0.0",
   "private": false,
-  "description": "A standalone, accessible word ladder game for the browser",
+  "description": "A four letter word ladder game with BFS routes, paid hints, friend challenges and offline PWA support",
   "scripts": {
     "test": "node tests/game.test.js && node tests/pwa.test.js"
   }
