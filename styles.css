@@ -447,3 +447,53 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
   :root.keyboard-open .send-button svg { width: 20px; height: 20px; }
   :root.keyboard-open .game-message { margin-top: 3px; padding: 4px 6px; }
 }
+
+
+/* Paid BFS hint system */
+.hint-tools { display: grid; gap: 8px; margin: 0 0 15px; }
+.hint-button {
+  display: grid; width: 100%; min-height: 66px;
+  grid-template-columns: 42px minmax(0, 1fr) auto; align-items: center;
+  gap: 12px; padding: 10px 13px;
+  border: 2px dashed var(--line-strong); border-radius: 14px;
+  background: var(--paper-strong); color: var(--ink); text-align: left;
+  cursor: pointer; transition: transform 150ms ease, border-color 150ms ease, background 150ms ease;
+}
+.hint-button:hover:not(:disabled) { border-style: solid; border-color: var(--accent); background: var(--success-bg); transform: translateY(-1px); }
+.hint-button:active:not(:disabled) { transform: translateY(1px); }
+.hint-button:focus-visible { outline: 3px solid var(--tile); outline-offset: 3px; }
+.hint-button:disabled { cursor: not-allowed; opacity: .7; }
+.hint-icon { display: grid; width: 38px; height: 38px; place-items: center; border: 2px solid var(--line-strong); border-radius: 11px; background: var(--accent); color: var(--accent-ink); box-shadow: 2px 3px 0 var(--line-strong); }
+.hint-icon svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.hint-copy { display: grid; min-width: 0; gap: 3px; }
+.hint-copy strong { font-size: 11px; font-weight: 950; letter-spacing: .08em; }
+.hint-copy small { color: var(--muted); font-size: 11px; font-weight: 650; line-height: 1.35; }
+.hint-cost-chip { padding: 7px 9px; border: 1px solid var(--line-strong); border-radius: 9px; background: var(--paper); color: var(--ink); font-size: 11px; font-weight: 950; white-space: nowrap; }
+.hint-budget { margin: 0; color: var(--muted); font-size: 11px; font-weight: 750; text-align: right; font-variant-numeric: tabular-nums; }
+.hint-reveal { padding: 13px; border: 2px solid var(--success); border-radius: 14px; background: var(--success-bg); animation: hint-reveal-in 260ms cubic-bezier(.2,.8,.2,1) both; }
+.hint-reveal[hidden] { display: none; }
+.hint-reveal-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.hint-reveal-kicker { color: var(--success); font-size: 9px; font-weight: 950; letter-spacing: .13em; }
+.hint-reveal-note { color: var(--muted); font-size: 10px; font-weight: 750; }
+.hint-word { gap: 6px; justify-content: center; }
+.hint-word span { animation: hint-tile-in 300ms cubic-bezier(.2,.8,.2,1) both; }
+.hint-word span:nth-child(2) { animation-delay: 35ms; }
+.hint-word span:nth-child(3) { animation-delay: 70ms; }
+.hint-word span:nth-child(4) { animation-delay: 105ms; }
+.hint-word span.hint-letter-changed { border-color: var(--success); background: var(--success); color: #fff; box-shadow: 3px 4px 0 color-mix(in srgb, var(--success) 55%, var(--line-strong)); }
+.hint-reveal p { margin: 10px 0 0; color: var(--ink-soft); font-size: 11px; line-height: 1.5; text-align: center; }
+@keyframes hint-reveal-in { from { opacity: 0; transform: translateY(-5px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes hint-tile-in { from { opacity: 0; transform: translateY(8px) rotateX(35deg) scale(.9); } to { opacity: 1; transform: translateY(0) rotateX(0) scale(1); } }
+@media (max-width: 620px) {
+  .hint-tools { gap: 6px; margin-bottom: 10px; }
+  .hint-button { min-height: 58px; grid-template-columns: 36px minmax(0, 1fr) auto; gap: 9px; padding: 8px 10px; }
+  .hint-icon { width: 34px; height: 34px; }
+  .hint-copy strong { font-size: 10px; }
+  .hint-copy small { font-size: 10px; }
+  .hint-budget { font-size: 10px; }
+  .hint-reveal { padding: 10px; }
+  .hint-word span { width: clamp(29px, 8.7vw, 44px); height: clamp(39px, 11vw, 51px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hint-button, .hint-reveal, .hint-word span { animation: none !important; transition: none !important; }
+}

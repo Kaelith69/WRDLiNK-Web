@@ -19,7 +19,11 @@
     form: $('move-form'), input: $('word-entry'), submit: $('submit-button'),
     message: $('message'), entryPanel: $('entry-panel'), finishPanel: $('finish-panel'),
     finishTitle: $('finish-title'), finishDescription: $('finish-description'), shareStatus: $('share-status'),
-    nextButton: $('next-button'), newGameButton: $('new-game-button'), retryButton: $('retry-button'), themeToggle: $('theme-toggle'), shareChallengeButton: $('share-challenge-button'), copyChallengeButton: $('copy-challenge-button'), shareResultButton: $('share-result-button'), downloadResultButton: $('download-result-button')
+    nextButton: $('next-button'), newGameButton: $('new-game-button'), retryButton: $('retry-button'), themeToggle: $('theme-toggle'), shareChallengeButton: $('share-challenge-button'), copyChallengeButton: $('copy-challenge-button'), shareResultButton: $('share-result-button'), downloadResultButton: $('download-result-button'),
+    hintButton: $('hint-button'), hintButtonLabel: $('hint-button-label'),
+    hintCostLabel: $('hint-cost-label'), hintCostChip: $('hint-cost-chip'),
+    hintBudgetLabel: $('hint-budget-label'), hintReveal: $('hint-reveal'),
+    hintWord: $('hint-word')
   };
 
   // Game session mirrors server SessionState: accumulated score, level,
@@ -29,7 +33,10 @@
     level: 1,
     puzzle: null,
     chain: [],
-    completed: false
+    completed: false,
+    hintsUsed: 0,
+    hintPenalty: 0,
+    activeHint: null
   };
   let busy = false;
   let externalProgressChanged = false;
@@ -129,6 +136,55 @@
     return null;
   }
 
+  // Reconstruct an actual shortest route with BFS. Words already used in
+  // this ladder are excluded, except for the current word at the search origin.
+  function shortestPath(start, target, excludedWords = []) {
+    if (start === target) return [start];
+    const blocked = new Set(excludedWords);
+    blocked.delete(start);
+    const queue = [start];
+    let head = 0;
+    const parent = new Map([[start, null]]);
+
+    while (head < queue.length) {
+      const current = queue[head++];
+      for (const neighbor of neighbors(current)) {
+        if (blocked.has(neighbor) || parent.has(neighbor)) continue;
+        parent.set(neighbor, current);
+        if (neighbor === target) {
+          const path = [];
+          let word = target;
+          while (word !== null) {
+            path.push(word);
+            word = parent.get(word);
+          }
+          return path.reverse();
+        }
+        queue.push(neighbor);
+      }
+    }
+    return null;
+  }
+
+  // The first hint costs 5 points. Each later hint in the same puzzle costs
+  // one point more than the previous hint: 5, 6, 7, 8, ...
+  function calculateHintCost(hintsUsed) {
+    return 5 + Math.max(0, Math.floor(hintsUsed));
+  }
+
+  function calculateHintPenalty(hintsUsed) {
+    const count = Math.max(0, Math.floor(hintsUsed));
+    return count * 5 + (count * (count - 1)) / 2;
+  }
+
+  function nextHintWord() {
+    if (!state.puzzle || state.chain.length === 0) return null;
+    const current = state.chain[state.chain.length - 1];
+    const excluded = state.chain.slice(0, -1);
+    const path = shortestPath(current, state.puzzle.target, excluded);
+    return path && path.length > 1 ? path[1] : null;
+  }
+
   function createRandomPuzzle() {
     for (let attempt = 0; attempt < MAX_PUZZLE_ATTEMPTS; attempt += 1) {
       const start = randomItem(WORDS);
@@ -204,8 +260,8 @@
   }
 
   // Exact scoring rule from core/game.ts and routes/api.ts.
-  function calculatePoints(movesUsed) {
-    return Math.max(0, BASE_LEVEL_POINTS - movesUsed);
+  function calculatePoints(movesUsed, hintPenalty = 0) {
+    return Math.max(0, BASE_LEVEL_POINTS - movesUsed - hintPenalty);
   }
 
   function renderWord(container, word) {
@@ -260,6 +316,76 @@
     elements.shareChallengeButton.disabled = value || challengeCardPending;
     elements.shareResultButton.disabled = value || !state.completed || !preparedResultFile;
     elements.downloadResultButton.disabled = value || !state.completed || !preparedResultFile;
+    renderHintUI();
+  }
+
+  function renderHintUI() {
+    if (!state.puzzle || !elements.hintButton) return;
+    const movesUsed = Math.max(0, state.chain.length - 1);
+    const available = calculatePoints(movesUsed, state.hintPenalty);
+    const cost = calculateHintCost(state.hintsUsed);
+    const currentWord = state.chain[state.chain.length - 1];
+    const hintIsActive = Boolean(state.activeHint && state.activeHint.from === currentWord);
+    const canReveal = !busy && !state.completed && !hintIsActive && available >= cost;
+    const routeExists = Boolean(nextHintWord());
+
+    elements.hintButton.disabled = !canReveal || !routeExists;
+    elements.hintButtonLabel.textContent = hintIsActive
+      ? 'WORD REVEALED'
+      : available < cost
+        ? 'NOT ENOUGH POINTS'
+        : routeExists ? 'GET NEXT WORD' : 'NO UNUSED ROUTE';
+    elements.hintCostLabel.textContent = hintIsActive
+      ? 'Enter the revealed word to unlock another hint'
+      : available < cost
+        ? `Need ${cost} points · ${available} available`
+        : 'Reveal the next word on a shortest route';
+    elements.hintCostChip.textContent = hintIsActive ? 'READY' : `−${cost}`;
+    elements.hintBudgetLabel.textContent = `Puzzle points remaining: ${available}`;
+    elements.hintButton.setAttribute('aria-describedby', 'hint-cost-label hint-budget-label');
+    elements.hintReveal.hidden = !hintIsActive;
+
+    if (hintIsActive) {
+      renderWord(elements.hintWord, state.activeHint.word);
+      elements.hintWord.querySelectorAll?.('span')?.forEach((tile, index) => {
+        if (tile.textContent !== currentWord[index]) tile.classList.add('hint-letter-changed');
+      });
+    } else {
+      elements.hintWord.replaceChildren();
+    }
+  }
+
+  function useHint() {
+    if (!state.puzzle || busy || state.completed) return false;
+    const currentWord = state.chain[state.chain.length - 1];
+    if (state.activeHint && state.activeHint.from === currentWord) {
+      setMessage(`Your revealed next word is ${state.activeHint.word}. Enter it to continue.`);
+      return false;
+    }
+
+    const movesUsed = Math.max(0, state.chain.length - 1);
+    const available = calculatePoints(movesUsed, state.hintPenalty);
+    const cost = calculateHintCost(state.hintsUsed);
+    if (available < cost) {
+      setMessage(`Not enough puzzle points. This hint costs ${cost}, but only ${available} remain.`, 'error');
+      renderHintUI();
+      return false;
+    }
+
+    const word = nextHintWord();
+    if (!word) {
+      setMessage('No unused route to the target remains from this word. Start a new puzzle to try another route.', 'error');
+      renderHintUI();
+      return false;
+    }
+
+    state.hintsUsed += 1;
+    state.hintPenalty += cost;
+    state.activeHint = { from: currentWord, word };
+    renderHintUI();
+    saveProgress();
+    setMessage(`Hint revealed: ${word}. ${cost} points deducted from this puzzle's score.`);
+    return true;
   }
 
   function renderPuzzle() {
@@ -300,12 +426,15 @@
     // Never overwrite a newer snapshot written by another open tab.
     if (externalProgressChanged) return;
     const snapshot = {
-      version: 1,
+      version: 2,
       score: state.score,
       level: state.level,
       puzzle: state.puzzle,
       chain: state.chain,
-      completed: state.completed
+      completed: state.completed,
+      hintsUsed: state.hintsUsed,
+      hintPenalty: state.hintPenalty,
+      activeHint: state.activeHint
     };
     try {
       localStorage.setItem(PROGRESS_KEY, JSON.stringify(snapshot));
@@ -317,7 +446,7 @@
   // Validate persisted data without mutating live state. Browser storage is
   // user-editable and may also contain data from an older or interrupted run.
   function validateProgressSnapshot(saved) {
-    if (!saved || saved.version !== 1 ||
+    if (!saved || (saved.version !== 1 && saved.version !== 2) ||
         !Number.isSafeInteger(saved.score) || saved.score < 0 ||
         !Number.isSafeInteger(saved.level) || saved.level < 1 ||
         !saved.puzzle || !Array.isArray(saved.chain) ||
@@ -342,6 +471,20 @@
       ? { valid: true, complete: false }
       : validateSequence(puzzle, chain);
     if (!result.valid || saved.completed !== result.complete) return false;
+
+    if (saved.version === 2) {
+      if (!Number.isSafeInteger(saved.hintsUsed) || saved.hintsUsed < 0 ||
+          !Number.isSafeInteger(saved.hintPenalty) || saved.hintPenalty !== calculateHintPenalty(saved.hintsUsed)) return false;
+      if (calculateHintPenalty(saved.hintsUsed) > Number.MAX_SAFE_INTEGER) return false;
+      if (saved.activeHint !== null) {
+        const current = chain[chain.length - 1];
+        const expected = shortestPath(current, puzzle.target, chain.slice(0, -1));
+        if (!saved.activeHint || saved.activeHint.from !== current ||
+            typeof saved.activeHint.word !== 'string' || !expected ||
+            expected[1] !== saved.activeHint.word || saved.hintsUsed < 1 ||
+            saved.completed) return false;
+      }
+    }
     return true;
   }
 
@@ -361,7 +504,10 @@
         level: saved.level,
         puzzle: saved.puzzle,
         chain: [...saved.chain],
-        completed: saved.completed
+        completed: saved.completed,
+        hintsUsed: saved.version === 2 ? saved.hintsUsed : 0,
+        hintPenalty: saved.version === 2 ? saved.hintPenalty : 0,
+        activeHint: saved.version === 2 ? saved.activeHint : null
       };
       return true;
     } catch (error) {
@@ -401,6 +547,9 @@
         }
         state.puzzle = puzzle;
         state.chain = [puzzle.start];
+        state.hintsUsed = 0;
+        state.hintPenalty = 0;
+        state.activeHint = null;
         if (challengeSession) {
           const sharedUrl = new URL(window.location.href);
           sharedUrl.searchParams.set('challenge', puzzle.start + '-' + puzzle.target);
@@ -423,11 +572,11 @@
   }
 
   function renderCompletion(result) {
-    const points = calculatePoints(result.movesUsed);
+    const points = calculatePoints(result.movesUsed, state.hintPenalty);
     elements.entryPanel.hidden = true;
     elements.finishPanel.hidden = false;
     elements.finishTitle.textContent = 'Connected!';
-    elements.finishDescription.textContent = `${state.puzzle.target} reached in ${result.movesUsed} moves. ${result.message}`;
+    elements.finishDescription.textContent = `${state.puzzle.target} reached in ${result.movesUsed} moves. ${result.message}${state.hintsUsed ? ` You used ${state.hintsUsed} hint${state.hintsUsed === 1 ? '' : 's'}, costing ${state.hintPenalty} points.` : ''}`;
     elements.nextButton.textContent = `Next level · ${state.level + 1} →`;
 
     const banner = document.createElement('div');
@@ -446,7 +595,7 @@
   function completePuzzle(result) {
     // Defensive guard: a completion can award points only once per puzzle.
     if (state.completed) return;
-    state.score += calculatePoints(result.movesUsed);
+    state.score += calculatePoints(result.movesUsed, state.hintPenalty);
     state.completed = true;
     renderChain();
     renderHeader();
@@ -476,6 +625,7 @@
     }
 
     state.chain.push(candidate);
+    state.activeHint = null;
     elements.input.value = '';
     renderChain();
     if (result.complete) {
@@ -762,7 +912,8 @@
     state = {
       score: 0, level: 1,
       puzzle: { id: 'challenge-' + start + '-' + target, title: 'Friend challenge', start, target, wordLength: WORD_LENGTH, optimalMoves },
-      chain: [start], completed: false
+      chain: [start], completed: false,
+      hintsUsed: 0, hintPenalty: 0, activeHint: null
     };
     return true;
   }
@@ -811,7 +962,7 @@
     let imageUrl = null;
     try {
       await waitForCardFonts();
-      const svgBlob = new Blob([createResultSvg(result, calculatePoints(result.movesUsed))], { type: 'image/svg+xml' });
+      const svgBlob = new Blob([createResultSvg(result, calculatePoints(result.movesUsed, state.hintPenalty))], { type: 'image/svg+xml' });
       const image = new Image();
       imageUrl = URL.createObjectURL(svgBlob);
       image.src = imageUrl;
@@ -900,6 +1051,10 @@
     if (event.pointerType === 'touch' || event.pointerType === 'pen') event.preventDefault();
   });
   elements.form.addEventListener('submit', submitMove);
+  elements.hintButton.addEventListener('pointerdown', (event) => {
+    if (event.pointerType === 'touch' || event.pointerType === 'pen') event.preventDefault();
+  });
+  elements.hintButton.addEventListener('click', useHint);
   elements.newGameButton.addEventListener('click', () => startPuzzle({ resetScore: true }));
   elements.nextButton.addEventListener('click', () => startPuzzle({ nextLevel: true }));
   elements.retryButton.addEventListener('click', () => startPuzzle());
@@ -919,6 +1074,10 @@
     neighbors,
     differsByOneLetter,
     shortestDistance,
+    shortestPath,
+    calculateHintCost,
+    calculateHintPenalty,
+    useHint,
     calculatePoints,
     loadChallengeFromUrl,
     createChallengeSvg,

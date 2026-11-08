@@ -32,6 +32,7 @@ function makeElement() {
     prepend(...items) { this.children.unshift(...items); },
     replaceChildren(...items) { this.children = [...items]; },
     querySelector() { return null; },
+    querySelectorAll() { return []; },
     focus() { this.focusCalls += 1; },
     select() {},
     scrollIntoView() {},
@@ -40,7 +41,7 @@ function makeElement() {
   };
 }
 
-function loadGame({ includeDictionary = true, search = '' } = {}) {
+function loadGame({ includeDictionary = true, search = '', savedProgress = null } = {}) {
   const elements = new Map();
   const document = {
     documentElement: { dataset: { theme: 'light' }, classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } }, style: { setProperty() {} } },
@@ -56,6 +57,7 @@ function loadGame({ includeDictionary = true, search = '' } = {}) {
     querySelector() { return makeElement(); }
   };
   const storage = new Map();
+  if (savedProgress) storage.set('wrdlink-browser-session-v1:progress', JSON.stringify(savedProgress));
   const localStorage = {
     getItem(key) { return storage.has(key) ? storage.get(key) : null; },
     setItem(key, value) { storage.set(key, String(value)); },
@@ -113,6 +115,21 @@ assert.equal(game.calculatePoints(0), 25);
 assert.equal(game.calculatePoints(1), 24);
 assert.equal(game.calculatePoints(25), 0);
 assert.equal(game.calculatePoints(80), 0);
+assert.equal(game.calculateHintCost(0), 5, 'first hint costs five points');
+assert.equal(game.calculateHintCost(1), 6, 'second hint costs six points');
+assert.equal(game.calculateHintCost(2), 7, 'third hint costs seven points');
+assert.equal(game.calculateHintPenalty(3), 18, 'three hints deduct 5 + 6 + 7 points');
+assert.equal(game.calculatePoints(2, 5), 18, 'hint penalty is deducted from the level award');
+assert.equal(game.calculatePoints(2, 18), 5, 'all cumulative hint deductions are applied');
+assert.equal(game.calculatePoints(2, 40), 0, 'hint deductions can never make a negative score');
+const coldWarmPath = game.shortestPath('COLD', 'WARM');
+assert.equal(coldWarmPath[0], 'COLD');
+assert.equal(coldWarmPath.at(-1), 'WARM');
+assert.equal(coldWarmPath.length - 1, game.shortestDistance('COLD', 'WARM'));
+for (let i = 1; i < coldWarmPath.length; i += 1) {
+  assert.equal(game.differsByOneLetter(coldWarmPath[i - 1], coldWarmPath[i]), true, 'BFS path contains only legal one letter moves');
+}
+assert.equal(game.shortestPath('COLD', 'WARM', ['CORD']).includes('CORD'), false, 'BFS avoids words already used in the ladder');
 assert.equal(game.calculatePoints(0), 25, 'each completed level starts at 25 points');
 assert.equal(game.calculatePoints(5), 20, 'each valid move deducts one point');
 
@@ -180,12 +197,39 @@ async function testInteractions() {
     input.dispatch('input');
     challenge.elements.get('move-form').dispatch('submit');
   };
-  submitWord('CARD');
-  submitWord('WARD');
-  submitWord('WARM');
+  const hintButton = challenge.elements.get('hint-button');
+  assert.equal(typeof hintButton.listeners.click, 'function', 'hint button has a click handler');
+  const pathFromCord = challenge.game.shortestPath('CORD', 'WARM', ['COLD']);
+  hintButton.dispatch('click');
+  let hintedState = challenge.game.getState();
+  assert.equal(hintedState.hintsUsed, 1, 'using a hint increments the hint count');
+  assert.equal(hintedState.hintPenalty, 5, 'first hint deducts five points');
+  assert.equal(hintedState.activeHint.word, pathFromCord[1], 'hint reveals the next word on a shortest valid route');
+  hintButton.dispatch('click');
+  hintedState = challenge.game.getState();
+  assert.equal(hintedState.hintsUsed, 1, 'repeated tap on the same revealed hint is free and does not charge twice');
+  assert.equal(hintedState.hintPenalty, 5);
+  submitWord(pathFromCord[1]);
+  assert.equal(challenge.game.getState().activeHint, null, 'submitting a move dismisses the previous reveal');
+  hintButton.dispatch('click');
+  hintedState = challenge.game.getState();
+  assert.equal(hintedState.hintsUsed, 2, 'a hint after advancing uses the next tier');
+  assert.equal(hintedState.hintPenalty, 11, 'second hint adds six points to the cumulative deduction');
+  const secondHintWord = hintedState.activeHint.word;
+  submitWord(secondHintWord);
+  if (challenge.game.getState().chain.at(-1) !== 'WARM') {
+    const continuation = challenge.game.shortestPath(challenge.game.getState().chain.at(-1), 'WARM', challenge.game.getState().chain.slice(0, -1));
+    for (const word of continuation.slice(1)) submitWord(word);
+  }
+  assert.equal(challenge.game.getState().chain.at(-1), 'WARM', 'the continuation reaches the target without a duplicate move');
   assert.equal(challenge.game.getState().completed, true, 'submitting the target completes the puzzle');
   const result = challenge.game.validateSequence(challenge.game.getState().puzzle, challenge.game.getState().chain);
-  const resultSvg = challenge.game.createResultSvg(result, challenge.game.calculatePoints(result.movesUsed));
+  const finalHintState = challenge.game.getState();
+  const finalAward = challenge.game.calculatePoints(result.movesUsed, finalHintState.hintPenalty);
+  assert.equal(finalAward, challenge.game.getState().score, 'the banked score includes all hint deductions');
+  const resultSvg = challenge.game.createResultSvg(result, finalAward);
+  assert.match(resultSvg, new RegExp('LEVEL SCORE[\\s\\S]*?>\\+' + finalAward + '<'));
+
   assert.match(resultSvg, /width="1080" height="1920" viewBox="0 0 1080 1920"/);
   assert.match(resultSvg, /SHORTEST ROUTE FOUND/);
   assert.match(resultSvg, /font-size="64"[^>]*textLength="820" lengthAdjust="spacingAndGlyphs"/, 'result footer headline is constrained to its measured safe width');
@@ -229,7 +273,17 @@ const snapshot = (overrides = {}) => ({
   version: 1, score: 12, level: 2, puzzle,
   chain: ['COLD'], completed: false, ...overrides
 });
-assert.equal(game.validateProgressSnapshot(snapshot()), true, 'a fresh untouched puzzle is valid');
+assert.equal(game.validateProgressSnapshot(snapshot()), true, 'legacy version one progress remains valid');
+assert.equal(game.validateProgressSnapshot(snapshot({
+  version: 2, hintsUsed: 2, hintPenalty: 11, activeHint: null
+})), true, 'version two progress stores cumulative hint deductions');
+assert.equal(game.validateProgressSnapshot(snapshot({
+  version: 2, hintsUsed: 2, hintPenalty: 10, activeHint: null
+})), false, 'corrupt hint penalty is rejected');
+assert.equal(game.validateProgressSnapshot(snapshot({
+  version: 2, hintsUsed: 1, hintPenalty: 5,
+  activeHint: { from: 'COLD', word: 'WARM' }
+})), false, 'invalid active hint word is rejected');
 assert.equal(game.validateProgressSnapshot(snapshot({ score: -1 })), false);
 assert.equal(game.validateProgressSnapshot(snapshot({ level: 0 })), false);
 assert.equal(game.validateProgressSnapshot(snapshot({ puzzle: { ...puzzle, target: 'ZZZZ' } })), false);
@@ -237,6 +291,20 @@ assert.equal(game.validateProgressSnapshot(snapshot({ puzzle: { ...puzzle, optim
 assert.equal(game.validateProgressSnapshot(snapshot({ chain: ['COLD', 'CORD'], completed: true })), false);
 assert.equal(game.validateProgressSnapshot(snapshot({ chain: ['COLD', 'CORD', 'CARD', 'WARD', 'WARM'], completed: true })), true);
 assert.equal(game.validateProgressSnapshot(snapshot({ chain: ['COLD', 'CORD', 'COLD'] })), false);
+
+const lowBudget = loadGame({ savedProgress: {
+  version: 2, score: 0, level: 1, puzzle,
+  chain: ['COLD', 'CORD', 'CARD', 'WARD'], completed: false,
+  hintsUsed: 3, hintPenalty: 18, activeHint: null
+} });
+assert.equal(lowBudget.game.getState().hintsUsed, 3);
+assert.equal(lowBudget.game.getState().hintPenalty, 18);
+assert.equal(lowBudget.elements.get('hint-button').disabled, true, 'hint is disabled when the next cost exceeds remaining puzzle points');
+assert.equal(lowBudget.elements.get('hint-button-label').textContent, 'NOT ENOUGH POINTS');
+assert.equal(lowBudget.game.useHint(), false, 'an unaffordable hint cannot be used');
+assert.equal(lowBudget.game.getState().hintsUsed, 3, 'an unaffordable hint does not increment the hint count');
+assert.equal(lowBudget.game.getState().hintPenalty, 18, 'an unaffordable hint does not deduct points');
+
 const sparseChain = ['COLD', , 'WARM'];
 assert.equal(game.validateProgressSnapshot(snapshot({ chain: sparseChain })), false);
 
