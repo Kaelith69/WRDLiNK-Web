@@ -329,7 +329,7 @@
     const hintIsActive = Boolean(state.activeHint && state.activeHint.from === currentWord);
     const routeExists = Boolean(nextHintWord());
     elements.hintButton.disabled = busy || state.completed || hintIsActive || available < totalCost || !routeExists;
-    elements.hintCostChip.textContent = hintIsActive ? 'READY' : `−${totalCost}`;
+    elements.hintCostChip.textContent = hintIsActive ? 'READY' : `−${cost}`;
     elements.hintButton.setAttribute('aria-label', hintIsActive
       ? 'Hint entered. Submit the word to continue'
       : available < totalCost ? `Not enough score for hint and move. Total deduction ${totalCost}, current score ${available}`
