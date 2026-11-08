@@ -109,6 +109,8 @@ const campaignHintSession = loadGame({ savedProgress: {
 } });
 const campaignNextWord = game.shortestPath('COLD', 'WARM')[1];
 assert.equal(campaignHintSession.game.useHint(), true, 'campaign hint opens confirmation');
+assert.equal(campaignHintSession.elements.get('hint-confirm-cost').textContent, '6', 'first hint confirmation includes five hint points and one move point');
+assert.equal(campaignHintSession.elements.get('hint-confirm-balance').textContent, '19', 'confirmation previews the actual remaining score');
 assert.equal(campaignHintSession.game.getState().score, 25, 'opening confirmation does not change current score');
 assert.equal(campaignHintSession.game.confirmHint(), true, 'confirming the hint submits the suggested move');
 const campaignState = campaignHintSession.game.getState();
@@ -118,7 +120,7 @@ assert.equal(campaignState.activeHint, null, 'auto submitted hint is no longer p
 assert.equal(campaignHintSession.elements.get('score-label').textContent, '19', 'header score updates immediately after hint and move deductions');
 const secondCampaignHint = campaignHintSession.game.shortestPath(campaignNextWord, 'WARM', ['COLD'])[1];
 campaignHintSession.elements.get('hint-button').dispatch('click');
-assert.equal(campaignHintSession.elements.get('hint-confirm-cost').textContent, '6', 'second hint cost escalates');
+assert.equal(campaignHintSession.elements.get('hint-confirm-cost').textContent, '7', 'second hint confirmation includes six hint points and one move');
 assert.equal(campaignHintSession.game.getState().score, 19, 'second hint confirmation does not charge early');
 campaignHintSession.elements.get('hint-confirm-button').dispatch('click');
 const secondCampaignState = campaignHintSession.game.getState();
