@@ -148,7 +148,7 @@ const legacyPendingHint = loadGame({ savedProgress: {
 assert.equal(legacyPendingHint.game.getState().score, 19, 'legacy pending hint migrates with its hint and move deductions applied');
 assert.deepEqual(legacyPendingHint.game.getState().chain, ['COLD', campaignNextWord], 'legacy pending hint is automatically submitted during migration');
 assert.equal(legacyPendingHint.game.getState().activeHint, null, 'legacy pending hint is cleared after automatic submission');
-assert.equal(JSON.parse(legacyPendingHint.storage.get('wrdlink-browser-session-v1:progress' )).version, 4, 'migrated progress is saved in the current format');
+assert.equal(JSON.parse(legacyPendingHint.storage.get('wrdlink-browser-session-v1:progress'  )).version, 5, 'migrated progress is saved in the current format');
 const legacyUsedHint = loadGame({ savedProgress: {
   version: 2, score: 25, level: 1, puzzle: campaignPuzzle,
   chain: ['COLD', campaignNextWord], completed: false, hintsUsed: 1,
@@ -268,8 +268,8 @@ async function testInteractions() {
   assert.equal(challenge.game.getState().completed, true, 'submitting the target completes the puzzle');
   const result = challenge.game.validateSequence(challenge.game.getState().puzzle, challenge.game.getState().chain);
   const finalHintState = challenge.game.getState();
-  const finalScore = Math.max(0, 25 - result.movesUsed);
-  assert.equal(finalHintState.score, finalScore, 'final score is 25 less every valid move');
+  const finalScore = Math.max(0, 25 - result.movesUsed) + 25;
+  assert.equal(finalHintState.score, finalScore, 'level completion adds 25 points after move deductions');
   const resultSvg = challenge.game.createResultSvg(result, finalScore);
   assert.match(resultSvg, new RegExp('LEVEL SCORE[\\s\\S]*?>' + finalScore + '<'));
 
@@ -332,16 +332,13 @@ assert.equal(game.validateProgressSnapshot(snapshot({
   activeHint: { from: 'COLD', word: 'WARM' }
 })), false, 'invalid active hint word is rejected');
 assert.equal(game.validateProgressSnapshot(snapshot({
-  version: 4, score: 25, hintsUsed: 0, hintPenalty: 0, activeHint: null
-})), true, 'current progress validates the live starting score');
+  version: 5, score: 25, hintsUsed: 0, hintPenalty: 0, activeHint: null
+})), true, 'current progress accepts the starting score');
 assert.equal(game.validateProgressSnapshot(snapshot({
-  version: 4, score: 24, hintsUsed: 0, hintPenalty: 0, activeHint: null
-})), false, 'current progress rejects a score inconsistent with moves');
+  version: 5, score: -1, hintsUsed: 0, hintPenalty: 0, activeHint: null
+})), false, 'current progress rejects a negative score');
 assert.equal(game.validateProgressSnapshot(snapshot({
-  version: 4, score: 25, hintsUsed: 1, hintPenalty: 5, activeHint: null
-})), false, 'current progress rejects inconsistent hint deductions');
-assert.equal(game.validateProgressSnapshot(snapshot({
-  version: 4, score: 25, hintsUsed: 0, hintPenalty: 0,
+  version: 5, score: 25, hintsUsed: 0, hintPenalty: 0,
   activeHint: { from: 'COLD', word: 'CORD' }
 })), false, 'current progress rejects a stale pending hint');
 assert.equal(game.validateProgressSnapshot(snapshot({ score: -1 })), false);
