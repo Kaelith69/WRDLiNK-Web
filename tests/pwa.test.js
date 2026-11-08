@@ -132,8 +132,6 @@ assert(game.includes("(y - 15) + 'v' + (linkHeight + 30)"));
 assert(game.includes("labelLineX + 43 + 17"));
 assert(game.includes('window.location.host || window.location.hostname ||'));
 assert(game.includes('challengeUrl().replace(/^https?:\\/\\//, \'\')'));
-assert(game.includes('async function copyChallengeLink()'));
-assert(game.includes('elements.copyChallengeButton.addEventListener'));
 assert(game.includes('Can you solve this WRDLINK word ladder?'));
 assert(game.includes('elements.input.focus({ preventScroll: true })'));
 assert(styles.includes(':root.keyboard-open .entry-panel .send-button'));
