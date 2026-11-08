@@ -401,6 +401,12 @@
     elements.entryPanel.hidden = false;
     elements.finishPanel.hidden = true;
     elements.input.value = '';
+    const restoredHint = state.activeHint && state.activeHint.from === state.chain[state.chain.length - 1]
+      ? state.activeHint.word : null;
+    if (restoredHint) {
+      elements.input.value = restoredHint;
+      elements.submit.disabled = false;
+    }
     preparedResultFile = null;
     resultPreparationPending = false;
     elements.shareResultButton.textContent = 'SHARE RESULT';
