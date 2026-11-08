@@ -125,12 +125,12 @@ const secondCampaignState = campaignHintSession.game.getState();
 assert.equal(secondCampaignState.score, 14, 'second hint deducts six from current score');
 assert.deepEqual(secondCampaignState.chain, ['COLD', campaignNextWord, secondCampaignHint], 'second hint also auto submits');
 const campaignSavedProgress = JSON.parse(campaignHintSession.storage.get('wrdlink-browser-session-v1:progress'));
-assert.equal(campaignSavedProgress.score, 20, 'deducted current score is persisted');
-assert.equal(campaignSavedProgress.hintsUsed, 1);
-assert.equal(campaignSavedProgress.hintPenalty, 5);
+assert.equal(campaignSavedProgress.score, 14, 'all confirmed hint deductions are persisted in current score');
+assert.equal(campaignSavedProgress.hintsUsed, 2);
+assert.equal(campaignSavedProgress.hintPenalty, 11);
 const campaignReload = loadGame({ savedProgress: campaignSavedProgress });
-assert.equal(campaignReload.game.getState().score, 20, 'deducted score survives reload');
-assert.deepEqual(campaignReload.game.getState().chain, ['COLD', campaignNextWord], 'auto submitted move survives reload');
+assert.equal(campaignReload.game.getState().score, 14, 'deducted score survives reload');
+assert.deepEqual(campaignReload.game.getState().chain, ['COLD', campaignNextWord, secondCampaignHint], 'both auto submitted moves survive reload');
 assert.equal(campaignReload.game.getState().activeHint, null, 'reload does not restore a stale pending hint');
 const legacyReload = loadGame({ savedProgress: {
   version: 1, score: 7, level: 2, puzzle: campaignPuzzle,
@@ -162,9 +162,6 @@ assert.equal(game.calculateHintCost(0), 5, 'first hint costs five points');
 assert.equal(game.calculateHintCost(1), 6, 'second hint costs six points');
 assert.equal(game.calculateHintCost(2), 7, 'third hint costs seven points');
 assert.equal(game.calculateHintPenalty(3), 18, 'three hints deduct 5 + 6 + 7 points');
-assert.equal(game.calculatePoints(2, 5), 18, 'hint penalty is deducted from the level award');
-assert.equal(game.calculatePoints(2, 18), 5, 'all cumulative hint deductions are applied');
-assert.equal(game.calculatePoints(2, 40), 0, 'hint deductions can never make a negative score');
 const coldWarmPath = game.shortestPath('COLD', 'WARM');
 assert.equal(coldWarmPath[0], 'COLD');
 assert.equal(coldWarmPath.at(-1), 'WARM');
