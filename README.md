@@ -228,7 +228,7 @@ Let **V** be the number of dictionary words and **E** the number of legal one le
 - **Pattern index construction:** each word contributes four patterns, so index construction is proportional to **4V**, excluding the cost of storing the buckets.
 - **Neighbor lookup:** examines the four relevant pattern buckets. Its practical cost depends on the sizes of those buckets.
 - **BFS:** **O(V + E)** time and **O(V)** auxiliary space in the usual adjacency list graph model.
-- **Path reconstruction:** **O(L)**, where (L) is the number of words in the returned path.
+- **Path reconstruction:** **O(L)**, where **L** is the number of words in the returned path.
 - **Sequence validation:** linear in the number of submitted words, with a fixed four character comparison per transition.
 
 The implementation generates neighbors from the pattern index rather than materializing every graph edge up front.
@@ -320,7 +320,7 @@ Install options and wording depend on the browser and operating system. PWA inst
 
 ### Offline behavior
 
-The service worker pre caches the app shell:
+The service worker pre-caches the app shell:
 
 - HTML entry point.
 - Stylesheet and game logic.
