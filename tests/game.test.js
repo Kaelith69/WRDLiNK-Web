@@ -236,6 +236,8 @@ assert.equal(challenge.elements.get('word-entry').value, 'CORD', 'input normaliz
 assert.equal(challenge.elements.get('submit-button').disabled, false, 'valid length enables submit');
 challenge.elements.get('move-form').dispatch('submit');
 assert.deepEqual(challenge.game.getState().chain, ['COLD', 'CORD'], 'submitting a valid move updates the live game');
+assert.equal(challenge.game.getState().score, 24, 'valid move immediately deducts one point');
+assert.equal(challenge.elements.get('score-label').textContent, '24', 'header score refreshes immediately after a valid move');
 assert.equal(challenge.elements.get('word-entry').focusCalls, 1, 'input regains focus after submission so mobile keyboard stays available');
 assert.equal([...challenge.storage.keys()].some((key) => key.includes(':progress')), false, 'friend challenges do not overwrite campaign progress');
 async function testInteractions() {
@@ -254,7 +256,7 @@ async function testInteractions() {
     input.dispatch('input');
     challenge.elements.get('move-form').dispatch('submit');
   };
-  assert.equal(challenge.game.getState().score, 25, 'friend challenge starts with its 25 point score');
+  assert.equal(challenge.game.getState().score, 24, 'friend challenge score reflects its first valid move');
   assert.equal(challenge.elements.get('hint-button').disabled, false, 'the starting score covers the first hint');
   if (challenge.game.getState().chain.at(-1) !== 'WARM') {
     const continuation = challenge.game.shortestPath(challenge.game.getState().chain.at(-1), 'WARM', challenge.game.getState().chain.slice(0, -1));
@@ -264,10 +266,10 @@ async function testInteractions() {
   assert.equal(challenge.game.getState().completed, true, 'submitting the target completes the puzzle');
   const result = challenge.game.validateSequence(challenge.game.getState().puzzle, challenge.game.getState().chain);
   const finalHintState = challenge.game.getState();
-  const finalAward = challenge.game.calculatePoints(result.movesUsed);
-  assert.equal(finalHintState.score, 25 + finalAward, 'the level award is added to the untouched friend challenge score');
-  const resultSvg = challenge.game.createResultSvg(result, finalAward);
-  assert.match(resultSvg, new RegExp('LEVEL SCORE[\\s\\S]*?>\\+' + finalAward + '<'));
+  const finalScore = Math.max(0, 25 - result.movesUsed);
+  assert.equal(finalHintState.score, finalScore, 'final score is 25 less every valid move');
+  const resultSvg = challenge.game.createResultSvg(result, finalScore);
+  assert.match(resultSvg, new RegExp('LEVEL SCORE[\\s\\S]*?>' + finalScore + '<'));
 
   assert.match(resultSvg, /width="1080" height="1920" viewBox="0 0 1080 1920"/);
   assert.match(resultSvg, /SHORTEST ROUTE FOUND/);
