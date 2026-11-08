@@ -588,7 +588,7 @@
   }
 
   function renderCompletion(result) {
-    const points = calculatePoints(result.movesUsed);
+    const points = state.score;
     elements.entryPanel.hidden = true;
     elements.finishPanel.hidden = false;
     elements.finishTitle.textContent = 'Connected!';
@@ -598,7 +598,7 @@
     const banner = document.createElement('div');
     banner.className = 'completion-banner';
     const score = document.createElement('strong');
-    score.textContent = `+${points} points`;
+    score.textContent = `${points} points remaining`;
     banner.append(score);
     elements.finishPanel.querySelector('.completion-banner')?.remove();
     elements.finishPanel.prepend(banner);
@@ -979,7 +979,7 @@
     let imageUrl = null;
     try {
       await waitForCardFonts();
-      const svgBlob = new Blob([createResultSvg(result, calculatePoints(result.movesUsed))], { type: 'image/svg+xml' });
+      const svgBlob = new Blob([createResultSvg(result, state.score)], { type: 'image/svg+xml' });
       const image = new Image();
       imageUrl = URL.createObjectURL(svgBlob);
       image.src = imageUrl;
