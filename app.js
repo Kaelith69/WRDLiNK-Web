@@ -167,8 +167,8 @@
     return null;
   }
 
-  // The first hint costs 5 points. Each later hint in the same puzzle costs
-  // one point more than the previous hint: 5, 6, 7, 8, ...
+  // Hint prices increase across the entire campaign run, including level changes.
+  // The first hint costs 5 points, then 6, 7, 8, and so on.
   function calculateHintCost(hintsUsed) {
     return 5 + Math.max(0, Math.floor(hintsUsed));
   }
@@ -437,7 +437,7 @@
     // Never overwrite a newer snapshot written by another open tab.
     if (externalProgressChanged) return;
     const snapshot = {
-      version: 5,
+      version: 6,
       score: state.score,
       level: state.level,
       puzzle: state.puzzle,
@@ -457,7 +457,7 @@
   // Validate persisted data without mutating live state. Browser storage is
   // user-editable and may also contain data from an older or interrupted run.
   function validateProgressSnapshot(saved) {
-    if (!saved || (saved.version !== 1 && saved.version !== 2 && saved.version !== 3 && saved.version !== 4 && saved.version !== 5) ||
+    if (!saved || (saved.version !== 1 && saved.version !== 2 && saved.version !== 3 && saved.version !== 4 && saved.version !== 5 && saved.version !== 6) ||
         !Number.isSafeInteger(saved.score) || saved.score < 0 ||
         !Number.isSafeInteger(saved.level) || saved.level < 1 ||
         !saved.puzzle || !Array.isArray(saved.chain) ||
@@ -487,7 +487,7 @@
       if (!Number.isSafeInteger(saved.hintsUsed) || saved.hintsUsed < 0 ||
           !Number.isSafeInteger(saved.hintPenalty) || saved.hintPenalty !== calculateHintPenalty(saved.hintsUsed)) return false;
       if (calculateHintPenalty(saved.hintsUsed) > Number.MAX_SAFE_INTEGER) return false;
-      if (saved.version === 5 && saved.activeHint !== null) return false;
+      if (saved.version >= 5 && saved.activeHint !== null) return false;
       if (saved.activeHint !== null) {
         const current = chain[chain.length - 1];
         const expected = shortestPath(current, puzzle.target, chain.slice(0, -1));
@@ -524,7 +524,7 @@
         hintPenalty: saved.version >= 2 ? saved.hintPenalty : 0,
         activeHint: saved.version >= 2 ? saved.activeHint : null
       };
-      legacyHintNeedsSubmission = saved.version >= 2 && saved.version < 5 && !saved.completed && Boolean(saved.activeHint);
+      legacyHintNeedsSubmission = saved.version >= 2 && saved.version < 6 && !saved.completed && Boolean(saved.activeHint);
       return true;
     } catch (error) {
       console.warn('Saved WRDLINK progress could not be read.', error);
@@ -563,8 +563,10 @@
         }
         state.puzzle = puzzle;
         state.chain = [puzzle.start];
-        state.hintsUsed = 0;
-        state.hintPenalty = 0;
+        if (resetScore) {
+          state.hintsUsed = 0;
+          state.hintPenalty = 0;
+        }
         state.activeHint = null;
         if (challengeSession) {
           const sharedUrl = new URL(window.location.href);
