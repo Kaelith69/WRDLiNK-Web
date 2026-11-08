@@ -48,7 +48,7 @@ Browsers can request that autocomplete, autocorrection, spell checking, and writ
 
 ### Scoring
 
-Each level starts at **25 points**. One point is deducted for each valid move, and hints apply an additional escalating deduction. The level score can never fall below zero.
+Each completed level awards up to **25 points**, less one point per valid move. Hints deduct their escalating cost immediately from the player's **current total score**. A hint can only be purchased when the current score covers its full cost. The level award is added after completion, and the total score cannot fall below zero.
 
 ```text
 Hint 1 = 5 points
@@ -56,12 +56,13 @@ Hint 2 = 6 points
 Hint 3 = 7 points
 Hint n = 5 + (n - 1)
 
-Level score = max(0, 25 - valid moves - total hint costs)
+Level award = max(0, 25 - valid moves)
+Current score = current score - confirmed hint costs + completed level award
 ```
 
-Select the lightbulb hint control in the top bar when you are stuck. WRDLINK first asks you to confirm the exact point deduction and shows your remaining balance after purchase. Only after confirmation does it use breadth first search to find the next word on a shortest valid route and enter that word directly into the move field. You must still submit it yourself. A hint does not consume a move.
+Select the lightbulb hint control in the top bar when you are stuck. WRDLINK first asks you to confirm the exact point deduction and shows your current score after purchase. Only after confirmation does it use breadth first search to find the next word on a shortest valid route, deduct the cost from the current score, and submit that word as the next move automatically. The hint therefore advances the ladder and consumes one valid move. Cancelling costs nothing.
 
-The first hint costs 5 points. Every later hint in the same level costs one point more than the previous hint. Repeatedly tapping a hint that is already revealed does not charge again. After you submit a valid move, the next hint becomes available at the higher cost. A hint is disabled when your remaining level points cannot cover its cost. Hint usage and its deduction are saved with your current game and reset when you start the next level or a new game.
+The first hint costs 5 points. Every later hint in the same level costs one point more than the previous hint. Repeatedly tapping a hint that is already revealed does not charge again. After you submit a valid move, the next hint becomes available at the higher cost. A hint is disabled when your current total score cannot cover its cost. Hint usage and its deduction are saved with your current game and reset when you start the next level or a new game.
 
 Completed level scores, after move and hint deductions, accumulate during the current game. After a win, choose **Share result** to create a 1080 × 1920 story card. Result and challenge cards follow the supplied matching 9:16 layouts, with a full bleed textured field, Barlow Condensed display type, DM Mono labels, reference sized letter tiles, and the original connector treatment. Result cards show the connected status, route status, concealed intermediate words, changed letter connectors, move count, and level score. Challenge cards show the dashed mystery route, letter distance, unknown move count, and exact challenge URL. Supported browsers open the native share sheet; other browsers download the image so it can be posted manually. Selecting **New game** resets the level and total score.
 
@@ -135,7 +136,7 @@ Node.js 18 or newer is required for the test suite.
 npm test
 ```
 
-The tests exercise the production game logic, dictionary, adjacency rules, 25 point scoring, escalating hint costs, hint affordability, shortest route reveals, hint persistence, puzzle generation, shared challenge loading, saved progress validation, and PWA metadata.
+The tests exercise the production game logic, dictionary, adjacency rules, 25 point scoring, escalating hint costs, current score hint affordability, shortest route auto submission, hint persistence, puzzle generation, shared challenge loading, saved progress validation, and PWA metadata.
 
 ## Project structure
 
