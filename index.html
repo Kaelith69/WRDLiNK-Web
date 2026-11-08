@@ -47,12 +47,31 @@
           <span class="score-pill"><span class="metric-label">SCORE</span><strong id="score-label">0</strong></span>
           <span class="moves-pill"><span class="metric-label">MOVES</span><strong id="moves-label">0</strong></span>
         </div>
+        <button class="header-hint-button" id="hint-button" type="button" aria-label="Use hint for 5 points" aria-haspopup="dialog" aria-controls="hint-confirmation">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6m-5 3h4m-5-6.2a6 6 0 1 1 6 0c-.7.6-1 1.2-1 2.2h-4c0-1-.3-1.6-1-2.2Z"/></svg>
+          <span class="header-hint-cost" id="hint-cost-chip">−5</span>
+        </button>
         <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to dark mode">
           <svg class="sun-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.7"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg>
           <svg class="moon-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.4 15.2A8.7 8.7 0 0 1 8.8 3.6 8.9 8.9 0 1 0 20.4 15.2Z"/></svg>
         </button>
       </div>
     </header>
+
+    <div class="hint-confirmation-backdrop" id="hint-confirmation" hidden>
+      <section class="hint-confirmation" role="dialog" aria-modal="true" aria-labelledby="hint-confirm-title" aria-describedby="hint-confirm-description">
+        <span class="hint-confirm-icon" aria-hidden="true">?</span>
+        <h2 id="hint-confirm-title">Use a hint?</h2>
+        <p id="hint-confirm-description">This hint reveals and enters the next word on a shortest route.</p>
+        <div class="hint-confirm-cost"><span>Points deducted</span><strong id="hint-confirm-cost">5</strong></div>
+        <div class="hint-confirm-balance"><span>Points remaining after hint</span><strong id="hint-confirm-balance">20</strong></div>
+        <p class="hint-confirm-warning">This deduction reduces your level score. The word will be entered for you, but you must submit it to make the move.</p>
+        <div class="hint-confirm-actions">
+          <button class="secondary-button" id="hint-cancel-button" type="button">CANCEL</button>
+          <button class="ink-button" id="hint-confirm-button" type="button">USE HINT</button>
+        </div>
+      </section>
+    </div>
 
     <section class="game-workspace" aria-label="WRDLINK word puzzle">
       <div id="loading" class="loading-progress" role="status">
@@ -79,27 +98,6 @@
 
         <section class="entry-panel card-panel" id="entry-panel">
           <div class="entry-heading"><h2>Your next word</h2></div>
-          <div class="hint-tools">
-            <button class="hint-button" id="hint-button" type="button" aria-label="Reveal the next word for points">
-              <span class="hint-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24"><path d="M9 18h6m-5 3h4m-5-6.2a6 6 0 1 1 6 0c-.7.6-1 1.2-1 2.2h-4c0-1-.3-1.6-1-2.2Z"/></svg>
-              </span>
-              <span class="hint-copy">
-                <strong id="hint-button-label">GET NEXT WORD</strong>
-                <small id="hint-cost-label">Reveal the next word on a shortest route</small>
-              </span>
-              <span class="hint-cost-chip" id="hint-cost-chip">−5</span>
-            </button>
-            <p class="hint-budget" id="hint-budget-label">Puzzle points remaining: 25</p>
-            <div class="hint-reveal" id="hint-reveal" hidden aria-live="polite" aria-atomic="true">
-              <div class="hint-reveal-heading">
-                <span class="hint-reveal-kicker">NEXT STEP REVEALED</span>
-                <span class="hint-reveal-note">Shortest route</span>
-              </div>
-              <div class="word-display hint-word" id="hint-word" aria-label="Revealed next word"></div>
-              <p>Enter this word yourself to continue. It does not count as a move until submitted.</p>
-            </div>
-          </div>
           <form id="move-form" novalidate>
             <label class="sr-only" for="word-entry">Enter your next four letter word</label>
             <input id="word-entry" type="text" inputmode="text" enterkeyhint="send" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" writingsuggestions="false" maxlength="4" aria-describedby="message">
