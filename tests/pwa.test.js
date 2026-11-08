@@ -149,6 +149,8 @@ assert(styles.includes(':root.keyboard-open .entry-actions { display: none; }'))
 
 // README rendering and documentation contracts. GitHub renders these local
 // SVGs reliably when they are embedded as Markdown images, not plain links.
+const fs = require('node:fs');
+const path = require('node:path');
 const readme = read('README.md');
 assert.match(readme, /^!\\[WRDLINK banner\\]\\(assets\\/readme-banner\\.svg\\)/, 'README begins with an embedded banner');
 for (const asset of [
