@@ -152,13 +152,34 @@ assert.equal(campaignReload.game.getState().level, 2, 'campaign advances to the 
 assert.equal(campaignReload.elements.get('level-label').textContent, 'LV1', 'second level is visibly labeled LV1');
 assert.equal(campaignReload.game.getState().hintsUsed, 2, 'hint count carries into the next level');
 assert.equal(campaignReload.game.getState().hintPenalty, 11, 'cumulative hint penalty carries into the next level');
-assert.equal(campaignReload.elements.get('hint-cost-chip').textContent, '−8', 'level two shows the third hint price plus its move point');
+assert.equal(campaignReload.elements.get('hint-cost-chip').textContent, '−7', 'level two displays the third hint price without conflating the move cost');
 assert.equal(campaignReload.game.useHint(), true, 'level two can request its next hint');
-assert.equal(campaignReload.elements.get('hint-confirm-cost').textContent, '8', 'third hint costs seven plus one move point');
+assert.equal(campaignReload.elements.get('hint-confirm-cost').textContent, '8', 'third hint confirmation shows seven hint points plus one move point');
 campaignReload.game.confirmHint();
 assert.equal(campaignReload.game.getState().hintsUsed, 3, 'third hint increments the run wide hint count');
 assert.equal(campaignReload.game.getState().hintPenalty, 18, 'third hint adds seven to the cumulative hint penalty');
 assert.equal(JSON.parse(campaignReload.storage.get('wrdlink-browser-session-v1:progress')).version, 6, 'cumulative hint state persists in the current save format');
+const secondLevelRoute = campaignReload.game.shortestPath(
+  campaignReload.game.getState().chain.at(-1), campaignReload.game.getState().puzzle.target,
+  campaignReload.game.getState().chain.slice(0, -1)
+);
+for (const word of secondLevelRoute.slice(1)) {
+  campaignReload.elements.get('word-entry').value = word;
+  campaignReload.elements.get('word-entry').dispatch('input');
+  campaignReload.elements.get('move-form').dispatch('submit');
+}
+assert.equal(campaignReload.game.getState().completed, true, 'second campaign level completes with the third hint used');
+campaignReload.elements.get('next-button').dispatch('click');
+assert.equal(campaignReload.game.getState().level, 3, 'campaign advances to the third level');
+assert.equal(campaignReload.game.getState().hintsUsed, 3, 'all three hints remain counted after two level transitions');
+assert.equal(campaignReload.game.getState().hintPenalty, 18, 'cumulative penalty remains 5 + 6 + 7 after two transitions');
+assert.equal(campaignReload.elements.get('hint-cost-chip').textContent, '−8', 'third level displays the fourth hint price');
+assert.equal(campaignReload.game.useHint(), true, 'fourth run wide hint can be requested on level three');
+assert.equal(campaignReload.elements.get('hint-confirm-cost').textContent, '9', 'fourth hint confirmation includes eight hint points plus one move point');
+campaignReload.game.confirmHint();
+assert.equal(campaignReload.game.getState().hintsUsed, 4, 'fourth hint advances the run wide count');
+assert.equal(campaignReload.game.getState().hintPenalty, 26, 'fourth hint adds eight to the cumulative hint penalty');
+assert.equal(JSON.parse(campaignReload.storage.get('wrdlink-browser-session-v1:progress')).hintsUsed, 4, 'fourth hint count persists in the save');
 const legacyReload = loadGame({ savedProgress: {
   version: 1, score: 7, level: 2, puzzle: campaignPuzzle,
   chain: ['COLD'], completed: false
