@@ -138,6 +138,23 @@ const legacyReload = loadGame({ savedProgress: {
 } });
 assert.equal(legacyReload.game.getState().hintsUsed, 0, 'legacy saves migrate with no hint usage');
 assert.equal(legacyReload.game.getState().hintPenalty, 0, 'legacy saves migrate with no hint penalty');
+const legacyPendingHint = loadGame({ savedProgress: {
+  version: 2, score: 25, level: 1, puzzle: campaignPuzzle,
+  chain: ['COLD'], completed: false, hintsUsed: 1, hintPenalty: 5,
+  activeHint: { from: 'COLD', word: campaignNextWord }
+} });
+assert.equal(legacyPendingHint.game.getState().score, 20, 'legacy pending hint cost migrates out of the current score');
+assert.deepEqual(legacyPendingHint.game.getState().chain, ['COLD', campaignNextWord], 'legacy pending hint is automatically submitted during migration');
+assert.equal(legacyPendingHint.game.getState().activeHint, null, 'legacy pending hint is cleared after automatic submission');
+assert.equal(JSON.parse(legacyPendingHint.storage.get('wrdlink-browser-session-v1:progress')).version, 3, 'migrated progress is saved in the current format');
+const legacyUsedHint = loadGame({ savedProgress: {
+  version: 2, score: 25, level: 1, puzzle: campaignPuzzle,
+  chain: ['COLD', campaignNextWord], completed: false, hintsUsed: 1,
+  hintPenalty: 5, activeHint: null
+} });
+assert.equal(legacyUsedHint.game.getState().score, 20, 'legacy already submitted hint cost is migrated exactly once');
+assert.deepEqual(legacyUsedHint.game.getState().chain, ['COLD', campaignNextWord], 'migration does not duplicate an already submitted hint');
+
 
 // A missing dictionary must reach the existing recovery UI, not throw while
 // building the word index at script evaluation time.
