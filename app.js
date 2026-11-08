@@ -347,7 +347,7 @@
 
     if (hintIsActive) {
       renderWord(elements.hintWord, state.activeHint.word);
-      elements.hintWord.querySelectorAll?.('span').forEach((tile, index) => {
+      elements.hintWord.querySelectorAll?.('span')?.forEach((tile, index) => {
         if (tile.textContent !== currentWord[index]) tile.classList.add('hint-letter-changed');
       });
     } else {

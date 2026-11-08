@@ -32,6 +32,7 @@ function makeElement() {
     prepend(...items) { this.children.unshift(...items); },
     replaceChildren(...items) { this.children = [...items]; },
     querySelector() { return null; },
+    querySelectorAll() { return []; },
     focus() { this.focusCalls += 1; },
     select() {},
     scrollIntoView() {},
@@ -219,7 +220,7 @@ async function testInteractions() {
     const continuation = challenge.game.shortestPath(challenge.game.getState().chain.at(-1), 'WARM', challenge.game.getState().chain.slice(0, -1));
     for (const word of continuation.slice(1)) submitWord(word);
   }
-  submitWord('WARM');
+  assert.equal(challenge.game.getState().chain.at(-1), 'WARM', 'the continuation reaches the target without a duplicate move');
   assert.equal(challenge.game.getState().completed, true, 'submitting the target completes the puzzle');
   const result = challenge.game.validateSequence(challenge.game.getState().puzzle, challenge.game.getState().chain);
   const resultSvg = challenge.game.createResultSvg(result, challenge.game.calculatePoints(result.movesUsed));
