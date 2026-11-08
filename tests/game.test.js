@@ -254,8 +254,8 @@ async function testInteractions() {
     input.dispatch('input');
     challenge.elements.get('move-form').dispatch('submit');
   };
-  assert.equal(challenge.game.getState().score, 0, 'friend challenge starts without banked score');
-  assert.equal(challenge.elements.get('hint-button').disabled, true, 'hints cannot be purchased without enough current score');
+  assert.equal(challenge.game.getState().score, 25, 'friend challenge starts with its 25 point score');
+  assert.equal(challenge.elements.get('hint-button').disabled, false, 'the starting score covers the first hint');
   if (challenge.game.getState().chain.at(-1) !== 'WARM') {
     const continuation = challenge.game.shortestPath(challenge.game.getState().chain.at(-1), 'WARM', challenge.game.getState().chain.slice(0, -1));
     for (const word of continuation.slice(1)) submitWord(word);
