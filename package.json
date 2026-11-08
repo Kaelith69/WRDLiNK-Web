@@ -1,9 +1,0 @@
-{
-  "name": "wrdlink-browser",
-  "version": "1.0.0",
-  "private": false,
-  "description": "A standalone, accessible word ladder game for the browser",
-  "scripts": {
-    "test": "node tests/game.test.js && node tests/pwa.test.js"
-  }
-}

@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
-  <title id="title">WRDLINK app icon</title>
-  <rect width="512" height="512" rx="112" fill="#172322"/>
-  <rect x="72" y="72" width="368" height="368" rx="64" fill="#e9e3d5" stroke="#0d1716" stroke-width="12"/>
-  <path d="M112 154h52l29 143 38-107h50l38 107 29-143h52l-51 205h-55l-38-105-38 105h-55z" fill="#172322"/>
-  <path d="M112 382h288" stroke="#d5a34d" stroke-width="12" stroke-linecap="round"/>
-  <circle cx="400" cy="112" r="22" fill="#d5a34d"/>
-</svg>
