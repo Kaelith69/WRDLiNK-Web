@@ -19,7 +19,7 @@
     form: $('move-form'), input: $('word-entry'), submit: $('submit-button'),
     message: $('message'), entryPanel: $('entry-panel'), finishPanel: $('finish-panel'),
     finishTitle: $('finish-title'), finishDescription: $('finish-description'), shareStatus: $('share-status'),
-    nextButton: $('next-button'), newGameButton: $('new-game-button'), retryButton: $('retry-button'), themeToggle: $('theme-toggle'), shareChallengeButton: $('share-challenge-button'), copyChallengeButton: $('copy-challenge-button'), shareResultButton: $('share-result-button'), downloadResultButton: $('download-result-button'),
+    nextButton: $('next-button'), newGameButton: $('new-game-button'), retryButton: $('retry-button'), themeToggle: $('theme-toggle'), shareChallengeButton: $('share-challenge-button'), shareResultButton: $('share-result-button'), downloadResultButton: $('download-result-button'),
     hintButton: $('hint-button'), hintCostChip: $('hint-cost-chip'),
     hintConfirmation: $('hint-confirmation'), hintConfirmCost: $('hint-confirm-cost'),
     hintConfirmBalance: $('hint-confirm-balance'), hintConfirmButton: $('hint-confirm-button'),
@@ -167,8 +167,8 @@
     return null;
   }
 
-  // The first hint costs 5 points. Each later hint in the same puzzle costs
-  // one point more than the previous hint: 5, 6, 7, 8, ...
+  // Hint prices increase across the entire campaign run, including level changes.
+  // The first hint costs 5 points, then 6, 7, 8, and so on.
   function calculateHintCost(hintsUsed) {
     return 5 + Math.max(0, Math.floor(hintsUsed));
   }
@@ -296,7 +296,7 @@
   }
 
   function renderHeader() {
-    elements.levelLabel.textContent = `LEVEL ${state.level}`;
+    elements.levelLabel.textContent = `LV${Math.max(0, state.level - 1)}`;
     elements.scoreLabel.textContent = String(state.score);
   }
 
@@ -437,7 +437,7 @@
     // Never overwrite a newer snapshot written by another open tab.
     if (externalProgressChanged) return;
     const snapshot = {
-      version: 5,
+      version: 6,
       score: state.score,
       level: state.level,
       puzzle: state.puzzle,
@@ -457,7 +457,7 @@
   // Validate persisted data without mutating live state. Browser storage is
   // user-editable and may also contain data from an older or interrupted run.
   function validateProgressSnapshot(saved) {
-    if (!saved || (saved.version !== 1 && saved.version !== 2 && saved.version !== 3 && saved.version !== 4 && saved.version !== 5) ||
+    if (!saved || (saved.version !== 1 && saved.version !== 2 && saved.version !== 3 && saved.version !== 4 && saved.version !== 5 && saved.version !== 6) ||
         !Number.isSafeInteger(saved.score) || saved.score < 0 ||
         !Number.isSafeInteger(saved.level) || saved.level < 1 ||
         !saved.puzzle || !Array.isArray(saved.chain) ||
@@ -487,7 +487,7 @@
       if (!Number.isSafeInteger(saved.hintsUsed) || saved.hintsUsed < 0 ||
           !Number.isSafeInteger(saved.hintPenalty) || saved.hintPenalty !== calculateHintPenalty(saved.hintsUsed)) return false;
       if (calculateHintPenalty(saved.hintsUsed) > Number.MAX_SAFE_INTEGER) return false;
-      if (saved.version === 5 && saved.activeHint !== null) return false;
+      if (saved.version >= 5 && saved.activeHint !== null) return false;
       if (saved.activeHint !== null) {
         const current = chain[chain.length - 1];
         const expected = shortestPath(current, puzzle.target, chain.slice(0, -1));
@@ -524,7 +524,7 @@
         hintPenalty: saved.version >= 2 ? saved.hintPenalty : 0,
         activeHint: saved.version >= 2 ? saved.activeHint : null
       };
-      legacyHintNeedsSubmission = saved.version >= 2 && saved.version < 5 && !saved.completed && Boolean(saved.activeHint);
+      legacyHintNeedsSubmission = saved.version >= 2 && saved.version < 6 && !saved.completed && Boolean(saved.activeHint);
       return true;
     } catch (error) {
       console.warn('Saved WRDLINK progress could not be read.', error);
@@ -563,8 +563,10 @@
         }
         state.puzzle = puzzle;
         state.chain = [puzzle.start];
-        state.hintsUsed = 0;
-        state.hintPenalty = 0;
+        if (resetScore) {
+          state.hintsUsed = 0;
+          state.hintPenalty = 0;
+        }
         state.activeHint = null;
         if (challengeSession) {
           const sharedUrl = new URL(window.location.href);
@@ -853,32 +855,6 @@
     }
   }
 
-  async function copyChallengeLink() {
-    const link = challengeUrl();
-    try {
-      if (navigator.clipboard?.writeText && window.isSecureContext) {
-        await navigator.clipboard.writeText(link);
-      } else {
-        const field = document.createElement('textarea');
-        field.value = link;
-        field.setAttribute('readonly', '');
-        field.style.position = 'fixed';
-        field.style.opacity = '0';
-        document.body.append(field);
-        field.select();
-        const copied = document.execCommand?.('copy');
-        field.remove();
-        if (!copied) {
-          const manualCopy = window.prompt?.('Copy this challenge link:', link);
-          if (!manualCopy) throw new Error('Clipboard access is unavailable.');
-        }
-      }
-      setMessage('Challenge link copied. Add it to an Instagram Story Link sticker if you share the card there.');
-    } catch (error) {
-      setMessage('Could not copy the challenge link. Check clipboard permissions and try again.', 'error');
-    }
-  }
-
   async function shareChallenge() {
     const link = challengeUrl();
     const text = 'Can you solve this WRDLINK word ladder? ' + state.puzzle.start + ' to ' + state.puzzle.target;
@@ -1094,8 +1070,7 @@
   elements.nextButton.addEventListener('click', () => startPuzzle({ nextLevel: true }));
   elements.retryButton.addEventListener('click', () => startPuzzle());
   elements.shareChallengeButton.addEventListener('click', shareChallenge);
-  elements.copyChallengeButton.addEventListener('click', copyChallengeLink);
-  elements.shareResultButton.addEventListener('click', shareResult);
+    elements.shareResultButton.addEventListener('click', shareResult);
   elements.downloadResultButton.addEventListener('click', () => {
     if (preparedResultFile) downloadResultCard(preparedResultFile);
   });
