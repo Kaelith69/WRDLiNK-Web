@@ -912,7 +912,8 @@
     state = {
       score: 0, level: 1,
       puzzle: { id: 'challenge-' + start + '-' + target, title: 'Friend challenge', start, target, wordLength: WORD_LENGTH, optimalMoves },
-      chain: [start], completed: false
+      chain: [start], completed: false,
+      hintsUsed: 0, hintPenalty: 0, activeHint: null
     };
     return true;
   }
