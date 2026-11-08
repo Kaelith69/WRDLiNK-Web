@@ -199,7 +199,7 @@ const challenge = loadGame({ search: '?challenge=COLD-WARM' });
 assert.equal(challenge.game.getState().puzzle.start, 'COLD');
 assert.equal(challenge.game.getState().puzzle.target, 'WARM');
 assert.equal(challenge.game.getState().chain[0], 'COLD');
-assert.equal(challenge.game.getState().score, 0);
+assert.equal(challenge.game.getState().score, 25, 'friend challenge has a 25 point starting score');
 
 // The generated challenge artwork is tested from the production renderer.
 const challengeSvg = challenge.game.createChallengeSvg();
