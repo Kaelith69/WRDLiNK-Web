@@ -333,7 +333,7 @@
     elements.hintButton.setAttribute('aria-label', hintIsActive
       ? 'Hint entered. Submit the word to continue'
       : available < totalCost ? `Not enough score for hint and move. Total deduction ${totalCost}, current score ${available}`
-        : `Use hint for ${cost} points`);
+        : `Use hint and submit the next move for ${totalCost} points`);
     elements.hintButton.setAttribute('aria-describedby', 'hint-confirm-description');
   }
 
@@ -388,7 +388,7 @@
     elements.input.value = word;
     renderHeader();
     renderHintUI();
-    setMessage(`Hint used: ${word}. ${cost} points deducted from your score. Submitting the move automatically.`);
+    setMessage(`Hint used: ${word}. ${totalCost} points deducted, including the submitted move.`);
     submitMove({ preventDefault() {} });
     return true;
   }
