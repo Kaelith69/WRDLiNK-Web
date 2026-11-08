@@ -150,7 +150,7 @@ assert(styles.includes(':root.keyboard-open .entry-actions { display: none; }'))
 const fs = require('node:fs');
 const path = require('node:path');
 const readme = read('README.md');
-assert.match(readme, /^!\\[WRDLINK banner\\]\\(assets\\/readme-banner\\.svg\\)/, 'README begins with an embedded banner');
+assert.ok(readme.startsWith('![WRDLINK banner](assets/readme-banner.svg)'), 'README begins with an embedded banner');
 for (const asset of [
   'assets/readme-banner.svg',
   'assets/readme-ladder.svg',
@@ -162,7 +162,7 @@ for (const asset of [
   assert(fs.existsSync(path.join(__dirname, '..', asset)), 'README image exists: ' + asset);
 }
 assert.doesNotMatch(readme, /```mermaid/, 'README does not depend on Mermaid rendering');
-assert.match(readme, /Each new level starts with \\*\\*25 points\\*\\*/, 'README documents the 25 point per level reset');
+assert.ok(readme.includes('Each new level starts with **25 points**'), 'README documents the 25 point per level reset');
 assert.match(readme, /hint price increases by one for every confirmed hint within the current level/i, 'README documents level scoped hint escalation');
 assert.match(readme, /resets when the next level begins/i, 'README documents the hint reset between levels');
 assert.match(readme, /version 6/, 'README documents the current save schema');
