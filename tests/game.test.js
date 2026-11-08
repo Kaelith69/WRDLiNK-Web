@@ -292,6 +292,7 @@ async function testInteractions() {
 
   challenge.elements.get('new-game-button').dispatch('click');
   assert.match(challenge.game.getState().puzzle.id, /^random-/, 'New game starts a fresh puzzle');
+  assert.equal(challenge.game.getState().score, 25, 'New game resets the score to 25');
   assert.equal(challenge.game.getState().hintsUsed, 0, 'new game resets hint count');
   assert.equal(challenge.game.getState().hintPenalty, 0, 'new game resets hint deductions');
   assert.equal(challenge.game.getState().activeHint, null, 'new game clears the revealed word');
