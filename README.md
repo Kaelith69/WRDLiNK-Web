@@ -1,17 +1,12 @@
-![WRDLINK banner](assets/readme-banner.svg)
+# WRDLINK
 
-<p align="center">
-  <strong>A four letter word ladder game built around graph search.</strong><br>
-  Change one letter per move. Build a valid chain. Reach the target in as few moves as you can.
-</p>
+**A four letter word ladder game built around graph search.**
 
-<p align="center">
-  <a href="https://kaelith69.github.io/WRDLiNK-Web/">PLAY WRDLINK</a>
-  ·
-  <a href="https://github.com/Kaelith69/WRDLiNK-Web/issues">REPORT A BUG</a>
-  ·
-  <a href="LICENSE">MIT LICENSE</a>
-</p>
+Change one letter per move. Build a valid chain. Reach the target in as few moves as you can.
+
+[**PLAY WRDLINK**](https://kaelith69.github.io/WRDLiNK-Web/) · [Report a bug](https://github.com/Kaelith69/WRDLiNK-Web/issues) · [MIT License](LICENSE)
+
+[View the WRDLINK banner artwork](assets/readme-banner.svg)
 
 ---
 
@@ -67,7 +62,13 @@ The word entry is case insensitive. The game normalizes entries to uppercase bef
 
 This example connects **COLD** to **WARM**. Every adjacent pair differs in one position.
 
-![Example word ladder from COLD to WARM](assets/readme-ladder.svg)
+```mermaid
+flowchart LR
+    A["COLD<br/>START"] --> B["CORD<br/>Move 1"]
+    B --> C["CARD<br/>Move 2"]
+    C --> D["WARD<br/>Move 3"]
+    D --> E["WARM<br/>TARGET"]
+```
 
 | Step | Word | Change |
 |---:|---|---|
@@ -133,7 +134,13 @@ For example, if a player begins with 25 points, uses two hints, and makes no oth
 - Completing the level adds 25, giving a balance of 37.
 - The first hint on the next level costs 7 hint points plus 1 move point.
 
-![Campaign scoring and hint progression](assets/readme-scoring.svg)
+```mermaid
+flowchart LR
+    A["New run<br/>25 points"] --> B["Hint 1 + move<br/>−6"]
+    B --> C["Hint 2 + move<br/>−7"]
+    C --> D["Level complete<br/>+25"]
+    D --> E["Next level<br/>Hint 3 costs 7 + 1 move"]
+```
 
 The completion banner and result card show the post completion balance. The next level carries that balance forward. A new game starts a separate run at 25 points.
 
@@ -194,7 +201,13 @@ BFS explores the graph in layers:
 
 Because every edge has equal weight, BFS discovers the target at its minimum possible number of moves.
 
-![Breadth first search expansion](assets/readme-bfs.svg)
+```mermaid
+flowchart TD
+    S["Start word<br/>Distance 0"] --> A["All neighbors<br/>Distance 1"]
+    A --> B["Next frontier<br/>Distance 2"]
+    B --> C["Next frontier<br/>Distance 3"]
+    C --> T["Target found<br/>Shortest distance"]
+```
 
 ### 4. Shortest path reconstruction
 
@@ -237,7 +250,13 @@ The implementation generates neighbors from the pattern index rather than materi
 
 WRDLINK is a static browser application. It has no backend service, account system, build pipeline, or runtime package dependencies.
 
-![WRDLINK browser architecture](assets/readme-architecture.svg)
+```mermaid
+flowchart LR
+    UI["HTML + CSS<br/>Interface"] --> APP["app.js<br/>Rules and algorithms"]
+    DICT["dictionary.js<br/>3,889 words"] --> APP
+    APP --> STORE["localStorage<br/>Progress and theme"]
+    APP --> SW["Service worker<br/>Offline app shell"]
+```
 
 | File | Responsibility |
 |---|---|
