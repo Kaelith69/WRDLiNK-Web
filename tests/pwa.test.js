@@ -16,6 +16,7 @@ const deploy = read('.github/workflows/deploy-pages.yml');
 assert(html.includes('rel="manifest" href="./manifest.webmanifest"'));
 assert(html.includes("navigator.serviceWorker.register('./sw.js'"));
 assert(html.includes('assets/wrdlink-icon.svg'));
+assert.match(styles, /keyboard-open \.metric-label\s*\{\s*display:\s*block/s, 'score and move labels remain visible while the mobile keyboard is open');
 assert.match(html, /id="score-label">25<\/strong>/, 'initial HTML displays the starting 25 points before JavaScript initializes');
 assert(html.includes('rel="apple-touch-icon" href="./assets/wrdlink-icon-180.png"'));
 assert.equal(manifest.name, 'WRDLINK | Word Ladder');
@@ -37,7 +38,7 @@ for (const asset of ['./index.html', './styles.css', './app.js', './dictionary.j
   assert(worker.includes(asset), 'service worker app shell includes ' + asset);
 }
 assert(worker.includes("const CACHE_PREFIX = 'wrdlink-shell-'"));
-assert(worker.includes('const CACHE_NAME = `' + '${CACHE_PREFIX}' + 'v19`'));
+assert(worker.includes('const CACHE_NAME = `' + '${CACHE_PREFIX}' + 'v20`'));
 assert(worker.includes("request.mode === 'navigate'"));
 assert(worker.includes('self.clients.claim()'));
 assert(deploy.includes('manifest.webmanifest sw.js'));
