@@ -233,7 +233,7 @@ async function testInteractions() {
   };
   const hintButton = challenge.elements.get('hint-button');
   assert.equal(typeof hintButton.listeners.click, 'function', 'hint button has a click handler');
-  const pathFromCold = challenge.game.shortestPath('COLD', 'WARM');
+  const pathFromCord = challenge.game.shortestPath('CORD', 'WARM', ['COLD']);
   hintButton.dispatch('click');
   assert.equal(challenge.elements.get('hint-confirmation').hidden, false, 'hint click opens a confirmation dialog');
   assert.equal(challenge.elements.get('hint-confirm-cost').textContent, '5', 'confirmation displays exact hint cost');
@@ -245,7 +245,7 @@ async function testInteractions() {
   challenge.elements.get('hint-confirm-button').dispatch('click');
   let hintedState = challenge.game.getState();
   assert.equal(hintedState.score, 20, 'confirmed hint deducts directly from current score');
-  assert.deepEqual(hintedState.chain, ['COLD', pathFromCold[1]], 'confirmed hint submits the shortest route word automatically');
+  assert.deepEqual(hintedState.chain, ['COLD', 'CORD', pathFromCord[1]], 'confirmed hint submits the shortest route word automatically');
   assert.equal(hintedState.activeHint, null, 'automatically submitted hint is not left pending');
   assert.equal(hintedState.hintsUsed, 1, 'first hint increments hint count');
   assert.equal(hintedState.hintPenalty, 5, 'first hint records five points deducted');
@@ -258,12 +258,6 @@ async function testInteractions() {
   assert.equal(hintedState.hintPenalty, 11, 'cumulative hint deduction is tracked');
   assert.equal(hintedState.chain.length, 3, 'second hint also submits the move automatically');
   assert.equal(hintedState.chain[2], challenge.game.shortestPath(hintedState.chain[1], 'WARM', hintedState.chain.slice(0, -1))[1], 'second hint follows a valid shortest route');
-  const submitWord = (word) => {
-    const input = challenge.elements.get('word-entry');
-    input.value = word;
-    input.dispatch('input');
-    challenge.elements.get('move-form').dispatch('submit');
-  };
   if (challenge.game.getState().chain.at(-1) !== 'WARM') {
     const continuation = challenge.game.shortestPath(challenge.game.getState().chain.at(-1), 'WARM', challenge.game.getState().chain.slice(0, -1));
     for (const word of continuation.slice(1)) submitWord(word);
