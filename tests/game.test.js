@@ -330,6 +330,19 @@ assert.equal(game.validateProgressSnapshot(snapshot({
   version: 2, hintsUsed: 1, hintPenalty: 5,
   activeHint: { from: 'COLD', word: 'WARM' }
 })), false, 'invalid active hint word is rejected');
+assert.equal(game.validateProgressSnapshot(snapshot({
+  version: 4, score: 25, hintsUsed: 0, hintPenalty: 0, activeHint: null
+})), true, 'current progress validates the live starting score');
+assert.equal(game.validateProgressSnapshot(snapshot({
+  version: 4, score: 24, hintsUsed: 0, hintPenalty: 0, activeHint: null
+})), false, 'current progress rejects a score that does not match valid moves');
+assert.equal(game.validateProgressSnapshot(snapshot({
+  version: 4, score: 25, hintsUsed: 1, hintPenalty: 5, activeHint: null
+})), false, 'current progress rejects inconsistent hint deductions');
+assert.equal(game.validateProgressSnapshot(snapshot({
+  version: 4, score: 25, hintsUsed: 0, hintPenalty: 0,
+  activeHint: { from: 'COLD', word: 'CORD' }
+})), false, 'current progress cannot persist a pending hint after automatic submission');
 assert.equal(game.validateProgressSnapshot(snapshot({ score: -1 })), false);
 assert.equal(game.validateProgressSnapshot(snapshot({ level: 0 })), false);
 assert.equal(game.validateProgressSnapshot(snapshot({ puzzle: { ...puzzle, target: 'ZZZZ' } })), false);
