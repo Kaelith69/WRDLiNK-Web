@@ -109,6 +109,8 @@ const campaignHintSession = loadGame({ savedProgress: {
 } });
 const campaignNextWord = game.shortestPath('COLD', 'WARM')[1];
 assert.equal(campaignHintSession.game.useHint(), true, 'campaign hint opens confirmation');
+assert.equal(campaignHintSession.elements.get('hint-confirm-cost').textContent, '6', 'first hint confirmation includes five hint points and one move point');
+assert.equal(campaignHintSession.elements.get('hint-confirm-balance').textContent, '19', 'confirmation previews the actual remaining score');
 assert.equal(campaignHintSession.game.getState().score, 25, 'opening confirmation does not change current score');
 assert.equal(campaignHintSession.game.confirmHint(), true, 'confirming the hint submits the suggested move');
 const campaignState = campaignHintSession.game.getState();
@@ -328,6 +330,19 @@ assert.equal(game.validateProgressSnapshot(snapshot({
   version: 2, hintsUsed: 1, hintPenalty: 5,
   activeHint: { from: 'COLD', word: 'WARM' }
 })), false, 'invalid active hint word is rejected');
+assert.equal(game.validateProgressSnapshot(snapshot({
+  version: 4, score: 25, hintsUsed: 0, hintPenalty: 0, activeHint: null
+})), true, 'current progress validates the live starting score');
+assert.equal(game.validateProgressSnapshot(snapshot({
+  version: 4, score: 24, hintsUsed: 0, hintPenalty: 0, activeHint: null
+})), false, 'current progress rejects a score inconsistent with moves');
+assert.equal(game.validateProgressSnapshot(snapshot({
+  version: 4, score: 25, hintsUsed: 1, hintPenalty: 5, activeHint: null
+})), false, 'current progress rejects inconsistent hint deductions');
+assert.equal(game.validateProgressSnapshot(snapshot({
+  version: 4, score: 25, hintsUsed: 0, hintPenalty: 0,
+  activeHint: { from: 'COLD', word: 'CORD' }
+})), false, 'current progress rejects a stale pending hint');
 assert.equal(game.validateProgressSnapshot(snapshot({ score: -1 })), false);
 assert.equal(game.validateProgressSnapshot(snapshot({ level: 0 })), false);
 assert.equal(game.validateProgressSnapshot(snapshot({ puzzle: { ...puzzle, target: 'ZZZZ' } })), false);
