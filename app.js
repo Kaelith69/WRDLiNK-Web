@@ -19,7 +19,7 @@
     form: $('move-form'), input: $('word-entry'), submit: $('submit-button'),
     message: $('message'), entryPanel: $('entry-panel'), finishPanel: $('finish-panel'),
     finishTitle: $('finish-title'), finishDescription: $('finish-description'), shareStatus: $('share-status'),
-    nextButton: $('next-button'), newGameButton: $('new-game-button'), retryButton: $('retry-button'), themeToggle: $('theme-toggle'), shareChallengeButton: $('share-challenge-button'), copyChallengeButton: $('copy-challenge-button'), shareResultButton: $('share-result-button'), downloadResultButton: $('download-result-button'),
+    nextButton: $('next-button'), newGameButton: $('new-game-button'), retryButton: $('retry-button'), themeToggle: $('theme-toggle'), shareChallengeButton: $('share-challenge-button'), shareResultButton: $('share-result-button'), downloadResultButton: $('download-result-button'),
     hintButton: $('hint-button'), hintCostChip: $('hint-cost-chip'),
     hintConfirmation: $('hint-confirmation'), hintConfirmCost: $('hint-confirm-cost'),
     hintConfirmBalance: $('hint-confirm-balance'), hintConfirmButton: $('hint-confirm-button'),
@@ -296,7 +296,7 @@
   }
 
   function renderHeader() {
-    elements.levelLabel.textContent = `LEVEL ${state.level}`;
+    elements.levelLabel.textContent = `LV${Math.max(0, state.level - 1)}`;
     elements.scoreLabel.textContent = String(state.score);
   }
 
@@ -853,32 +853,6 @@
     }
   }
 
-  async function copyChallengeLink() {
-    const link = challengeUrl();
-    try {
-      if (navigator.clipboard?.writeText && window.isSecureContext) {
-        await navigator.clipboard.writeText(link);
-      } else {
-        const field = document.createElement('textarea');
-        field.value = link;
-        field.setAttribute('readonly', '');
-        field.style.position = 'fixed';
-        field.style.opacity = '0';
-        document.body.append(field);
-        field.select();
-        const copied = document.execCommand?.('copy');
-        field.remove();
-        if (!copied) {
-          const manualCopy = window.prompt?.('Copy this challenge link:', link);
-          if (!manualCopy) throw new Error('Clipboard access is unavailable.');
-        }
-      }
-      setMessage('Challenge link copied. Add it to an Instagram Story Link sticker if you share the card there.');
-    } catch (error) {
-      setMessage('Could not copy the challenge link. Check clipboard permissions and try again.', 'error');
-    }
-  }
-
   async function shareChallenge() {
     const link = challengeUrl();
     const text = 'Can you solve this WRDLINK word ladder? ' + state.puzzle.start + ' to ' + state.puzzle.target;
@@ -1094,8 +1068,7 @@
   elements.nextButton.addEventListener('click', () => startPuzzle({ nextLevel: true }));
   elements.retryButton.addEventListener('click', () => startPuzzle());
   elements.shareChallengeButton.addEventListener('click', shareChallenge);
-  elements.copyChallengeButton.addEventListener('click', copyChallengeLink);
-  elements.shareResultButton.addEventListener('click', shareResult);
+    elements.shareResultButton.addEventListener('click', shareResult);
   elements.downloadResultButton.addEventListener('click', () => {
     if (preparedResultFile) downloadResultCard(preparedResultFile);
   });
