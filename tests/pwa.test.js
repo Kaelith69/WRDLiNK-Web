@@ -87,7 +87,7 @@ assert(!html.includes('data-form-type="other"'));
 assert(game.includes('elements.downloadResultButton.addEventListener'));
 assert(game.includes('Native sharing was unavailable. Use Download PNG instead.'));
 assert(game.includes("elements.hintCostChip.textContent = hintIsActive ? 'READY' : `−${cost}`"), 'hint button shows the escalating hint price without the separate move cost');
-assert(game.includes(`Total deduction ${totalCost}`), 'hint accessibility text explains the combined deduction');
+assert(game.includes("Total deduction ${totalCost}"), "hint accessibility text explains the combined deduction");
 assert(html.includes('Total deduction, hint plus move'), 'hint confirmation labels the combined hint and move cost');
 assert(game.includes('navigator.share(data)'));
 assert(game.includes('wrdlink-challenge.png'));
