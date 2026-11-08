@@ -322,7 +322,7 @@
   function renderHintUI() {
     if (!state.puzzle || !elements.hintButton) return;
     const movesUsed = Math.max(0, state.chain.length - 1);
-    const available = calculatePoints(movesUsed, state.hintPenalty);
+    const available = state.score;
     const cost = calculateHintCost(state.hintsUsed);
     const currentWord = state.chain[state.chain.length - 1];
     const hintIsActive = Boolean(state.activeHint && state.activeHint.from === currentWord);
@@ -331,7 +331,7 @@
     elements.hintCostChip.textContent = hintIsActive ? 'READY' : `−${cost}`;
     elements.hintButton.setAttribute('aria-label', hintIsActive
       ? 'Hint entered. Submit the word to continue'
-      : available < cost ? `Not enough points for hint. Costs ${cost}, ${available} available`
+      : available < cost ? `Not enough score for hint. Costs ${cost}, current score ${available}`
         : `Use hint for ${cost} points`);
     elements.hintButton.setAttribute('aria-describedby', 'hint-confirm-description');
   }
@@ -345,8 +345,7 @@
       setMessage(`Hint ${state.activeHint.word} is already entered. Submit it to continue.`);
       return false;
     }
-    const movesUsed = Math.max(0, state.chain.length - 1);
-    const available = calculatePoints(movesUsed, state.hintPenalty);
+    const available = state.score;
     const cost = calculateHintCost(state.hintsUsed);
     const word = nextHintWord();
     if (!word) {
@@ -354,7 +353,7 @@
       return false;
     }
     if (available < cost) {
-      setMessage(`Not enough puzzle points. This hint costs ${cost}, but only ${available} remain.`, 'error');
+      setMessage(`Not enough score. This hint costs ${cost}, but your current score is ${available}.`, 'error');
       renderHintUI();
       return false;
     }
@@ -369,8 +368,7 @@
   function confirmHint() {
     if (!state.puzzle || busy || state.completed) return false;
     const currentWord = state.chain[state.chain.length - 1];
-    const movesUsed = Math.max(0, state.chain.length - 1);
-    const available = calculatePoints(movesUsed, state.hintPenalty);
+    const available = state.score;
     const cost = calculateHintCost(state.hintsUsed);
     const word = nextHintWord();
     if (!word || available < cost) {
@@ -381,14 +379,14 @@
     }
     state.hintsUsed += 1;
     state.hintPenalty += cost;
+    state.score = Math.max(0, state.score - cost);
     state.activeHint = { from: currentWord, word };
     elements.hintConfirmation.hidden = true;
     elements.input.value = word;
-    elements.submit.disabled = false;
+    renderHeader();
     renderHintUI();
-    saveProgress();
-    setMessage(`Hint entered: ${word}. ${cost} points deducted. Submit the word to make your move.`);
-    elements.input.focus({ preventScroll: true });
+    setMessage(`Hint used: ${word}. ${cost} points deducted from your score. Submitting the move automatically.`);
+    submitMove({ preventDefault() {} });
     return true;
   }
 
@@ -582,7 +580,7 @@
   }
 
   function renderCompletion(result) {
-    const points = calculatePoints(result.movesUsed, state.hintPenalty);
+    const points = calculatePoints(result.movesUsed);
     elements.entryPanel.hidden = true;
     elements.finishPanel.hidden = false;
     elements.finishTitle.textContent = 'Connected!';
@@ -605,7 +603,7 @@
   function completePuzzle(result) {
     // Defensive guard: a completion can award points only once per puzzle.
     if (state.completed) return;
-    state.score += calculatePoints(result.movesUsed, state.hintPenalty);
+    state.score += calculatePoints(result.movesUsed);
     state.completed = true;
     renderChain();
     renderHeader();
@@ -972,7 +970,7 @@
     let imageUrl = null;
     try {
       await waitForCardFonts();
-      const svgBlob = new Blob([createResultSvg(result, calculatePoints(result.movesUsed, state.hintPenalty))], { type: 'image/svg+xml' });
+      const svgBlob = new Blob([createResultSvg(result, calculatePoints(result.movesUsed))], { type: 'image/svg+xml' });
       const image = new Image();
       imageUrl = URL.createObjectURL(svgBlob);
       image.src = imageUrl;
