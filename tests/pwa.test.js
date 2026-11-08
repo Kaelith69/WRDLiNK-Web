@@ -16,6 +16,7 @@ const deploy = read('.github/workflows/deploy-pages.yml');
 assert(html.includes('rel="manifest" href="./manifest.webmanifest"'));
 assert(html.includes("navigator.serviceWorker.register('./sw.js'"));
 assert(html.includes('assets/wrdlink-icon.svg'));
+assert.match(html, /id="score-label">25<\/strong>/, 'initial HTML displays the starting 25 points before JavaScript initializes');
 assert(html.includes('rel="apple-touch-icon" href="./assets/wrdlink-icon-180.png"'));
 assert.equal(manifest.name, 'WRDLINK | Word Ladder');
 assert.equal(manifest.short_name, 'WRDLINK');
