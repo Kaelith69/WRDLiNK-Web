@@ -43,7 +43,7 @@ for (const asset of ['./index.html', './styles.css', './app.js', './dictionary.j
   assert(worker.includes(asset), 'service worker app shell includes ' + asset);
 }
 assert(worker.includes("const CACHE_PREFIX = 'wrdlink-shell-'"));
-assert(worker.includes('const CACHE_NAME = `' + '${CACHE_PREFIX}' + 'v23`'));
+assert(worker.includes('const CACHE_NAME = `' + '${CACHE_PREFIX}' + 'v24`'));
 assert(worker.includes("request.mode === 'navigate'"));
 assert(worker.includes('self.clients.claim()'));
 assert(deploy.includes('manifest.webmanifest sw.js'));
@@ -86,6 +86,9 @@ assert(!html.includes('name="wrdlink-word"'));
 assert(!html.includes('data-form-type="other"'));
 assert(game.includes('elements.downloadResultButton.addEventListener'));
 assert(game.includes('Native sharing was unavailable. Use Download PNG instead.'));
+assert(game.includes("elements.hintCostChip.textContent = hintIsActive ? 'READY' : `−${cost}`"), 'hint button shows the escalating hint price without the separate move cost');
+assert(game.includes(`Total deduction ${totalCost}`), 'hint accessibility text explains the combined deduction');
+assert(html.includes('Total deduction, hint plus move'), 'hint confirmation labels the combined hint and move cost');
 assert(game.includes('navigator.share(data)'));
 assert(game.includes('wrdlink-challenge.png'));
 assert(game.includes('width="1080" height="1920"'));
