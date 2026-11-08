@@ -148,13 +148,13 @@ const legacyPendingHint = loadGame({ savedProgress: {
 assert.equal(legacyPendingHint.game.getState().score, 19, 'legacy pending hint migrates with its hint and move deductions applied');
 assert.deepEqual(legacyPendingHint.game.getState().chain, ['COLD', campaignNextWord], 'legacy pending hint is automatically submitted during migration');
 assert.equal(legacyPendingHint.game.getState().activeHint, null, 'legacy pending hint is cleared after automatic submission');
-assert.equal(JSON.parse(legacyPendingHint.storage.get('wrdlink-browser-session-v1:progress')).version, 3, 'migrated progress is saved in the current format');
+assert.equal(JSON.parse(legacyPendingHint.storage.get('wrdlink-browser-session-v1:progress' )).version, 4, 'migrated progress is saved in the current format');
 const legacyUsedHint = loadGame({ savedProgress: {
   version: 2, score: 25, level: 1, puzzle: campaignPuzzle,
   chain: ['COLD', campaignNextWord], completed: false, hintsUsed: 1,
   hintPenalty: 5, activeHint: null
 } });
-assert.equal(legacyUsedHint.game.getState().score, 20, 'legacy already submitted hint cost is migrated exactly once');
+assert.equal(legacyUsedHint.game.getState().score, 19, 'legacy already submitted hint and move costs are migrated exactly once');
 assert.deepEqual(legacyUsedHint.game.getState().chain, ['COLD', campaignNextWord], 'migration does not duplicate an already submitted hint');
 
 
