@@ -20,10 +20,10 @@
     message: $('message'), entryPanel: $('entry-panel'), finishPanel: $('finish-panel'),
     finishTitle: $('finish-title'), finishDescription: $('finish-description'), shareStatus: $('share-status'),
     nextButton: $('next-button'), newGameButton: $('new-game-button'), retryButton: $('retry-button'), themeToggle: $('theme-toggle'), shareChallengeButton: $('share-challenge-button'), copyChallengeButton: $('copy-challenge-button'), shareResultButton: $('share-result-button'), downloadResultButton: $('download-result-button'),
-    hintButton: $('hint-button'), hintButtonLabel: $('hint-button-label'),
-    hintCostLabel: $('hint-cost-label'), hintCostChip: $('hint-cost-chip'),
-    hintBudgetLabel: $('hint-budget-label'), hintReveal: $('hint-reveal'),
-    hintWord: $('hint-word')
+    hintButton: $('hint-button'), hintCostChip: $('hint-cost-chip'),
+    hintConfirmation: $('hint-confirmation'), hintConfirmCost: $('hint-confirm-cost'),
+    hintConfirmBalance: $('hint-confirm-balance'), hintConfirmButton: $('hint-confirm-button'),
+    hintCancelButton: $('hint-cancel-button')
   };
 
   // Game session mirrors server SessionState: accumulated score, level,
@@ -326,65 +326,69 @@
     const cost = calculateHintCost(state.hintsUsed);
     const currentWord = state.chain[state.chain.length - 1];
     const hintIsActive = Boolean(state.activeHint && state.activeHint.from === currentWord);
-    const canReveal = !busy && !state.completed && !hintIsActive && available >= cost;
     const routeExists = Boolean(nextHintWord());
-
-    elements.hintButton.disabled = !canReveal || !routeExists;
-    elements.hintButtonLabel.textContent = hintIsActive
-      ? 'WORD REVEALED'
-      : available < cost
-        ? 'NOT ENOUGH POINTS'
-        : routeExists ? 'GET NEXT WORD' : 'NO UNUSED ROUTE';
-    elements.hintCostLabel.textContent = hintIsActive
-      ? 'Enter the revealed word to unlock another hint'
-      : available < cost
-        ? `Need ${cost} points · ${available} available`
-        : 'Reveal the next word on a shortest route';
+    elements.hintButton.disabled = busy || state.completed || hintIsActive || available < cost || !routeExists;
     elements.hintCostChip.textContent = hintIsActive ? 'READY' : `−${cost}`;
-    elements.hintBudgetLabel.textContent = `Puzzle points remaining: ${available}`;
-    elements.hintButton.setAttribute('aria-describedby', 'hint-cost-label hint-budget-label');
-    elements.hintReveal.hidden = !hintIsActive;
-
-    if (hintIsActive) {
-      renderWord(elements.hintWord, state.activeHint.word);
-      elements.hintWord.querySelectorAll?.('span')?.forEach((tile, index) => {
-        if (tile.textContent !== currentWord[index]) tile.classList.add('hint-letter-changed');
-      });
-    } else {
-      elements.hintWord.replaceChildren();
-    }
+    elements.hintButton.setAttribute('aria-label', hintIsActive
+      ? 'Hint entered. Submit the word to continue'
+      : available < cost ? `Not enough points for hint. Costs ${cost}, ${available} available`
+        : `Use hint for ${cost} points`);
+    elements.hintButton.setAttribute('aria-describedby', 'hint-confirm-description');
   }
 
   function useHint() {
     if (!state.puzzle || busy || state.completed) return false;
     const currentWord = state.chain[state.chain.length - 1];
     if (state.activeHint && state.activeHint.from === currentWord) {
-      setMessage(`Your revealed next word is ${state.activeHint.word}. Enter it to continue.`);
+      elements.input.value = state.activeHint.word;
+      elements.submit.disabled = false;
+      setMessage(`Hint ${state.activeHint.word} is already entered. Submit it to continue.`);
       return false;
     }
-
     const movesUsed = Math.max(0, state.chain.length - 1);
     const available = calculatePoints(movesUsed, state.hintPenalty);
     const cost = calculateHintCost(state.hintsUsed);
+    const word = nextHintWord();
+    if (!word) {
+      setMessage('No unused route to the target remains from this word. Start a new puzzle to try another route.', 'error');
+      return false;
+    }
     if (available < cost) {
       setMessage(`Not enough puzzle points. This hint costs ${cost}, but only ${available} remain.`, 'error');
       renderHintUI();
       return false;
     }
+    elements.hintConfirmCost.textContent = String(cost);
+    elements.hintConfirmBalance.textContent = String(available - cost);
+    elements.hintConfirmButton.textContent = `USE HINT · −${cost}`;
+    elements.hintConfirmation.hidden = false;
+    elements.hintCancelButton.focus({ preventScroll: true });
+    return true;
+  }
 
+  function confirmHint() {
+    if (!state.puzzle || busy || state.completed) return false;
+    const currentWord = state.chain[state.chain.length - 1];
+    const movesUsed = Math.max(0, state.chain.length - 1);
+    const available = calculatePoints(movesUsed, state.hintPenalty);
+    const cost = calculateHintCost(state.hintsUsed);
     const word = nextHintWord();
-    if (!word) {
-      setMessage('No unused route to the target remains from this word. Start a new puzzle to try another route.', 'error');
+    if (!word || available < cost) {
+      elements.hintConfirmation.hidden = true;
+      setMessage('This hint is no longer available. Your points were not deducted.', 'error');
       renderHintUI();
       return false;
     }
-
     state.hintsUsed += 1;
     state.hintPenalty += cost;
     state.activeHint = { from: currentWord, word };
+    elements.hintConfirmation.hidden = true;
+    elements.input.value = word;
+    elements.submit.disabled = false;
     renderHintUI();
     saveProgress();
-    setMessage(`Hint revealed: ${word}. ${cost} points deducted from this puzzle's score.`);
+    setMessage(`Hint entered: ${word}. ${cost} points deducted. Submit the word to make your move.`);
+    elements.input.focus({ preventScroll: true });
     return true;
   }
 
@@ -397,6 +401,12 @@
     elements.entryPanel.hidden = false;
     elements.finishPanel.hidden = true;
     elements.input.value = '';
+    const restoredHint = state.activeHint && state.activeHint.from === state.chain[state.chain.length - 1]
+      ? state.activeHint.word : null;
+    if (restoredHint) {
+      elements.input.value = restoredHint;
+      elements.submit.disabled = false;
+    }
     preparedResultFile = null;
     resultPreparationPending = false;
     elements.shareResultButton.textContent = 'SHARE RESULT';
@@ -1055,6 +1065,23 @@
     if (event.pointerType === 'touch' || event.pointerType === 'pen') event.preventDefault();
   });
   elements.hintButton.addEventListener('click', useHint);
+  elements.hintConfirmButton.addEventListener('click', confirmHint);
+  elements.hintCancelButton.addEventListener('click', () => {
+    elements.hintConfirmation.hidden = true;
+    elements.hintButton.focus({ preventScroll: true });
+  });
+  elements.hintConfirmation.addEventListener('click', (event) => {
+    if (event.target === elements.hintConfirmation) {
+      elements.hintConfirmation.hidden = true;
+      elements.hintButton.focus({ preventScroll: true });
+    }
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !elements.hintConfirmation.hidden) {
+      elements.hintConfirmation.hidden = true;
+      elements.hintButton.focus({ preventScroll: true });
+    }
+  });
   elements.newGameButton.addEventListener('click', () => startPuzzle({ resetScore: true }));
   elements.nextButton.addEventListener('click', () => startPuzzle({ nextLevel: true }));
   elements.retryButton.addEventListener('click', () => startPuzzle());
@@ -1078,6 +1105,7 @@
     calculateHintCost,
     calculateHintPenalty,
     useHint,
+    confirmHint,
     calculatePoints,
     loadChallengeFromUrl,
     createChallengeSvg,

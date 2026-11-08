@@ -497,3 +497,79 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 @media (prefers-reduced-motion: reduce) {
   .hint-button, .hint-reveal, .hint-word span { animation: none !important; transition: none !important; }
 }
+
+
+/* Compact paid hint action lives in the top bar, keeping the play area clear. */
+.header-hint-button {
+  display: inline-flex;
+  min-width: 54px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 9px;
+  border: 2px solid var(--line-strong);
+  border-radius: 13px;
+  background: var(--paper-strong);
+  color: var(--ink);
+  box-shadow: 2px 2px 0 var(--line-strong);
+  cursor: pointer;
+}
+.header-hint-button svg { width: 21px; height: 21px; fill: none; stroke: var(--accent); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.header-hint-cost { color: var(--accent-ink); font-size: 12px; font-weight: 950; font-variant-numeric: tabular-nums; }
+:root[data-theme="dark"] .header-hint-cost { color: var(--accent); }
+.header-hint-button:disabled { opacity: .48; box-shadow: none; cursor: not-allowed; }
+.hint-confirmation-backdrop {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgb(5 12 11 / 72%);
+  backdrop-filter: blur(5px);
+}
+.hint-confirmation {
+  width: min(100%, 390px);
+  padding: 24px;
+  border: 3px solid var(--line-strong);
+  border-radius: 22px;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 7px 8px 0 rgb(0 0 0 / 28%);
+}
+.hint-confirm-icon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 2px solid var(--line-strong);
+  border-radius: 13px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 25px;
+  font-weight: 950;
+}
+.hint-confirmation h2 { margin: 15px 0 5px; font-size: 25px; font-weight: 950; letter-spacing: -.04em; }
+.hint-confirmation > p { margin: 0 0 16px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.hint-confirm-cost, .hint-confirm-balance { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+.hint-confirm-cost strong { color: var(--error); font-size: 20px; }
+.hint-confirm-balance strong { color: var(--success); font-size: 20px; }
+.hint-confirmation .hint-confirm-warning { margin: 14px 0 18px; font-size: 12px; }
+.hint-confirm-actions { display: grid; grid-template-columns: 1fr 1.25fr; gap: 10px; }
+.hint-confirm-actions button { min-width: 0; min-height: 48px; }
+@media (max-width: 620px) {
+  .header-hint-button { min-width: 48px; height: 40px; gap: 3px; padding-inline: 6px; border-radius: 10px; }
+  .header-hint-button svg { width: 19px; height: 19px; }
+  .header-hint-cost { font-size: 11px; }
+  .hint-confirmation { padding: 20px; }
+}
+@media (max-width: 370px) {
+  .header-hint-button { min-width: 43px; padding-inline: 5px; }
+  .header-hint-button svg { width: 17px; height: 17px; }
+}
+@media (prefers-reduced-motion: reduce) { .hint-confirmation-backdrop { backdrop-filter: none; } }
+
+@media (max-width: 620px) {
+  .header-context { display: none; }
+}
