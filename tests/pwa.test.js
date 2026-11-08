@@ -74,7 +74,7 @@ assert(html.includes('<form id="move-form" novalidate>'));
 assert(!html.includes('copy-challenge-button'), 'redundant standalone copy link action is removed');
 assert(html.includes('id="share-challenge-button"') && html.includes('class="secondary-button share-challenge-button"'), 'share challenge has its own styled action');
 assert(html.includes('class="secondary-button new-game-button"'), 'new game has its own styled action');
-assert(html.includes('id="level-label">LV0</div>'), 'level numbering starts at LV0');
+assert(html.includes('id="level-label">LV0</strong>'), 'level numbering starts at LV0');
 assert(game.includes("elements.levelLabel.textContent = `LV${Math.max(0, state.level - 1)}`"), "visible level labels use LV0, LV1, LV2 numbering");
 assert(!game.includes('copyChallengeLink') && !game.includes('copyChallengeButton'), 'removed copy action has no unused application code');
 assert(!html.includes('name="wrdlink-word"'));
