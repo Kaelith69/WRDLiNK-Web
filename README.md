@@ -48,25 +48,26 @@ Browsers can request that autocomplete, autocorrection, spell checking, and writ
 
 ### Scoring
 
-Every level starts with **25 visible points**. Each valid move deducts one point immediately, including a move submitted automatically by a confirmed hint. Invalid entries do not change the score. The score never falls below zero.
+A new game starts with **25 points**. Every valid move immediately deducts **1 point**. Invalid entries do not change the score. A confirmed hint deducts its escalating hint price and automatically submits the suggested word, which also costs **1 move point**.
 
 ```text
-Starting level score = 25
+Starting score = 25
 Hint 1 = 5 points
 Hint 2 = 6 points
 Hint 3 = 7 points
 Hint n = 5 + (n - 1)
 
-Normal move deduction = 1 point
-Confirmed hint deduction = hint price + 1 move point
-Current level score = max(0, 25 - valid moves - hint prices)
+Normal valid move = -1 point
+Confirmed hint = -(hint price + 1 move point)
+Level completion reward = +25 points
+Score cannot fall below zero
 ```
 
-The header updates after every valid move. The hint control shows the full next deduction, including its move point. Its confirmation dialog previews the total deduction and exact remaining score. Cancelling costs nothing. Confirming deducts the hint price and automatically submits the next word on a shortest valid route, which deducts one additional point for the move. A hint is unavailable unless the current score covers both deductions.
+The score is cumulative across levels. When a level is completed, **25 points are added** to the remaining score. The next level carries that balance forward rather than resetting it. Every new game starts a fresh run at 25 points. Hint prices restart at 5 for each new level.
 
-Hint prices increase by one point after each confirmed hint in the same level. Hint usage and score are saved with the current game. Each new level and each new game starts at 25 points. Completed levels retain their final remaining score, which is also shown on the result card.
+The top bar keeps the score and move count identifiable on mobile, including while the keyboard is open. The hint control displays the full deduction, including the automatically submitted move. Before confirmation, the dialog previews the exact total deduction and remaining balance. Cancelling costs nothing. Confirming submits the next word on a shortest valid route automatically.
 
-Puzzles are generated from connected paths in the bundled dictionary. Breadth first search calculates the shortest possible distance between the start and target. You may use a longer valid route and still complete the puzzle.
+Progress saves the cumulative score, current level, moves, and hint deductions. Result cards display the score after the level completion reward.
 
 ## Install the app
 
