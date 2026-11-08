@@ -265,7 +265,7 @@ async function testInteractions() {
   const result = challenge.game.validateSequence(challenge.game.getState().puzzle, challenge.game.getState().chain);
   const finalHintState = challenge.game.getState();
   const finalAward = challenge.game.calculatePoints(result.movesUsed);
-  assert.equal(finalHintState.score, 14 + finalAward, 'the final award is added after hint costs have already been deducted from current score');
+  assert.equal(finalHintState.score, 25 + finalAward, 'the level award is added to the untouched friend challenge score');
   const resultSvg = challenge.game.createResultSvg(result, finalAward);
   assert.match(resultSvg, new RegExp('LEVEL SCORE[\\s\\S]*?>\\+' + finalAward + '<'));
 
