@@ -26,7 +26,7 @@
 - [Application architecture](#application-architecture)
 - [Progress, storage, and migration](#progress-storage-and-migration)
 - [Friend challenges and sharing](#friend-challenges-and-sharing)
-- [Install and offline play](#install-and-offline-play)
+- [Install the app and offline play](#install-the-app-and-offline-play)
 - [Run locally and test](#run-locally-and-test)
 - [Project structure](#project-structure)
 - [Technology](#technology)
@@ -158,13 +158,10 @@ Example:
 
 ```text
 COLD
-_COLD  not used
-_COLD is not a four character pattern
-
-COLD -> _OLD
-COLD -> C_LD
-COLD -> CO_D
-COLD -> COL_
+_OLD
+C_LD
+CO_D
+COL_
 ```
 
 Every word sharing a pattern differs only at the wildcard position, so it is a possible one move neighbor. To find the neighbors of a word, the game looks up its four patterns, collects the matching words, removes the word itself, and deduplicates the results.
@@ -226,12 +223,12 @@ The random walk creates a connected pair of endpoints. BFS then measures the act
 
 ### 6. Complexity
 
-Let (V) be the number of dictionary words and (E) the number of legal one letter transitions.
+Let **V** be the number of dictionary words and **E** the number of legal one letter transitions.
 
-- **Pattern index construction:** each word contributes four patterns, so index construction is proportional to (4V), excluding the cost of storing the buckets.
+- **Pattern index construction:** each word contributes four patterns, so index construction is proportional to **4V**, excluding the cost of storing the buckets.
 - **Neighbor lookup:** examines the four relevant pattern buckets. Its practical cost depends on the sizes of those buckets.
-- **BFS:** (O(V + E)) time and (O(V)) auxiliary space in the usual adjacency list graph model.
-- **Path reconstruction:** (O(L)), where (L) is the number of words in the returned path.
+- **BFS:** **O(V + E)** time and **O(V)** auxiliary space in the usual adjacency list graph model.
+- **Path reconstruction:** **O(L)**, where (L) is the number of words in the returned path.
 - **Sequence validation:** linear in the number of submitted words, with a fixed four character comparison per transition.
 
 The implementation generates neighbors from the pattern index rather than materializing every graph edge up front.
@@ -297,7 +294,7 @@ The challenge feature supports:
 
 Result sharing is separate from challenge sharing. The result card is generated after the puzzle is completed and reflects the final score shown by the game.
 
-## Install and offline play
+## Install the app and offline play
 
 WRDLINK is a **Progressive Web App (PWA)** and can be installed from a supported browser.
 
