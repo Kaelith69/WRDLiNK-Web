@@ -260,8 +260,8 @@
   }
 
   // Exact scoring rule from core/game.ts and routes/api.ts.
-  function calculatePoints(movesUsed, hintPenalty = 0) {
-    return Math.max(0, BASE_LEVEL_POINTS - movesUsed - hintPenalty);
+  function calculatePoints(movesUsed) {
+    return Math.max(0, BASE_LEVEL_POINTS - movesUsed);
   }
 
   function renderWord(container, word) {
@@ -321,7 +321,6 @@
 
   function renderHintUI() {
     if (!state.puzzle || !elements.hintButton) return;
-    const movesUsed = Math.max(0, state.chain.length - 1);
     const available = state.score;
     const cost = calculateHintCost(state.hintsUsed);
     const currentWord = state.chain[state.chain.length - 1];
