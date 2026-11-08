@@ -918,7 +918,7 @@
     if (!Number.isInteger(optimalMoves) || optimalMoves < 1) return false;
     challengeSession = true;
     state = {
-      score: 0, level: 1,
+      score: BASE_LEVEL_POINTS, level: 1,
       puzzle: { id: 'challenge-' + start + '-' + target, title: 'Friend challenge', start, target, wordLength: WORD_LENGTH, optimalMoves },
       chain: [start], completed: false,
       hintsUsed: 0, hintPenalty: 0, activeHint: null
