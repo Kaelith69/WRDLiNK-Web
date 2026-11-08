@@ -64,6 +64,7 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 .wordmark { display: inline-flex; align-items: center; gap: 10px; width: fit-content; color: var(--ink); font-size: 18px; font-weight: 950; letter-spacing: -.055em; text-decoration: none; }
 .brand-mark { display: grid; width: 34px; height: 34px; place-items: center; border: 2px solid var(--line-strong); border-radius: 10px; background: var(--accent); color: var(--accent-ink); font-size: 19px; box-shadow: 3px 3px 0 var(--line-strong); }
 .header-context { justify-self: center; padding: 9px 15px; border: 1px solid var(--line); border-radius: 999px; color: var(--ink-soft); font-size: 11px; font-weight: 850; letter-spacing: .12em; white-space: nowrap; }
+.level-badge { display: inline-flex; align-items: center; margin-left: 7px; padding: 2px 7px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper-strong); color: var(--ink); font-size: 9px; font-weight: 950; letter-spacing: .08em; line-height: 1.4; vertical-align: 1px; }
 .header-right { display: flex; align-items: center; justify-self: end; gap: 12px; }
 .header-count { display: flex; align-items: center; gap: 8px; font-variant-numeric: tabular-nums; }
 .score-pill, .moves-pill { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 12px; border: 2px solid var(--line-strong); border-radius: 12px; background: var(--paper-strong); }
@@ -218,7 +219,6 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
     font-size: 14px;
     box-shadow: 2px 2px 0 var(--line-strong);
   }
-  :root.keyboard-open .header-context { display: none; }
   :root.keyboard-open .header-right { gap: 6px; }
   :root.keyboard-open .header-count { gap: 5px; }
   :root.keyboard-open .score-pill,
@@ -623,5 +623,4 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 @media (prefers-reduced-motion: reduce) { .hint-confirmation-backdrop { backdrop-filter: none; } }
 
 @media (max-width: 620px) {
-  .header-context { display: none; }
 }
