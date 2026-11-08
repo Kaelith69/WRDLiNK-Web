@@ -45,10 +45,11 @@ function loadGame({ includeDictionary = true, search = '', savedProgress = null 
   const elements = new Map();
   const document = {
     documentElement: { dataset: { theme: 'light' }, classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } }, style: { setProperty() {} } },
+    addEventListener() {},
     getElementById(id) {
       if (!elements.has(id)) {
         const element = makeElement();
-        if (id === 'game' || id === 'error-panel' || id === 'finish-panel') element.hidden = true;
+        if (id === 'game' || id === 'error-panel' || id === 'finish-panel' || id === 'hint-confirmation') element.hidden = true;
         elements.set(id, element);
       }
       return elements.get(id);
@@ -98,7 +99,10 @@ assert.equal(game.dictionarySize, 3889);
 
 // Campaign hints must survive a real save and reload, not only snapshot validation.
 const campaignHintSession = loadGame();
-assert.equal(campaignHintSession.game.useHint(), true, 'campaign hint is usable');
+assert.equal(campaignHintSession.game.useHint(), true, 'campaign hint opens confirmation');
+assert.equal(campaignHintSession.game.getState().hintsUsed, 0, 'opening confirmation does not charge points');
+assert.equal(campaignHintSession.game.confirmHint(), true, 'confirming the hint applies it');
+assert.equal(campaignHintSession.elements.get('word-entry').value, campaignHintSession.game.getState().activeHint.word, 'confirmed hint fills the input');
 const campaignSavedProgress = JSON.parse(campaignHintSession.storage.get('wrdlink-browser-session-v1:progress'));
 assert.equal(campaignSavedProgress.version, 2);
 assert.equal(campaignSavedProgress.hintsUsed, 1);
@@ -222,8 +226,17 @@ async function testInteractions() {
   assert.equal(typeof hintButton.listeners.click, 'function', 'hint button has a click handler');
   const pathFromCord = challenge.game.shortestPath('CORD', 'WARM', ['COLD']);
   hintButton.dispatch('click');
+  assert.equal(challenge.elements.get('hint-confirmation').hidden, false, 'hint click opens a confirmation dialog');
+  assert.equal(challenge.elements.get('hint-confirm-cost').textContent, '5', 'confirmation displays exact hint cost');
+  assert.equal(challenge.elements.get('hint-confirm-balance').textContent, '19', 'confirmation displays post purchase balance');
+  assert.equal(challenge.game.getState().hintsUsed, 0, 'hint is not charged before confirmation');
+  challenge.elements.get('hint-cancel-button').dispatch('click');
+  assert.equal(challenge.game.getState().hintsUsed, 0, 'cancel leaves hint points untouched');
+  hintButton.dispatch('click');
+  challenge.elements.get('hint-confirm-button').dispatch('click');
   let hintedState = challenge.game.getState();
-  assert.equal(hintedState.hintsUsed, 1, 'using a hint increments the hint count');
+  assert.equal(challenge.elements.get('word-entry').value, hintedState.activeHint.word, 'confirmed hint automatically fills the move input');
+  assert.equal(challenge.elements.get('submit-button').disabled, false, 'confirmed hint enables submission');
   assert.equal(hintedState.hintPenalty, 5, 'first hint deducts five points');
   assert.equal(hintedState.activeHint.word, pathFromCord[1], 'hint reveals the next word on a shortest valid route');
   hintButton.dispatch('click');
@@ -233,6 +246,8 @@ async function testInteractions() {
   submitWord(pathFromCord[1]);
   assert.equal(challenge.game.getState().activeHint, null, 'submitting a move dismisses the previous reveal');
   hintButton.dispatch('click');
+  assert.equal(challenge.elements.get('hint-confirm-cost').textContent, '6', 'second confirmation shows escalating six point cost');
+  challenge.elements.get('hint-confirm-button').dispatch('click');
   hintedState = challenge.game.getState();
   assert.equal(hintedState.hintsUsed, 2, 'a hint after advancing uses the next tier');
   assert.equal(hintedState.hintPenalty, 11, 'second hint adds six points to the cumulative deduction');
