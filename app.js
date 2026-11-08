@@ -483,10 +483,13 @@
       : validateSequence(puzzle, chain);
     if (!result.valid || saved.completed !== result.complete) return false;
 
-    if (saved.version === 2 || saved.version === 3) {
+    if (saved.version >= 2) {
       if (!Number.isSafeInteger(saved.hintsUsed) || saved.hintsUsed < 0 ||
           !Number.isSafeInteger(saved.hintPenalty) || saved.hintPenalty !== calculateHintPenalty(saved.hintsUsed)) return false;
       if (calculateHintPenalty(saved.hintsUsed) > Number.MAX_SAFE_INTEGER) return false;
+      if (saved.version === 4 &&
+          saved.score !== Math.max(0, BASE_LEVEL_POINTS - (chain.length - 1) - saved.hintPenalty)) return false;
+      if (saved.version === 4 && saved.activeHint !== null) return false;
       if (saved.activeHint !== null) {
         const current = chain[chain.length - 1];
         const expected = shortestPath(current, puzzle.target, chain.slice(0, -1));
