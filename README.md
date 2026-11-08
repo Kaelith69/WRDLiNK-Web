@@ -48,23 +48,23 @@ Browsers can request that autocomplete, autocorrection, spell checking, and writ
 
 ### Scoring
 
-Each completed level awards up to **25 points**, less one point per valid move. Hints deduct their escalating cost immediately from the player's **current total score**. A hint can only be purchased when the current score covers its full cost. The level award is added after completion, and the total score cannot fall below zero.
+Every level starts with **25 visible points**. Each valid move deducts one point immediately, including a move submitted automatically by a confirmed hint. Invalid entries do not change the score. The score never falls below zero.
 
 ```text
+Starting level score = 25
 Hint 1 = 5 points
 Hint 2 = 6 points
 Hint 3 = 7 points
 Hint n = 5 + (n - 1)
 
-Level award = max(0, 25 - valid moves)
-Current score = current score - confirmed hint costs + completed level award
+Normal move deduction = 1 point
+Confirmed hint deduction = hint price + 1 move point
+Current level score = max(0, 25 - valid moves - hint prices)
 ```
 
-Select the lightbulb hint control in the top bar when you are stuck. WRDLINK first asks you to confirm the exact point deduction and shows your current score after purchase. Only after confirmation does it use breadth first search to find the next word on a shortest valid route, deduct the cost from the current score, and submit that word as the next move automatically. The hint therefore advances the ladder and consumes one valid move. Cancelling costs nothing.
+The header updates after every valid move. The hint control shows the full next deduction, including its move point. Its confirmation dialog previews the total deduction and exact remaining score. Cancelling costs nothing. Confirming deducts the hint price and automatically submits the next word on a shortest valid route, which deducts one additional point for the move. A hint is unavailable unless the current score covers both deductions.
 
-The first hint costs 5 points. Every later hint in the same level costs one point more than the previous hint. Repeatedly tapping a hint that is already revealed does not charge again. After you submit a valid move, the next hint becomes available at the higher cost. A hint is disabled when your current total score cannot cover its cost. Hint usage and its deduction are saved with your current game and reset when you start the next level or a new game.
-
-Completed level scores, after move and hint deductions, accumulate during the current game. After a win, choose **Share result** to create a 1080 × 1920 story card. Result and challenge cards follow the supplied matching 9:16 layouts, with a full bleed textured field, Barlow Condensed display type, DM Mono labels, reference sized letter tiles, and the original connector treatment. Result cards show the connected status, route status, concealed intermediate words, changed letter connectors, move count, and level score. Challenge cards show the dashed mystery route, letter distance, unknown move count, and exact challenge URL. Supported browsers open the native share sheet; other browsers download the image so it can be posted manually. Selecting **New game** resets the level and total score.
+Hint prices increase by one point after each confirmed hint in the same level. Hint usage and score are saved with the current game. Each new level and each new game starts at 25 points. Completed levels retain their final remaining score, which is also shown on the result card.
 
 Puzzles are generated from connected paths in the bundled dictionary. Breadth first search calculates the shortest possible distance between the start and target. You may use a longer valid route and still complete the puzzle.
 
@@ -105,7 +105,7 @@ Game progress and theme preference are stored locally by the browser. Offline su
 - **Shortest route calculation** using breadth first search.
 - **Move validation** for dictionary membership, letter changes, and duplicate words.
 - **Level scoring** with 25 starting points, move deductions, escalating paid hints, and cumulative progression.
-- **Paid hints** in the top bar, with an explicit cost confirmation, immediate current score deduction, and automatic move submission. Costs escalate by one point per hint.
+- **Paid hints** in the top bar, with an explicit total cost confirmation, immediate current score deduction, and automatic move submission. Costs escalate by one point per hint.
 - **Friend challenges** with shareable links that reopen the exact start and target words.
 - **Shareable result cards** exported as PNG images for messaging and social stories.
 - **Persistent progress** using browser `localStorage`.
@@ -136,7 +136,7 @@ Node.js 18 or newer is required for the test suite.
 npm test
 ```
 
-The tests exercise the production game logic, dictionary, adjacency rules, 25 point scoring, escalating hint costs, current score hint affordability, shortest route auto submission, hint persistence, puzzle generation, shared challenge loading, saved progress validation, and PWA metadata.
+The tests exercise the production game logic, dictionary, adjacency rules, 25 point scoring, escalating hint costs, total hint and move affordability, shortest route auto submission, hint persistence, puzzle generation, shared challenge loading, saved progress validation, and PWA metadata.
 
 ## Project structure
 
