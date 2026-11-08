@@ -41,6 +41,7 @@
   let busy = false;
   let externalProgressChanged = false;
   let challengeSession = false;
+  let legacyHintNeedsSubmission = false;
   let puzzleTransition = false;
   let preparedResultFile = null;
   let resultPreparationId = 0;
@@ -433,7 +434,7 @@
     // Never overwrite a newer snapshot written by another open tab.
     if (externalProgressChanged) return;
     const snapshot = {
-      version: 2,
+      version: 3,
       score: state.score,
       level: state.level,
       puzzle: state.puzzle,
@@ -453,7 +454,7 @@
   // Validate persisted data without mutating live state. Browser storage is
   // user-editable and may also contain data from an older or interrupted run.
   function validateProgressSnapshot(saved) {
-    if (!saved || (saved.version !== 1 && saved.version !== 2) ||
+    if (!saved || (saved.version !== 1 && saved.version !== 2 && saved.version !== 3) ||
         !Number.isSafeInteger(saved.score) || saved.score < 0 ||
         !Number.isSafeInteger(saved.level) || saved.level < 1 ||
         !saved.puzzle || !Array.isArray(saved.chain) ||
@@ -479,7 +480,7 @@
       : validateSequence(puzzle, chain);
     if (!result.valid || saved.completed !== result.complete) return false;
 
-    if (saved.version === 2) {
+    if (saved.version === 2 || saved.version === 3) {
       if (!Number.isSafeInteger(saved.hintsUsed) || saved.hintsUsed < 0 ||
           !Number.isSafeInteger(saved.hintPenalty) || saved.hintPenalty !== calculateHintPenalty(saved.hintsUsed)) return false;
       if (calculateHintPenalty(saved.hintsUsed) > Number.MAX_SAFE_INTEGER) return false;
@@ -512,10 +513,13 @@
         puzzle: saved.puzzle,
         chain: [...saved.chain],
         completed: saved.completed,
-        hintsUsed: saved.version === 2 ? saved.hintsUsed : 0,
-        hintPenalty: saved.version === 2 ? saved.hintPenalty : 0,
-        activeHint: saved.version === 2 ? saved.activeHint : null
+        score: saved.version === 2 && !saved.completed
+          ? Math.max(0, saved.score - saved.hintPenalty) : saved.score,
+        hintsUsed: saved.version >= 2 ? saved.hintsUsed : 0,
+        hintPenalty: saved.version >= 2 ? saved.hintPenalty : 0,
+        activeHint: saved.version >= 2 ? saved.activeHint : null
       };
+      legacyHintNeedsSubmission = saved.version === 2 && !saved.completed && Boolean(saved.activeHint);
       return true;
     } catch (error) {
       console.warn('Saved WRDLINK progress could not be read.', error);
@@ -1132,6 +1136,9 @@
       renderPuzzle();
       if (state.completed) {
         renderCompletion(validateSequence(state.puzzle, state.chain));
+      } else if (legacyHintNeedsSubmission) {
+        legacyHintNeedsSubmission = false;
+        submitMove({ preventDefault() {} });
       }
       return;
     }
