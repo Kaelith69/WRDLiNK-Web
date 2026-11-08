@@ -346,7 +346,7 @@ const lowBudget = loadGame({ savedProgress: {
 assert.equal(lowBudget.game.getState().hintsUsed, 3);
 assert.equal(lowBudget.game.getState().hintPenalty, 18);
 assert.equal(lowBudget.elements.get('hint-button').disabled, true, 'hint is disabled when the current score cannot cover the next cost');
-assert.match(lowBudget.elements.get('hint-button').getAttribute('aria-label'), /Not enough score.*Costs 8, current score 0/);
+assert.match(lowBudget.elements.get('hint-button').getAttribute('aria-label'), /Not enough score.*Total deduction 9, current score 0/);
 assert.equal(lowBudget.elements.get('hint-confirmation').hidden, true, 'an unaffordable hint never opens confirmation');
 assert.equal(lowBudget.game.useHint(), false, 'an unaffordable hint cannot be used');
 assert.equal(lowBudget.game.getState().hintsUsed, 3, 'an unaffordable hint does not increment the hint count');
