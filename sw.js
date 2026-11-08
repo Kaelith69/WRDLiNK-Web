@@ -1,7 +1,7 @@
 'use strict';
 
 const CACHE_PREFIX = 'wrdlink-shell-';
-const CACHE_NAME = `${CACHE_PREFIX}v20`;
+const CACHE_NAME = `${CACHE_PREFIX}v21`;
 const APP_SHELL = [
   './index.html',
   './styles.css',
