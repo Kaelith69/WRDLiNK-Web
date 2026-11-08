@@ -48,25 +48,25 @@ Browsers can request that autocomplete, autocorrection, spell checking, and writ
 
 ### Scoring
 
-Each completed level awards up to **25 points**, less one point per valid move. Hints deduct their escalating cost immediately from the player's **current total score**. A hint can only be purchased when the current score covers its full cost. The level award is added after completion, and the total score cannot fall below zero.
+Every level starts with **25 points visible immediately**. Each valid move deducts one point as soon as it is submitted. Invalid entries do not change the score. Hints deduct their escalating hint price immediately, in addition to the one point for the automatically submitted move. The score never falls below zero.
 
 ```text
+Starting level score = 25
 Hint 1 = 5 points
 Hint 2 = 6 points
 Hint 3 = 7 points
 Hint n = 5 + (n - 1)
 
-Level award = max(0, 25 - valid moves)
-Current score = current score - confirmed hint costs + completed level award
+Normal move deduction = 1 point
+Confirmed hint deduction = hint price + 1 move point
+Current level score = max(0, 25 - valid moves - hint prices)
 ```
 
-Select the lightbulb hint control in the top bar when you are stuck. WRDLINK first asks you to confirm the exact point deduction and shows your current score after purchase. Only after confirmation does it use breadth first search to find the next word on a shortest valid route, deduct the cost from the current score, and submit that word as the next move automatically. The hint therefore advances the ladder and consumes one valid move. Cancelling costs nothing.
+The score display updates after every valid move and confirmed hint. The top bar shows the full deduction for the next hint, including its move point. Selecting the hint opens a confirmation that shows the exact total deduction and the score that will remain. Cancelling costs nothing. Confirming deducts the hint price and automatically submits the next word on a shortest valid route, which also deducts one move point.
 
-The first hint costs 5 points. Every later hint in the same level costs one point more than the previous hint. Repeatedly tapping a hint that is already revealed does not charge again. After you submit a valid move, the next hint becomes available at the higher cost. A hint is disabled when your current total score cannot cover its cost. Hint usage and its deduction are saved with your current game and reset when you start the next level or a new game.
+The first hint price is 5 points. Every later hint price in the same level costs one point more than the previous hint. A hint cannot be confirmed unless the current score covers both the hint price and its move point. Hint usage and deductions are saved with the current game. Each new level starts with 25 points, and starting a new game resets the level and score.
 
-Completed level scores, after move and hint deductions, accumulate during the current game. After a win, choose **Share result** to create a 1080 × 1920 story card. Result and challenge cards follow the supplied matching 9:16 layouts, with a full bleed textured field, Barlow Condensed display type, DM Mono labels, reference sized letter tiles, and the original connector treatment. Result cards show the connected status, route status, concealed intermediate words, changed letter connectors, move count, and level score. Challenge cards show the dashed mystery route, letter distance, unknown move count, and exact challenge URL. Supported browsers open the native share sheet; other browsers download the image so it can be posted manually. Selecting **New game** resets the level and total score.
-
-Puzzles are generated from connected paths in the bundled dictionary. Breadth first search calculates the shortest possible distance between the start and target. You may use a longer valid route and still complete the puzzle.
+Completed levels retain their final remaining score. The result card displays the level score after all move and hint deductions. Selecting **New game** resets the level score to 25.
 
 ## Install the app
 
