@@ -63,7 +63,7 @@ Level completion reward = +25 points
 Score cannot fall below zero
 ```
 
-The score is cumulative across levels. When a level is completed, **25 points are added** to the remaining score. The next level carries that balance forward rather than resetting it. Every new game starts a fresh run at 25 points. Hint prices restart at 5 for each new level.
+The score is cumulative across levels. When a level is completed, **25 points are added** to the remaining score. The next level carries that balance forward rather than resetting it. Every new game starts a fresh run at 25 points. Hint prices are cumulative across the entire run, including level changes. For example, after using hints costing 5 and 6 on the first level, the next level begins at 7, then 8, and so on. Only starting a new game resets the hint sequence.
 
 The top bar labels each stage LV0, LV1, LV2, and onward. The challenge area has one share action, with a dedicated share icon and teal treatment, plus a contrasting amber new game action. The redundant standalone copy link button is removed. The top bar keeps the score and move count identifiable on mobile, including while the keyboard is open. The hint control displays the full deduction, including the automatically submitted move. Before confirmation, the dialog previews the exact total deduction and remaining balance. Cancelling costs nothing. Confirming submits the next word on a shortest valid route automatically.
 
