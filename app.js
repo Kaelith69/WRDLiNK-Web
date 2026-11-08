@@ -29,7 +29,7 @@
   // Game session mirrors server SessionState: accumulated score, level,
   // current puzzle and whether the current puzzle has already been completed.
   let state = {
-    score: 0,
+    score: BASE_LEVEL_POINTS,
     level: 1,
     puzzle: null,
     chain: [],
@@ -434,7 +434,7 @@
     // Never overwrite a newer snapshot written by another open tab.
     if (externalProgressChanged) return;
     const snapshot = {
-      version: 3,
+      version: 4,
       score: state.score,
       level: state.level,
       puzzle: state.puzzle,
@@ -454,7 +454,7 @@
   // Validate persisted data without mutating live state. Browser storage is
   // user-editable and may also contain data from an older or interrupted run.
   function validateProgressSnapshot(saved) {
-    if (!saved || (saved.version !== 1 && saved.version !== 2 && saved.version !== 3) ||
+    if (!saved || (saved.version !== 1 && saved.version !== 2 && saved.version !== 3 && saved.version !== 4) ||
         !Number.isSafeInteger(saved.score) || saved.score < 0 ||
         !Number.isSafeInteger(saved.level) || saved.level < 1 ||
         !saved.puzzle || !Array.isArray(saved.chain) ||
@@ -512,13 +512,15 @@
         puzzle: saved.puzzle,
         chain: [...saved.chain],
         completed: saved.completed,
-        score: saved.version === 2 && !saved.completed
-          ? Math.max(0, saved.score - saved.hintPenalty) : saved.score,
+        score: saved.version === 4
+          ? saved.score
+          : Math.max(0, BASE_LEVEL_POINTS - (saved.chain.length - 1) -
+              (saved.version >= 2 ? saved.hintPenalty : 0)),
         hintsUsed: saved.version >= 2 ? saved.hintsUsed : 0,
         hintPenalty: saved.version >= 2 ? saved.hintPenalty : 0,
         activeHint: saved.version >= 2 ? saved.activeHint : null
       };
-      legacyHintNeedsSubmission = saved.version === 2 && !saved.completed && Boolean(saved.activeHint);
+      legacyHintNeedsSubmission = saved.version >= 2 && saved.version < 4 && !saved.completed && Boolean(saved.activeHint);
       return true;
     } catch (error) {
       console.warn('Saved WRDLINK progress could not be read.', error);
@@ -550,10 +552,11 @@
           const cleanUrl = new URL(window.location.href);
           cleanUrl.searchParams.delete('challenge');
           window.history?.replaceState?.({}, '', cleanUrl.pathname + cleanUrl.search + cleanUrl.hash);
-          state.score = 0;
+          state.score = BASE_LEVEL_POINTS;
           state.level = 1;
         } else if (nextLevel) {
           state.level += 1;
+          state.score = BASE_LEVEL_POINTS;
         }
         state.puzzle = puzzle;
         state.chain = [puzzle.start];
@@ -605,7 +608,6 @@
   function completePuzzle(result) {
     // Defensive guard: a completion can award points only once per puzzle.
     if (state.completed) return;
-    state.score += calculatePoints(result.movesUsed);
     state.completed = true;
     renderChain();
     renderHeader();
@@ -635,7 +637,9 @@
     }
 
     state.chain.push(candidate);
+    state.score = Math.max(0, state.score - 1);
     state.activeHint = null;
+    renderHeader();
     elements.input.value = '';
     renderChain();
     if (result.complete) {
