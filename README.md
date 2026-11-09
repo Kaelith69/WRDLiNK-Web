@@ -48,7 +48,7 @@ The game is designed as a small, dependency free client side application. The di
 5. Complete the level to receive its completion bonus and unlock the next puzzle.
 6. Keep an eye on the score and the hint price. Hint prices increase throughout the campaign, including after a level change.
 
-The word entry is case insensitive. The game normalizes entries to uppercase before validation. You can use the keyboard or the on screen send control. Invalid entries are rejected without changing the chain or consuming a move.
+The word entry is case insensitive. The game normalizes entries to uppercase before validation. On mobile, use WRDLINK's built in on screen keyboard, which suppresses the native software keyboard and keeps the game controls in view. Desktop users can continue typing with a physical keyboard. Invalid entries are rejected without changing the chain or consuming a move.
 
 ### The interface
 
@@ -399,7 +399,7 @@ WRDLiNK-Web/
 
 - **JavaScript:** game state, validation, graph algorithms, scoring, persistence, and sharing.
 - **HTML:** semantic structure and accessible controls.
-- **CSS:** responsive interface, themes, keyboard aware layout, and reduced motion handling.
+- **CSS:** responsive interface, themes, built in mobile keyboard, keyboard aware layout, and reduced motion handling.
 - **SVG:** scalable app artwork, README diagrams, and generated share card source.
 - **Canvas and browser image APIs:** PNG result and challenge card export.
 - **Web Storage:** local campaign progress and theme preference.
