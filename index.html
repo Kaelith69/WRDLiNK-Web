@@ -100,7 +100,7 @@
           <div class="entry-heading"><h2>Your next word</h2></div>
           <form id="move-form" novalidate>
             <label class="sr-only" for="word-entry">Enter your next four letter word</label>
-            <input id="word-entry" type="text" inputmode="none" enterkeyhint="send" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" writingsuggestions="false" maxlength="4" aria-describedby="message">
+            <input id="word-entry" type="text" inputmode="text" enterkeyhint="send" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" writingsuggestions="false" maxlength="4" aria-describedby="message">
             <button class="ink-button send-button" id="submit-button" type="submit" aria-label="Send word" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12 20 4l-5 16-3-7-8-1Zm8 1 8-9"/></svg></button>
           </form>
           <div class="entry-actions">
@@ -123,47 +123,6 @@
       </div>
 
       <section class="state-error card-panel" id="error-panel" hidden role="alert"><p id="error-message">The puzzle could not be loaded.</p><button class="ink-button" id="retry-button" type="button">TRY AGAIN</button></section>
-    </section>
-
-    <section class="game-keyboard" id="game-keyboard" aria-label="On-screen keyboard" role="group">
-      <div class="keyboard-row keyboard-row-top">
-        <button class="keyboard-key" type="button" data-key="Q" aria-label="Q">Q</button>
-        <button class="keyboard-key" type="button" data-key="W" aria-label="W">W</button>
-        <button class="keyboard-key" type="button" data-key="E" aria-label="E">E</button>
-        <button class="keyboard-key" type="button" data-key="R" aria-label="R">R</button>
-        <button class="keyboard-key" type="button" data-key="T" aria-label="T">T</button>
-        <button class="keyboard-key" type="button" data-key="Y" aria-label="Y">Y</button>
-        <button class="keyboard-key" type="button" data-key="U" aria-label="U">U</button>
-        <button class="keyboard-key" type="button" data-key="I" aria-label="I">I</button>
-        <button class="keyboard-key" type="button" data-key="O" aria-label="O">O</button>
-        <button class="keyboard-key" type="button" data-key="P" aria-label="P">P</button>
-      </div>
-      <div class="keyboard-row keyboard-row-middle">
-        <button class="keyboard-key" type="button" data-key="A" aria-label="A">A</button>
-        <button class="keyboard-key" type="button" data-key="S" aria-label="S">S</button>
-        <button class="keyboard-key" type="button" data-key="D" aria-label="D">D</button>
-        <button class="keyboard-key" type="button" data-key="F" aria-label="F">F</button>
-        <button class="keyboard-key" type="button" data-key="G" aria-label="G">G</button>
-        <button class="keyboard-key" type="button" data-key="H" aria-label="H">H</button>
-        <button class="keyboard-key" type="button" data-key="J" aria-label="J">J</button>
-        <button class="keyboard-key" type="button" data-key="K" aria-label="K">K</button>
-        <button class="keyboard-key" type="button" data-key="L" aria-label="L">L</button>
-      </div>
-      <div class="keyboard-row keyboard-row-bottom">
-        <button class="keyboard-key" type="button" data-key="Z" aria-label="Z">Z</button>
-        <button class="keyboard-key" type="button" data-key="X" aria-label="X">X</button>
-        <button class="keyboard-key" type="button" data-key="C" aria-label="C">C</button>
-        <button class="keyboard-key" type="button" data-key="V" aria-label="V">V</button>
-        <button class="keyboard-key" type="button" data-key="B" aria-label="B">B</button>
-        <button class="keyboard-key" type="button" data-key="N" aria-label="N">N</button>
-        <button class="keyboard-key" type="button" data-key="M" aria-label="M">M</button>
-        <button class="keyboard-key keyboard-key-action" type="button" data-key="BACKSPACE" aria-label="Delete last letter">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5H20V19H9L3 12L9 5Z"/><path d="m12 9 5 6m0-6-5 6"/></svg>
-        </button>
-      </div>
-      <div class="keyboard-row keyboard-row-submit">
-        <button class="keyboard-key keyboard-key-enter" type="button" data-key="ENTER">SUBMIT WORD <span aria-hidden="true">↵</span></button>
-      </div>
     </section>
   </main>
 </body>

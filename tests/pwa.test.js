@@ -43,7 +43,7 @@ for (const asset of ['./index.html', './styles.css', './app.js', './dictionary.j
   assert(worker.includes(asset), 'service worker app shell includes ' + asset);
 }
 assert(worker.includes("const CACHE_PREFIX = 'wrdlink-shell-'"));
-assert(worker.includes('const CACHE_NAME = `' + '${CACHE_PREFIX}' + 'v26`'));
+assert(worker.includes('const CACHE_NAME = `' + '${CACHE_PREFIX}' + 'v25`'));
 assert(worker.includes("request.mode === 'navigate'"));
 assert(worker.includes('self.clients.claim()'));
 assert(deploy.includes('manifest.webmanifest sw.js'));
@@ -65,14 +65,6 @@ assert(game.includes('prepareResultCard(result)'));
 assert(html.includes('id="share-status"'));
 assert(html.includes('id="download-result-button"'));
 assert(html.includes('enterkeyhint="send"'));
-assert(html.includes('inputmode="none"'), 'native mobile keyboard is suppressed');
-assert(html.includes('id="game-keyboard"'), 'the app contains its own on-screen keyboard');
-assert.match(html, /data-key="Q"/, 'keyboard exposes letter keys');
-assert.match(html, /data-key="BACKSPACE"/, 'keyboard exposes backspace');
-assert.match(html, /data-key="ENTER"/, 'keyboard exposes submit');
-assert.match(styles, /\.game-keyboard\s*\{\s*display:\s*none;\s*\}/, 'keyboard is hidden on desktop');
-assert.match(styles, /@media \(max-width: 620px\)[\s\S]*?\.game-keyboard\s*\{[^}]*display:\s*grid;/, 'keyboard appears on mobile');
-assert.match(styles, /overflow-y:\s*auto;/, 'game workspace scrolls above the keyboard');
 assert(html.includes('aria-label="Send word"'));
 assert(!html.includes('title="Send word"'));
 assert(!html.includes('title="Switch theme"'));
