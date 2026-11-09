@@ -332,6 +332,8 @@ async function testInteractions() {
   await challenge.elements.get('share-result-button').dispatch('click');
   assert.equal(challenge.shareCalls.length, 2, 'result button opens the native share action after challenge sharing');
   assert.equal(challenge.shareCalls[1].files[0].type, 'image/png', 'native result share receives a PNG image');
+  assert.match(challenge.shareCalls[1].url, /challenge=COLD-WARM/, 'native result share includes a link to replay the same puzzle');
+  assert.match(challenge.shareCalls[1].text, /Play the same puzzle: https:\/\/example\.test\/WRDLiNK-Web\/\?challenge=COLD-WARM/, 'native result share includes the replay link in its text');
 
   challenge.elements.get('new-game-button').dispatch('click');
   assert.match(challenge.game.getState().puzzle.id, /^random-/, 'New game starts a fresh puzzle');
