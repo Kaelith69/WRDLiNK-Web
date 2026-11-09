@@ -1012,11 +1012,13 @@
       return;
     }
     const file = preparedResultFile;
+    const link = challengeUrl();
     const shareData = {
       files: [file],
       title: 'My WRDLINK result',
       text: 'I solved ' + state.puzzle.start + ' to ' + state.puzzle.target +
-        ' in ' + (state.chain.length - 1) + ' moves on WRDLINK.'
+        ' in ' + (state.chain.length - 1) + ' moves on WRDLINK. Play the same puzzle: ' + link,
+      url: link
     };
     try {
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
