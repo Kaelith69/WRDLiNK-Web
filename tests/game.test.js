@@ -243,6 +243,19 @@ assert.equal(typeof elements.get('submit-button').listeners.pointerdown, 'functi
 elements.get('submit-button').dispatch('pointerdown', { pointerType: 'touch' });
 assert.equal(elements.get('submit-button').lastEvent.defaultPrevented, true, 'touching Send does not blur the input before submission');
 
+const keyboardChallenge = loadGame({ search: '?challenge=COLD-WARM' });
+const gameKeyboard = keyboardChallenge.elements.get('game-keyboard');
+assert.equal(typeof gameKeyboard.listeners.click, 'function', 'the in-app keyboard handles key presses');
+for (const key of ['C', 'O', 'R', 'D']) gameKeyboard.dispatch('click', { target: { dataset: { key } } });
+assert.equal(keyboardChallenge.elements.get('word-entry').value, 'CORD', 'letter keys build a four letter entry');
+assert.equal(keyboardChallenge.elements.get('submit-button').disabled, false, 'four letters enable submit');
+gameKeyboard.dispatch('click', { target: { dataset: { key: 'BACKSPACE' } } });
+assert.equal(keyboardChallenge.elements.get('word-entry').value, 'COR', 'backspace removes one letter');
+gameKeyboard.dispatch('click', { target: { dataset: { key: 'D' } } });
+gameKeyboard.dispatch('click', { target: { dataset: { key: 'ENTER' } } });
+assert.deepEqual(keyboardChallenge.game.getState().chain, ['COLD', 'CORD'], 'enter uses the existing move validation');
+assert.equal(keyboardChallenge.game.getState().score, 24, 'in-app keyboard uses the existing scoring rules');
+
 const challenge = loadGame({ search: '?challenge=COLD-WARM' });
 assert.equal(challenge.game.getState().puzzle.start, 'COLD');
 assert.equal(challenge.game.getState().puzzle.target, 'WARM');

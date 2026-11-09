@@ -647,3 +647,85 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 
 @media (max-width: 620px) {
 }
+
+
+/* Native-keyboard-free mobile word entry. The keyboard stays in document flow,
+   while the game workspace scrolls independently above it. */
+.game-keyboard { display: none; }
+@media (max-width: 620px) {
+  .game-page {
+    display: flex;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .game-workspace {
+    width: 100%;
+    min-height: 0;
+    flex: 1 1 auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px 14px 18px;
+  }
+  .game-keyboard {
+    position: relative;
+    z-index: 5;
+    display: grid;
+    flex: 0 0 auto;
+    gap: 7px;
+    padding: 8px 8px max(10px, env(safe-area-inset-bottom));
+    border-top: 2px solid var(--line-strong);
+    background: var(--paper);
+    box-shadow: 0 -5px 18px rgb(0 0 0 / 10%);
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .keyboard-row { display: flex; justify-content: center; gap: clamp(3px, 1vw, 6px); }
+  .keyboard-key {
+    display: grid;
+    min-width: 0;
+    min-height: clamp(39px, 6.2vh, 52px);
+    flex: 1 1 0;
+    place-items: center;
+    padding: 0 2px;
+    border: 1px solid var(--line);
+    border-bottom: 3px solid var(--line-strong);
+    border-radius: 8px;
+    background: var(--paper-strong);
+    color: var(--ink);
+    cursor: pointer;
+    font-size: clamp(13px, 3.7vw, 18px);
+    font-weight: 850;
+    line-height: 1;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .keyboard-key:active { transform: translateY(2px); border-bottom-width: 1px; background: var(--success-bg); }
+  .keyboard-key-action { max-width: 62px; background: var(--paper); color: var(--ink-soft); }
+  .keyboard-key-action svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .keyboard-row-submit { margin-top: 1px; }
+  .keyboard-key-enter {
+    min-height: 42px;
+    flex: 1 1 100%;
+    grid-auto-flow: column;
+    gap: 9px;
+    border-color: var(--line-strong);
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-size: 12px;
+    font-weight: 950;
+    letter-spacing: .08em;
+  }
+  :root.keyboard-open .game-workspace { min-height: 0; overflow-y: auto; }
+}
+@media (max-width: 370px) {
+  .game-keyboard { gap: 5px; padding-inline: 5px; }
+  .keyboard-row { gap: 3px; }
+  .keyboard-key { min-height: 37px; border-radius: 6px; }
+  .keyboard-key-action { max-width: 48px; }
+}
+@media (prefers-reduced-motion: reduce) { .keyboard-key { transition: none; } }

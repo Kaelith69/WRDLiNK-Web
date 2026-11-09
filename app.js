@@ -16,7 +16,7 @@
     errorMessage: $('error-message'), startWord: $('start-word'), targetWord: $('target-word'),
     chainList: $('chain-list'),
     scoreLabel: $('score-label'), movesLabel: $('moves-label'), levelLabel: $('level-label'),
-    form: $('move-form'), input: $('word-entry'), submit: $('submit-button'),
+    form: $('move-form'), input: $('word-entry'), submit: $('submit-button'), keyboard: $('game-keyboard'),
     message: $('message'), entryPanel: $('entry-panel'), finishPanel: $('finish-panel'),
     finishTitle: $('finish-title'), finishDescription: $('finish-description'), shareStatus: $('share-status'),
     nextButton: $('next-button'), newGameButton: $('new-game-button'), retryButton: $('retry-button'), themeToggle: $('theme-toggle'), shareChallengeButton: $('share-challenge-button'), shareResultButton: $('share-result-button'), downloadResultButton: $('download-result-button'),
@@ -1038,10 +1038,31 @@
   }
 
   // Input is deliberately restricted to ASCII letters and four characters.
-  elements.input.addEventListener('input', () => {
+  function syncEntryInput() {
     const clean = elements.input.value.replace(/[^a-z]/gi, '').toUpperCase().slice(0, WORD_LENGTH);
     if (elements.input.value !== clean) elements.input.value = clean;
     elements.submit.disabled = busy || state.completed || clean.length !== WORD_LENGTH;
+  }
+  elements.input.addEventListener('input', syncEntryInput);
+
+  // Mobile uses the built in game keyboard. inputmode="none" prevents the
+  // operating system keyboard from opening over the game.
+  elements.keyboard.addEventListener('pointerdown', (event) => {
+    if (event.pointerType === 'touch' || event.pointerType === 'pen') event.preventDefault();
+  });
+  elements.keyboard.addEventListener('click', (event) => {
+    const key = event.target?.dataset?.key || event.target?.closest?.('[data-key]')?.dataset?.key;
+    if (!key || busy || state.completed) return;
+    elements.input.focus({ preventScroll: true });
+    if (key === 'BACKSPACE') {
+      elements.input.value = elements.input.value.slice(0, -1);
+    } else if (key === 'ENTER') {
+      if (elements.input.value.length === WORD_LENGTH) submitMove({ preventDefault() {} });
+      return;
+    } else if (/^[A-Z]$/.test(key) && elements.input.value.length < WORD_LENGTH) {
+      elements.input.value += key;
+    }
+    syncEntryInput();
   });
   elements.submit.addEventListener('pointerdown', (event) => {
     if (event.pointerType === 'touch' || event.pointerType === 'pen') event.preventDefault();
