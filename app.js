@@ -7,7 +7,7 @@
   const DICTIONARY = window.WRDLINK_DICTIONARY;
   const WORD_LENGTH = 4;
   const BASE_LEVEL_POINTS = 25;
-  const MAX_PUZZLE_ATTEMPTS = 100;
+  const MAX_PUZZLE_ATTEMPTS = 300;
   const PROGRESS_KEY = 'wrdlink-browser-session-v1:progress';
   const FIRST_PLAY_INSTRUCTIONS_KEY = 'wrdlink-first-move-completed';
 
@@ -211,7 +211,7 @@
   function createRandomPuzzle(level = 1) {
     const { minOptimalMoves, maxOptimalMoves } = puzzleDifficultyBand(level);
     let best = null;
-    for (let attempt = 0; attempt < 300; attempt += 1) {
+    for (let attempt = 0; attempt < MAX_PUZZLE_ATTEMPTS; attempt += 1) {
       const start = randomItem(WORDS);
       const route = [start];
       const visited = new Set(route);
