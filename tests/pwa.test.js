@@ -43,7 +43,7 @@ for (const asset of ['./index.html', './styles.css', './app.js', './dictionary.j
   assert(worker.includes(asset), 'service worker app shell includes ' + asset);
 }
 assert(worker.includes("const CACHE_PREFIX = 'wrdlink-shell-'"));
-assert(worker.includes('const CACHE_NAME = `' + '${CACHE_PREFIX}' + 'v27`'));
+assert(worker.includes('const CACHE_NAME = `' + '${CACHE_PREFIX}' + 'v28`'));
 assert(worker.includes("request.mode === 'navigate'"));
 assert(worker.includes('self.clients.claim()'));
 assert(deploy.includes('manifest.webmanifest sw.js'));
@@ -91,8 +91,11 @@ assert(html.includes('<form id="move-form" novalidate>'));
 assert(!html.includes('copy-challenge-button'), 'redundant standalone copy link action is removed');
 assert(html.includes('id="share-challenge-button"') && html.includes('class="secondary-button share-challenge-button"'), 'share challenge has its own styled action');
 assert(html.includes('class="secondary-button new-game-button"'), 'new game has its own styled action');
-assert(html.includes('id="level-label">LV0</strong>'), 'level numbering starts at LV0');
-assert(game.includes("elements.levelLabel.textContent = `LV${Math.max(0, state.level - 1)}`"), "visible level labels use LV0, LV1, LV2 numbering");
+assert(html.includes('id="level-label">LV1</strong>'), 'level numbering starts at LV1');
+assert(game.includes("elements.levelLabel.textContent = `LV${state.level}`"), "visible level labels use the same one based campaign level as puzzle generation");
+assert.match(styles, /\.header-hint-button svg[^}]*stroke: var\(--accent-ink\)/, 'hint icon contrasts against the gold button in both themes');
+assert.match(styles, /\.header-hint-cost \{ color: var\(--accent-ink\);/, 'hint price contrasts against the gold button in both themes');
+assert.doesNotMatch(styles, /:root\[data-theme=\"dark\"\] \.header-hint-cost/, 'dark theme does not override the hint price with the button background colour');
 assert(!game.includes('copyChallengeLink') && !game.includes('copyChallengeButton'), 'removed copy action has no unused application code');
 assert(!html.includes('name="wrdlink-word"'));
 assert(!html.includes('data-form-type="other"'));

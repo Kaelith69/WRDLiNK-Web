@@ -557,9 +557,8 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
   box-shadow: 2px 2px 0 var(--line-strong);
   cursor: pointer;
 }
-.header-hint-button svg { width: 21px; height: 21px; fill: none; stroke: var(--accent); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.header-hint-button svg { width: 21px; height: 21px; fill: none; stroke: var(--accent-ink); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .header-hint-cost { color: var(--accent-ink); font-size: 12px; font-weight: 950; font-variant-numeric: tabular-nums; }
-:root[data-theme="dark"] .header-hint-cost { color: var(--accent); }
 .header-hint-button:disabled { opacity: .48; box-shadow: none; cursor: not-allowed; }
 .hint-confirmation-backdrop {
   position: fixed;
