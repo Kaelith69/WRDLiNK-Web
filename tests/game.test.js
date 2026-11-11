@@ -102,7 +102,7 @@ assert.deepEqual(game.puzzleDifficultyBand(13), { minOptimalMoves: 7, maxOptimal
 
 // Rejected submissions consume one point but never enter the word chain.
 const invalidAttemptSession = loadGame({ savedProgress: {
-  version: 6, score: 25, level: 1, puzzle: campaignPuzzle,
+  version: 6, score: 25, level: 1, puzzle: { id: 'invalid-attempt-test', title: 'Invalid attempt test', start: 'COLD', target: 'WARM', wordLength: 4, optimalMoves: game.shortestDistance('COLD', 'WARM') },
   chain: ['COLD'], completed: false, hintsUsed: 0, hintPenalty: 0, activeHint: null
 } });
 invalidAttemptSession.elements.get('word-entry').value = 'ZZZZ';
