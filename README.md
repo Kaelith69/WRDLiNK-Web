@@ -48,7 +48,7 @@ The game is designed as a small, dependency free client side application. The di
 5. Complete the level to receive its completion bonus and unlock the next puzzle.
 6. Keep an eye on the score and the hint price. Hint prices increase throughout the campaign, including after a level change.
 
-The word entry is case insensitive. The game normalizes entries to uppercase before validation. You can use the keyboard or the on screen send control. Invalid entries are rejected without changing the chain or consuming a move.
+The word entry is case insensitive. The game normalizes entries to uppercase before validation. You can use the keyboard or the on screen send control. Invalid entries are rejected without changing the chain or move count, but every submitted attempt still deducts one point.
 
 ### The interface
 
@@ -95,11 +95,11 @@ Validation happens locally before the chain is changed. A rejected word does not
 
 ## Scoring and hint economy
 
-Each new level starts with **25 points**. Accepted moves and confirmed hints reduce the current level score. The score never falls below zero.
+A new campaign starts with **25 points**. Each submitted attempt deducts one point, whether accepted or rejected. Completing a level awards another **25 points**, and the remaining balance carries into the next level. The score never falls below zero.
 
 ### Normal moves
 
-Every accepted move deducts **1 point**. Invalid entries cost nothing.
+Every submitted attempt deducts **1 point**. Rejected words do not enter the chain or increment the move count, but they still cost one point.
 
 ### Hints
 
@@ -108,9 +108,9 @@ Hints use the shortest route solver to reveal the next word on a valid shortest 
 - The hint price.
 - One additional point for the move that the hint submits.
 
-The hint price increases by one for every confirmed hint within the current level. **It resets when the next level begins.** Cancelling the confirmation does not deduct points.
+The hint price increases by one for every confirmed hint across the entire campaign. **It resets only when a new game begins.** Cancelling the confirmation does not deduct points.
 
-| Hint number in the current level | Hint price | Move cost | Total deduction |
+| Hint number in the campaign | Hint price | Move cost | Total deduction |
 |---:|---:|---:|---:|
 | 1 | 5 | 1 | 6 |
 | 2 | 6 | 1 | 7 |
@@ -119,11 +119,11 @@ The hint price increases by one for every confirmed hint within the current leve
 | 5 | 9 | 1 | 10 |
 | n | 5 + (n − 1) | 1 | 6 + (n − 1) |
 
-The hint counter and accumulated hint penalty persist across reloads within the current level. Starting the next level or choosing **New game** resets the hint sequence to 5.
+The hint counter and accumulated hint penalty persist across reloads and level transitions. Only **New game** resets the hint sequence to 5.
 
 ### Level completion
 
-Completing a level ends the current score calculation. The next level begins with **25 points**, regardless of the previous level's remaining balance. The score is never allowed to fall below zero.
+Completing a level awards **25 additional points**. The next level starts with the previous balance plus that completion award. The score is never allowed to fall below zero.
 
 For example, if a player begins with 25 points, uses two hints, and makes no other moves:
 
@@ -131,11 +131,11 @@ For example, if a player begins with 25 points, uses two hints, and makes no oth
 - Hint 2 deducts 6 hint points and 1 move point.
 - The remaining score is 12.
 - Completing the level records that result.
-- The next level starts at 25 points, and its first hint costs 5 hint points plus 1 move point.
+- The next level carries the remaining 12 points forward, plus the 25 point completion award, for a balance of 37. Its next hint costs 7 hint points plus 1 move point.
 
 ![Campaign scoring and hint progression](assets/readme-scoring.svg)
 
-The completion banner and result card show the remaining level balance. The next level resets to 25 points. A new game starts a fresh level at 25 points.
+The completion banner and result card show the post award campaign balance. The next level carries that balance forward. A new game starts a fresh campaign at 25 points.
 
 ## How the algorithms work
 
