@@ -34,6 +34,7 @@ function makeElement() {
     querySelector() { return null; },
     querySelectorAll() { return []; },
     focus() { this.focusCalls += 1; },
+    blur() { this.blurCalls = (this.blurCalls || 0) + 1; },
     select() {},
     scrollIntoView() {},
     remove() {},
