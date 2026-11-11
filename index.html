@@ -74,6 +74,17 @@
       </section>
     </div>
 
+    <div class="hint-confirmation-backdrop" id="new-game-confirmation" hidden>
+      <section class="hint-confirmation" role="dialog" aria-modal="true" aria-labelledby="new-game-confirm-title" aria-describedby="new-game-confirm-description">
+        <h2 id="new-game-confirm-title">Start a new game?</h2>
+        <p id="new-game-confirm-description">This resets your current puzzle, campaign level, score, and hint count. Your current progress cannot be restored.</p>
+        <div class="hint-confirm-actions">
+          <button class="secondary-button" id="keep-playing-button" type="button">KEEP PLAYING</button>
+          <button class="ink-button" id="confirm-new-game-button" type="button">START NEW GAME</button>
+        </div>
+      </section>
+    </div>
+
     <div class="hint-confirmation-backdrop help-backdrop" id="how-to-play-dialog" hidden>
       <section class="hint-confirmation help-dialog" role="dialog" aria-modal="true" aria-labelledby="help-title" aria-describedby="help-intro">
         <div class="help-dialog-header">
