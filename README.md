@@ -208,18 +208,20 @@ A hint takes the second word in the reconstructed path. That is the next legal m
 
 ### 5. Random puzzle generation
 
-Random puzzles are generated from the same indexed graph:
+Random puzzles are generated from the same indexed graph, with campaign difficulty progression:
 
 1. Choose a random dictionary word as the start.
 2. Perform a random walk through unused neighboring words.
-3. Choose a desired walk length between three and seven moves.
+3. Choose a desired walk length between three and eleven moves.
 4. Stop the walk if no unused neighbor is available.
 5. Use the last word as the target.
-6. Run BFS from start to target to calculate the optimal move count.
-7. Accept the puzzle only when the target differs from the start, a route exists, and the generated walk contains enough words.
-8. Retry up to 100 times before reporting a generation error.
+6. Run BFS from start to target to calculate the actual optimal move count.
+7. Accept a puzzle when its shortest distance falls inside the current campaign difficulty band.
+8. Retry up to 300 samples. If the requested band is sparse, keep the reachable puzzle closest to the requested minimum instead of failing generation.
 
-The random walk creates a connected pair of endpoints. BFS then measures the actual shortest distance between them. The random walk itself is not necessarily the shortest solution.
+The minimum optimal distance rises by one every three levels, from 3 at the start to a cap of 7. Each band spans three optimal move counts: levels 1 to 3 target 3 to 5, levels 4 to 6 target 4 to 6, levels 7 to 9 target 5 to 7, levels 10 to 12 target 6 to 8, and level 13 onward targets 7 to 9.
+
+The random walk creates a connected pair of endpoints. BFS measures their actual shortest distance, which may be shorter than the walk used to generate them.
 
 ### 6. Complexity
 
