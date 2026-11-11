@@ -96,6 +96,23 @@ function loadGame({ includeDictionary = true, search = '', savedProgress = null 
 
 const { game, dictionary, elements } = loadGame();
 assert.equal(game.dictionarySize, 3889);
+assert.deepEqual(game.puzzleDifficultyBand(1), { minOptimalMoves: 3, maxOptimalMoves: 5 });
+assert.deepEqual(game.puzzleDifficultyBand(4), { minOptimalMoves: 4, maxOptimalMoves: 6 });
+assert.deepEqual(game.puzzleDifficultyBand(13), { minOptimalMoves: 7, maxOptimalMoves: 9 });
+
+// Rejected submissions consume one point but never enter the word chain.
+const invalidAttemptSession = loadGame({ savedProgress: {
+  version: 6, score: 25, level: 1, puzzle: campaignPuzzle,
+  chain: ['COLD'], completed: false, hintsUsed: 0, hintPenalty: 0, activeHint: null
+} });
+invalidAttemptSession.elements.get('word-entry').value = 'ZZZZ';
+invalidAttemptSession.elements.get('word-entry').dispatch('input');
+invalidAttemptSession.elements.get('move-form').dispatch('submit');
+assert.equal(invalidAttemptSession.game.getState().score, 24, 'a rejected dictionary word deducts one point');
+assert.deepEqual(invalidAttemptSession.game.getState().chain, ['COLD'], 'a rejected word does not enter the chain');
+assert.equal(invalidAttemptSession.elements.get('score-label').textContent, '24', 'the score header updates after a rejected attempt');
+assert.equal(invalidAttemptSession.elements.get('first-play-instructions').hidden, true, 'first play instructions disappear on the first submission');
+assert.equal(invalidAttemptSession.storage.get('wrdlink-first-move-completed'), 'true', 'first play dismissal persists');
 
 // Campaign hints deduct from the persisted current score and submit the
 // shortest route move immediately, including across a browser reload.
