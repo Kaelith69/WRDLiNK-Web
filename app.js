@@ -21,6 +21,8 @@
     firstPlayInstructions: $('first-play-instructions'), gamePage: $('game-page'),
     helpButton: $('help-button'), helpDialog: $('how-to-play-dialog'),
     helpCloseButton: $('help-close-button'), helpDoneButton: $('help-done-button'), finishNewGameButton: $('finish-new-game-button'),
+    newGameConfirmation: $('new-game-confirmation'), keepPlayingButton: $('keep-playing-button'),
+    confirmNewGameButton: $('confirm-new-game-button'),
     message: $('message'), entryPanel: $('entry-panel'), finishPanel: $('finish-panel'),
     finishTitle: $('finish-title'), finishDescription: $('finish-description'), shareStatus: $('share-status'),
     nextButton: $('next-button'), newGameButton: $('new-game-button'), retryButton: $('retry-button'), themeToggle: $('theme-toggle'), shareChallengeButton: $('share-challenge-button'), shareResultButton: $('share-result-button'), downloadResultButton: $('download-result-button'),
@@ -1137,8 +1139,37 @@
       elements.hintButton.focus({ preventScroll: true });
     }
   });
-  elements.newGameButton.addEventListener('click', () => startPuzzle({ resetScore: true }));
-  elements.finishNewGameButton.addEventListener('click', () => startPuzzle({ resetScore: true }));
+  let newGameReturnFocus = null;
+  function openNewGameConfirmation() {
+    if (busy || puzzleTransition || externalProgressChanged) return;
+    newGameReturnFocus = document.activeElement;
+    elements.newGameConfirmation.hidden = false;
+    elements.keepPlayingButton.focus({ preventScroll: true });
+  }
+  function closeNewGameConfirmation() {
+    elements.newGameConfirmation.hidden = true;
+    if (newGameReturnFocus && typeof newGameReturnFocus.focus === 'function') newGameReturnFocus.focus({ preventScroll: true });
+  }
+  function confirmNewGame() {
+    closeNewGameConfirmation();
+    startPuzzle({ resetScore: true });
+  }
+  elements.newGameButton.addEventListener('click', openNewGameConfirmation);
+  elements.finishNewGameButton.addEventListener('click', openNewGameConfirmation);
+  elements.keepPlayingButton.addEventListener('click', closeNewGameConfirmation);
+  elements.confirmNewGameButton.addEventListener('click', confirmNewGame);
+  elements.newGameConfirmation.addEventListener('click', (event) => {
+    if (event.target === elements.newGameConfirmation) closeNewGameConfirmation();
+  });
+  elements.newGameConfirmation.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') { event.preventDefault(); closeNewGameConfirmation(); return; }
+    if (event.key !== 'Tab') return;
+    const focusable = [...elements.newGameConfirmation.querySelectorAll('button:not(:disabled)')];
+    if (focusable.length < 2) return;
+    const first = focusable[0], last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+  });
   elements.nextButton.addEventListener('click', () => startPuzzle({ nextLevel: true }));
   elements.retryButton.addEventListener('click', () => startPuzzle());
   elements.shareChallengeButton.addEventListener('click', shareChallenge);
