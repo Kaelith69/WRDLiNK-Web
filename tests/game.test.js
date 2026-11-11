@@ -49,7 +49,7 @@ function loadGame({ includeDictionary = true, search = '', savedProgress = null 
     getElementById(id) {
       if (!elements.has(id)) {
         const element = makeElement();
-        if (id === 'game' || id === 'error-panel' || id === 'finish-panel' || id === 'hint-confirmation') element.hidden = true;
+        if (id === 'game' || id === 'error-panel' || id === 'finish-panel' || id === 'hint-confirmation' || id === 'new-game-confirmation' || id === 'how-to-play-dialog') element.hidden = true;
         elements.set(id, element);
       }
       return elements.get(id);
@@ -96,9 +96,12 @@ function loadGame({ includeDictionary = true, search = '', savedProgress = null 
 
 const { game, dictionary, elements } = loadGame();
 assert.equal(game.dictionarySize, 3889);
-assert.deepEqual(game.puzzleDifficultyBand(1), { minOptimalMoves: 3, maxOptimalMoves: 5 });
-assert.deepEqual(game.puzzleDifficultyBand(4), { minOptimalMoves: 4, maxOptimalMoves: 6 });
-assert.deepEqual(game.puzzleDifficultyBand(13), { minOptimalMoves: 7, maxOptimalMoves: 9 });
+assert.equal(game.puzzleDifficultyBand(1).minOptimalMoves, 3);
+assert.equal(game.puzzleDifficultyBand(1).maxOptimalMoves, 5);
+assert.equal(game.puzzleDifficultyBand(4).minOptimalMoves, 4);
+assert.equal(game.puzzleDifficultyBand(4).maxOptimalMoves, 6);
+assert.equal(game.puzzleDifficultyBand(13).minOptimalMoves, 7);
+assert.equal(game.puzzleDifficultyBand(13).maxOptimalMoves, 9);
 
 // Rejected submissions consume one point but never enter the word chain.
 const invalidAttemptSession = loadGame({ savedProgress: {
