@@ -34,12 +34,6 @@ jobs:
           mkdir -p _site/assets
           cp index.html styles.css app.js dictionary.js manifest.webmanifest sw.js _site/
           cp assets/wrdlink-icon.svg _site/assets/
-          sudo apt-get update
-          sudo apt-get install --yes librsvg2-bin
-          rsvg-convert --width 192 --height 192 assets/wrdlink-icon.svg --output _site/assets/wrdlink-icon-192.png
-          rsvg-convert --width 512 --height 512 assets/wrdlink-icon.svg --output _site/assets/wrdlink-icon-512.png
-          rsvg-convert --width 180 --height 180 assets/wrdlink-icon.svg --output _site/assets/wrdlink-icon-180.png
-          file _site/assets/wrdlink-icon-192.png _site/assets/wrdlink-icon-512.png _site/assets/wrdlink-icon-180.png
           touch _site/.nojekyll
 
       - name: Upload Pages artifact
