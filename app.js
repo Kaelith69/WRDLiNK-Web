@@ -20,7 +20,7 @@
     form: $('move-form'), input: $('word-entry'), submit: $('submit-button'),
     firstPlayInstructions: $('first-play-instructions'), gamePage: $('game-page'),
     helpButton: $('help-button'), helpDialog: $('how-to-play-dialog'),
-    helpCloseButton: $('help-close-button'), finishNewGameButton: $('finish-new-game-button'),
+    helpCloseButton: $('help-close-button'), helpDoneButton: $('help-done-button'), finishNewGameButton: $('finish-new-game-button'),
     message: $('message'), entryPanel: $('entry-panel'), finishPanel: $('finish-panel'),
     finishTitle: $('finish-title'), finishDescription: $('finish-description'), shareStatus: $('share-status'),
     nextButton: $('next-button'), newGameButton: $('new-game-button'), retryButton: $('retry-button'), themeToggle: $('theme-toggle'), shareChallengeButton: $('share-challenge-button'), shareResultButton: $('share-result-button'), downloadResultButton: $('download-result-button'),
@@ -1107,6 +1107,7 @@
   }
   elements.helpButton.addEventListener('click', openHelp);
   elements.helpCloseButton.addEventListener('click', closeHelp);
+  elements.helpDoneButton.addEventListener('click', closeHelp);
   elements.helpDialog.addEventListener('click', (event) => {
     if (event.target === elements.helpDialog) closeHelp();
   });
