@@ -330,7 +330,7 @@
   }
 
   function renderHeader() {
-    elements.levelLabel.textContent = `LV${Math.max(0, state.level - 1)}`;
+    elements.levelLabel.textContent = `LV${state.level}`;
     elements.scoreLabel.textContent = String(state.score);
   }
 

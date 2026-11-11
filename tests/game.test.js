@@ -96,6 +96,7 @@ function loadGame({ includeDictionary = true, search = '', savedProgress = null 
 }
 
 const { game, dictionary, elements } = loadGame();
+assert.equal(elements.get('level-label').textContent, 'LV1', 'the first campaign puzzle is visibly labeled LV1');
 assert.equal(game.dictionarySize, 3889);
 assert.equal(game.puzzleDifficultyBand(1).minOptimalMoves, 3);
 assert.equal(game.puzzleDifficultyBand(1).maxOptimalMoves, 5);
@@ -168,9 +169,10 @@ for (const word of finishFirstLevel.slice(1)) {
   campaignReload.elements.get('move-form').dispatch('submit');
 }
 assert.equal(campaignReload.game.getState().completed, true, 'campaign level completes before advancing');
+assert.equal(campaignReload.elements.get('next-button').textContent, 'Next level · 2 →', 'first level points to the actual second level');
 campaignReload.elements.get('next-button').dispatch('click');
 assert.equal(campaignReload.game.getState().level, 2, 'campaign advances to the second level');
-assert.equal(campaignReload.elements.get('level-label').textContent, 'LV1', 'second level is visibly labeled LV1');
+assert.equal(campaignReload.elements.get('level-label').textContent, 'LV2', 'second level is visibly labeled LV2');
 assert.equal(campaignReload.game.getState().hintsUsed, 2, 'hint count carries into the next level');
 assert.equal(campaignReload.game.getState().hintPenalty, 11, 'cumulative hint penalty carries into the next level');
 assert.equal(campaignReload.elements.get('hint-cost-chip').textContent, '−7', 'level two displays the third hint price without conflating the move cost');
@@ -190,8 +192,10 @@ for (const word of secondLevelRoute.slice(1)) {
   campaignReload.elements.get('move-form').dispatch('submit');
 }
 assert.equal(campaignReload.game.getState().completed, true, 'second campaign level completes with the third hint used');
+assert.equal(campaignReload.elements.get('next-button').textContent, 'Next level · 3 →', 'second level points to the actual third level');
 campaignReload.elements.get('next-button').dispatch('click');
 assert.equal(campaignReload.game.getState().level, 3, 'campaign advances to the third level');
+assert.equal(campaignReload.elements.get('level-label').textContent, 'LV3', 'third level is visibly labeled LV3');
 assert.equal(campaignReload.game.getState().hintsUsed, 3, 'all three hints remain counted after two level transitions');
 assert.equal(campaignReload.game.getState().hintPenalty, 18, 'cumulative penalty remains 5 + 6 + 7 after two transitions');
 assert.equal(campaignReload.elements.get('hint-cost-chip').textContent, '−8', 'third level displays the fourth hint price');
