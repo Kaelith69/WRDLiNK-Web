@@ -473,6 +473,18 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
   .entry-panel form { grid-template-columns: minmax(0, 1fr) 54px; }
   .entry-panel .send-button { width: 54px; min-width: 54px; min-height: 54px; }
 }
+@media (max-width: 620px) {
+  :root.keyboard-open .entry-panel form {
+    grid-template-columns: minmax(0, 1fr) 48px;
+    gap: 6px;
+  }
+  :root.keyboard-open .entry-panel .send-button {
+    width: 48px;
+    min-width: 48px;
+    min-height: 44px;
+  }
+  :root.keyboard-open .send-button svg { width: 20px; height: 20px; }
+}
 @media (max-width: 420px) {
   .header-right { gap: 4px; }
   .header-help-button { width: 30px; min-width: 30px; height: 32px; }
