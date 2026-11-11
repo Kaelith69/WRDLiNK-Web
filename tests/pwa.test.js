@@ -23,34 +23,25 @@ assert.match(styles, /keyboard-open \.theme-toggle\s*\{[^}]*height:\s*32px;/s, '
 assert.match(styles, /keyboard-open \.header-right\s*\{[^}]*min-width:\s*0;[^}]*max-width:\s*100%;/s, 'right header controls are constrained to available width');
 assert.match(styles, /keyboard-open \.score-pill,[\s\S]*?keyboard-open \.moves-pill\s*\{[^}]*width:\s*40px;[^}]*min-width:\s*40px;/, 'score and move pills use fixed compact widths');
 assert.match(html, /id="score-label">25<\/strong>/, 'initial HTML displays the starting 25 points before JavaScript initializes');
-assert(html.includes('rel="apple-touch-icon" href="./assets/wrdlink-icon-180.png"'));
+assert(!html.includes('wrdlink-icon-180.png'), 'the page does not reference a generated icon asset');
 assert.equal(manifest.name, 'WRDLINK | Word Ladder');
 assert.equal(manifest.short_name, 'WRDLINK');
 assert.equal(manifest.start_url, './?source=pwa');
 assert.equal(manifest.scope, './');
 assert.equal(manifest.display, 'standalone');
-for (const [size, filename] of [['192x192', 'wrdlink-icon-192.png'], ['512x512', 'wrdlink-icon-512.png']]) {
-  assert(manifest.icons.some((icon) =>
-    icon.src === './assets/' + filename &&
-    icon.type === 'image/png' &&
-    icon.sizes === size &&
-    icon.purpose === 'any'
-  ), 'manifest declares a ' + size + ' PNG app icon');
-}
-assert(manifest.icons.some((icon) => icon.src === './assets/wrdlink-icon.svg' && icon.sizes === 'any'));
+assert(manifest.icons.length === 1 && manifest.icons[0].src === './assets/wrdlink-icon.svg' && manifest.icons[0].sizes === 'any' && manifest.icons[0].type === 'image/svg+xml' && manifest.icons[0].purpose === 'any', 'manifest uses the self-contained SVG app icon');
 assert(read('assets/wrdlink-icon.svg').includes('viewBox="0 0 512 512"'));
-for (const asset of ['./index.html', './styles.css', './app.js', './dictionary.js', './manifest.webmanifest', './assets/wrdlink-icon.svg', './assets/wrdlink-icon-192.png', './assets/wrdlink-icon-512.png', './assets/wrdlink-icon-180.png']) {
+for (const asset of ['./index.html', './styles.css', './app.js', './dictionary.js', './manifest.webmanifest', './assets/wrdlink-icon.svg']) {
   assert(worker.includes(asset), 'service worker app shell includes ' + asset);
 }
 assert(worker.includes("const CACHE_PREFIX = 'wrdlink-shell-'"));
-assert(worker.includes('const CACHE_NAME = `' + '${CACHE_PREFIX}' + 'v28`'));
+assert(worker.includes('const CACHE_NAME = `' + '${CACHE_PREFIX}' + 'v29`'));
 assert(worker.includes("request.mode === 'navigate'"));
 assert(worker.includes('self.clients.claim()'));
 assert(deploy.includes('manifest.webmanifest sw.js'));
 assert(deploy.includes('assets/wrdlink-icon.svg'));
-assert(deploy.includes('rsvg-convert --width 192 --height 192'));
-assert(deploy.includes('rsvg-convert --width 512 --height 512'));
-assert(deploy.includes('rsvg-convert --width 180 --height 180'));
+assert(!deploy.includes('apt-get'), 'static deployment does not depend on external package mirrors');
+assert(!deploy.includes('rsvg-convert'), 'static deployment does not require runtime SVG conversion');
 assert(read('README.md').includes('## Install the app'));
 assert(read('README.md').includes('assets/readme-banner.svg'));
 assert(read('LICENSE').includes('MIT License'));
