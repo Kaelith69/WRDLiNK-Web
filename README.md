@@ -48,7 +48,7 @@ The game is designed as a small, dependency free client side application. The di
 5. Complete the level to receive its completion bonus and unlock the next puzzle.
 6. Keep an eye on the score and the hint price. Hint prices increase throughout the campaign, including after a level change.
 
-The word entry is case insensitive. The game normalizes entries to uppercase before validation. You can use the keyboard or the on screen send control. Invalid entries are rejected without changing the chain or consuming a move.
+The word entry is case insensitive. The game normalizes entries to uppercase before validation. You can use the keyboard or the on screen send control. Invalid entries are rejected without changing the chain or move count, but every submitted attempt still deducts one point.
 
 ### The interface
 
@@ -95,11 +95,11 @@ Validation happens locally before the chain is changed. A rejected word does not
 
 ## Scoring and hint economy
 
-Each new level starts with **25 points**. Accepted moves and confirmed hints reduce the current level score. The score never falls below zero.
+A new campaign starts with **25 points**. Each submitted attempt deducts one point, whether accepted or rejected. Completing a level awards another **25 points**, and the remaining balance carries into the next level. The score never falls below zero.
 
 ### Normal moves
 
-Every accepted move deducts **1 point**. Invalid entries cost nothing.
+Every submitted attempt deducts **1 point**. Rejected words do not enter the chain or increment the move count, but they still cost one point.
 
 ### Hints
 
@@ -108,9 +108,9 @@ Hints use the shortest route solver to reveal the next word on a valid shortest 
 - The hint price.
 - One additional point for the move that the hint submits.
 
-The hint price increases by one for every confirmed hint within the current level. **It resets when the next level begins.** Cancelling the confirmation does not deduct points.
+The hint price increases by one for every confirmed hint across the entire campaign. **It resets only when a new game begins.** Cancelling the confirmation does not deduct points.
 
-| Hint number in the current level | Hint price | Move cost | Total deduction |
+| Hint number in the campaign | Hint price | Move cost | Total deduction |
 |---:|---:|---:|---:|
 | 1 | 5 | 1 | 6 |
 | 2 | 6 | 1 | 7 |
@@ -119,11 +119,11 @@ The hint price increases by one for every confirmed hint within the current leve
 | 5 | 9 | 1 | 10 |
 | n | 5 + (n − 1) | 1 | 6 + (n − 1) |
 
-The hint counter and accumulated hint penalty persist across reloads within the current level. Starting the next level or choosing **New game** resets the hint sequence to 5.
+The hint counter and accumulated hint penalty persist across reloads and level transitions. Only **New game** resets the hint sequence to 5.
 
 ### Level completion
 
-Completing a level ends the current score calculation. The next level begins with **25 points**, regardless of the previous level's remaining balance. The score is never allowed to fall below zero.
+Completing a level awards **25 additional points**. The next level starts with the previous balance plus that completion award. The score is never allowed to fall below zero.
 
 For example, if a player begins with 25 points, uses two hints, and makes no other moves:
 
@@ -131,11 +131,11 @@ For example, if a player begins with 25 points, uses two hints, and makes no oth
 - Hint 2 deducts 6 hint points and 1 move point.
 - The remaining score is 12.
 - Completing the level records that result.
-- The next level starts at 25 points, and its first hint costs 5 hint points plus 1 move point.
+- The next level carries the remaining 12 points forward, plus the 25 point completion award, for a balance of 37. Its next hint costs 7 hint points plus 1 move point.
 
 ![Campaign scoring and hint progression](assets/readme-scoring.svg)
 
-The completion banner and result card show the remaining level balance. The next level resets to 25 points. A new game starts a fresh level at 25 points.
+The completion banner and result card show the post award campaign balance. The next level carries that balance forward. A new game starts a fresh campaign at 25 points.
 
 ## How the algorithms work
 
@@ -208,18 +208,20 @@ A hint takes the second word in the reconstructed path. That is the next legal m
 
 ### 5. Random puzzle generation
 
-Random puzzles are generated from the same indexed graph:
+Random puzzles are generated from the same indexed graph, with campaign difficulty progression:
 
 1. Choose a random dictionary word as the start.
 2. Perform a random walk through unused neighboring words.
-3. Choose a desired walk length between three and seven moves.
+3. Choose a desired walk length between three and eleven moves.
 4. Stop the walk if no unused neighbor is available.
 5. Use the last word as the target.
-6. Run BFS from start to target to calculate the optimal move count.
-7. Accept the puzzle only when the target differs from the start, a route exists, and the generated walk contains enough words.
-8. Retry up to 100 times before reporting a generation error.
+6. Run BFS from start to target to calculate the actual optimal move count.
+7. Accept a puzzle when its shortest distance falls inside the current campaign difficulty band.
+8. Retry up to 300 samples. If the requested band is sparse, keep the reachable puzzle closest to the requested minimum instead of failing generation.
 
-The random walk creates a connected pair of endpoints. BFS then measures the actual shortest distance between them. The random walk itself is not necessarily the shortest solution.
+The minimum optimal distance rises by one every three levels, from 3 at the start to a cap of 7. Each band spans three optimal move counts: levels 1 to 3 target 3 to 5, levels 4 to 6 target 4 to 6, levels 7 to 9 target 5 to 7, levels 10 to 12 target 6 to 8, and level 13 onward targets 7 to 9.
+
+The random walk creates a connected pair of endpoints. BFS measures their actual shortest distance, which may be shorter than the walk used to generate them.
 
 ### 6. Complexity
 

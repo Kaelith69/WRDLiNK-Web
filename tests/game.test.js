@@ -34,6 +34,7 @@ function makeElement() {
     querySelector() { return null; },
     querySelectorAll() { return []; },
     focus() { this.focusCalls += 1; },
+    blur() { this.blurCalls = (this.blurCalls || 0) + 1; },
     select() {},
     scrollIntoView() {},
     remove() {},
@@ -49,7 +50,7 @@ function loadGame({ includeDictionary = true, search = '', savedProgress = null 
     getElementById(id) {
       if (!elements.has(id)) {
         const element = makeElement();
-        if (id === 'game' || id === 'error-panel' || id === 'finish-panel' || id === 'hint-confirmation') element.hidden = true;
+        if (id === 'game' || id === 'error-panel' || id === 'finish-panel' || id === 'hint-confirmation' || id === 'new-game-confirmation' || id === 'how-to-play-dialog') element.hidden = true;
         elements.set(id, element);
       }
       return elements.get(id);
@@ -96,6 +97,26 @@ function loadGame({ includeDictionary = true, search = '', savedProgress = null 
 
 const { game, dictionary, elements } = loadGame();
 assert.equal(game.dictionarySize, 3889);
+assert.equal(game.puzzleDifficultyBand(1).minOptimalMoves, 3);
+assert.equal(game.puzzleDifficultyBand(1).maxOptimalMoves, 5);
+assert.equal(game.puzzleDifficultyBand(4).minOptimalMoves, 4);
+assert.equal(game.puzzleDifficultyBand(4).maxOptimalMoves, 6);
+assert.equal(game.puzzleDifficultyBand(13).minOptimalMoves, 7);
+assert.equal(game.puzzleDifficultyBand(13).maxOptimalMoves, 9);
+
+// Rejected submissions consume one point but never enter the word chain.
+const invalidAttemptSession = loadGame({ savedProgress: {
+  version: 6, score: 25, level: 1, puzzle: { id: 'invalid-attempt-test', title: 'Invalid attempt test', start: 'COLD', target: 'WARM', wordLength: 4, optimalMoves: game.shortestDistance('COLD', 'WARM') },
+  chain: ['COLD'], completed: false, hintsUsed: 0, hintPenalty: 0, activeHint: null
+} });
+invalidAttemptSession.elements.get('word-entry').value = 'ZZZZ';
+invalidAttemptSession.elements.get('word-entry').dispatch('input');
+invalidAttemptSession.elements.get('move-form').dispatch('submit');
+assert.equal(invalidAttemptSession.game.getState().score, 24, 'a rejected dictionary word deducts one point');
+assert.deepEqual(invalidAttemptSession.game.getState().chain, ['COLD'], 'a rejected word does not enter the chain');
+assert.equal(invalidAttemptSession.elements.get('score-label').textContent, '24', 'the score header updates after a rejected attempt');
+assert.equal(invalidAttemptSession.elements.get('first-play-instructions').hidden, true, 'first play instructions disappear on the first submission');
+assert.equal(invalidAttemptSession.storage.get('wrdlink-first-move-completed'), 'true', 'first play dismissal persists');
 
 // Campaign hints deduct from the persisted current score and submit the
 // shortest route move immediately, including across a browser reload.
@@ -335,8 +356,12 @@ async function testInteractions() {
   assert.match(challenge.shareCalls[1].url, /challenge=COLD-WARM/, 'native result share includes a link to replay the same puzzle');
   assert.match(challenge.shareCalls[1].text, /Play the same puzzle: https:\/\/example\.test\/WRDLiNK-Web\/\?challenge=COLD-WARM/, 'native result share includes the replay link in its text');
 
+  const previousPuzzleId = challenge.game.getState().puzzle.id;
   challenge.elements.get('new-game-button').dispatch('click');
-  assert.match(challenge.game.getState().puzzle.id, /^random-/, 'New game starts a fresh puzzle');
+  assert.equal(challenge.elements.get('new-game-confirmation').hidden, false, 'New game asks before discarding progress');
+  assert.equal(challenge.game.getState().puzzle.id, previousPuzzleId, 'opening confirmation preserves the current puzzle');
+  challenge.elements.get('confirm-new-game-button').dispatch('click');
+  assert.match(challenge.game.getState().puzzle.id, /^random-/, 'confirmed New game starts a fresh puzzle');
   assert.equal(challenge.game.getState().score, 25, 'New game resets the score to 25');
   assert.equal(challenge.game.getState().hintsUsed, 0, 'new game resets hint count');
   assert.equal(challenge.game.getState().hintPenalty, 0, 'new game resets hint deductions');

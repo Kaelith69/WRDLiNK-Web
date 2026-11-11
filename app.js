@@ -7,8 +7,9 @@
   const DICTIONARY = window.WRDLINK_DICTIONARY;
   const WORD_LENGTH = 4;
   const BASE_LEVEL_POINTS = 25;
-  const MAX_PUZZLE_ATTEMPTS = 100;
+  const MAX_PUZZLE_ATTEMPTS = 300;
   const PROGRESS_KEY = 'wrdlink-browser-session-v1:progress';
+  const FIRST_PLAY_INSTRUCTIONS_KEY = 'wrdlink-first-move-completed';
 
   const $ = (id) => document.getElementById(id);
   const elements = {
@@ -17,6 +18,11 @@
     chainList: $('chain-list'),
     scoreLabel: $('score-label'), movesLabel: $('moves-label'), levelLabel: $('level-label'),
     form: $('move-form'), input: $('word-entry'), submit: $('submit-button'),
+    firstPlayInstructions: $('first-play-instructions'), gamePage: $('game-page'),
+    helpButton: $('help-button'), helpDialog: $('how-to-play-dialog'),
+    helpCloseButton: $('help-close-button'), helpDoneButton: $('help-done-button'), finishNewGameButton: $('finish-new-game-button'),
+    newGameConfirmation: $('new-game-confirmation'), keepPlayingButton: $('keep-playing-button'),
+    confirmNewGameButton: $('confirm-new-game-button'),
     message: $('message'), entryPanel: $('entry-panel'), finishPanel: $('finish-panel'),
     finishTitle: $('finish-title'), finishDescription: $('finish-description'), shareStatus: $('share-status'),
     nextButton: $('next-button'), newGameButton: $('new-game-button'), retryButton: $('retry-button'), themeToggle: $('theme-toggle'), shareChallengeButton: $('share-challenge-button'), shareResultButton: $('share-result-button'), downloadResultButton: $('download-result-button'),
@@ -25,6 +31,18 @@
     hintConfirmBalance: $('hint-confirm-balance'), hintConfirmButton: $('hint-confirm-button'),
     hintCancelButton: $('hint-cancel-button')
   };
+
+  function hasSeenFirstPlayInstructions() {
+    try { return localStorage.getItem(FIRST_PLAY_INSTRUCTIONS_KEY) === 'true'; }
+    catch (error) { console.warn('First play preference could not be read.', error); return false; }
+  }
+  function dismissFirstPlayInstructions() {
+    if (!elements.firstPlayInstructions || elements.firstPlayInstructions.hidden) return;
+    elements.firstPlayInstructions.hidden = true;
+    try { localStorage.setItem(FIRST_PLAY_INSTRUCTIONS_KEY, 'true'); }
+    catch (error) { console.warn('First play preference could not be saved.', error); }
+  }
+  if (elements.firstPlayInstructions) elements.firstPlayInstructions.hidden = hasSeenFirstPlayInstructions();
 
   // Game session mirrors server SessionState: accumulated score, level,
   // current puzzle and whether the current puzzle has already been completed.
@@ -58,7 +76,7 @@
     const darkActive = nextTheme === 'dark';
     elements.themeToggle.setAttribute('aria-label', darkActive ? 'Switch to light mode' : 'Switch to dark mode');
     elements.themeToggle.setAttribute('aria-pressed', String(darkActive));
-    const themeColor = darkActive ? '#172322' : '#f3f0e8';
+    const themeColor = darkActive ? '#191722' : '#F4F0E8';
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', themeColor);
     try { localStorage.setItem('wrdlink-theme', nextTheme); } catch (error) {
       console.warn('Theme preference could not be saved.', error);
@@ -186,12 +204,20 @@
     return path && path.length > 1 ? path[1] : null;
   }
 
-  function createRandomPuzzle() {
+  function puzzleDifficultyBand(level) {
+    const safeLevel = Math.max(1, Math.floor(Number(level) || 1));
+    const minOptimalMoves = Math.min(3 + Math.floor((safeLevel - 1) / 3), 7);
+    return { minOptimalMoves, maxOptimalMoves: minOptimalMoves + 2 };
+  }
+
+  function createRandomPuzzle(level = 1) {
+    const { minOptimalMoves, maxOptimalMoves } = puzzleDifficultyBand(level);
+    let best = null;
     for (let attempt = 0; attempt < MAX_PUZZLE_ATTEMPTS; attempt += 1) {
       const start = randomItem(WORDS);
       const route = [start];
       const visited = new Set(route);
-      const desiredMoves = 3 + Math.floor(Math.random() * 5);
+      const desiredMoves = 3 + Math.floor(Math.random() * 9);
 
       while (route.length - 1 < desiredMoves) {
         const current = route[route.length - 1];
@@ -204,7 +230,11 @@
 
       const target = route[route.length - 1];
       const optimalMoves = target ? shortestDistance(start, target) : null;
-      if (target && target !== start && optimalMoves !== null && route.length > 2) {
+      if (!target || target === start || optimalMoves === null) continue;
+      if (!best || Math.abs(optimalMoves - minOptimalMoves) < Math.abs(best.optimalMoves - minOptimalMoves)) {
+        best = { start, target, optimalMoves };
+      }
+      if (optimalMoves >= minOptimalMoves && optimalMoves <= maxOptimalMoves) {
         return {
           id: `random-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`,
           title: 'Random puzzle', start, target,
@@ -212,7 +242,11 @@
         };
       }
     }
-    throw new Error('WRDLINK could not generate a solvable random puzzle.');
+    const fallback = best || { start: 'HEAD', target: 'TAIL', optimalMoves: 4 };
+    return {
+      id: `random-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`,
+      title: 'Random puzzle', ...fallback, wordLength: WORD_LENGTH
+    };
   }
 
   // Kept structurally equivalent to the server's validateSequence routine.
@@ -399,6 +433,7 @@
     renderChain();
     renderHeader();
     setMessage('');
+    elements.gamePage?.classList.remove('is-complete');
     elements.entryPanel.hidden = false;
     elements.finishPanel.hidden = true;
     elements.input.value = '';
@@ -550,7 +585,8 @@
     // Defer generation one frame so the loading state is visible on slower devices.
     window.requestAnimationFrame(() => {
       try {
-        const puzzle = createRandomPuzzle();
+        const targetLevel = resetScore ? 1 : nextLevel ? state.level + 1 : state.level;
+        const puzzle = createRandomPuzzle(targetLevel);
         if (resetScore) {
           challengeSession = false;
           const cleanUrl = new URL(window.location.href);
@@ -591,10 +627,15 @@
 
   function renderCompletion(result) {
     const points = state.score;
+    elements.gamePage?.classList.add('is-complete');
+    elements.input.blur();
+    document.documentElement.classList.remove('keyboard-open');
     elements.entryPanel.hidden = true;
     elements.finishPanel.hidden = false;
     elements.finishTitle.textContent = 'Connected!';
-    elements.finishDescription.textContent = `${state.puzzle.target} reached in ${result.movesUsed} moves. ${result.message}${state.hintsUsed ? ` You used ${state.hintsUsed} hint${state.hintsUsed === 1 ? '' : 's'}, costing ${state.hintPenalty} points.` : ''}`;
+    elements.finishDescription.textContent = `${state.puzzle.target} reached in ${result.movesUsed} moves. ${result.message}${state.hintsUsed ? ` You used ${state.hintsUsed} campaign hint${state.hintsUsed === 1 ? '' : 's'}, costing ${state.hintPenalty} points.` : ''}`;
+    const bonus = $('finish-bonus');
+    if (bonus) bonus.textContent = `+ ${BASE_LEVEL_POINTS} points awarded`;
     elements.nextButton.textContent = `Next level · ${state.level + 1} →`;
 
     const banner = document.createElement('div');
@@ -625,17 +666,23 @@
   function submitMove(event) {
     event.preventDefault();
     if (!state.puzzle || busy || state.completed) return;
+    dismissFirstPlayInstructions();
+    // Every submitted attempt costs one point, including rejected words.
+    state.score = Math.max(0, state.score - 1);
+    renderHeader();
     const candidate = elements.input.value.trim().toUpperCase();
     if (!new RegExp(`^[A-Z]{${state.puzzle.wordLength}}$`).test(candidate)) {
-      setMessage(`Use ${state.puzzle.wordLength} letters.`, 'error');
+      setMessage(`Use ${state.puzzle.wordLength} letters. 1 point deducted.`, 'error');
+      saveProgress();
       return;
     }
 
     setBusy(true);
     const result = validateSequence(state.puzzle, [...state.chain, candidate]);
     if (!result.valid) {
-      setMessage(result.message, 'error');
-      // Rejected moves never alter the chain or consume a move.
+      setMessage(result.message + ' 1 point deducted.', 'error');
+      // Rejected words cost a point but never alter the chain or move count.
+      saveProgress();
       setBusy(false);
       elements.input.focus({ preventScroll: true });
       elements.input.select();
@@ -643,7 +690,6 @@
     }
 
     state.chain.push(candidate);
-    state.score = Math.max(0, state.score - 1);
     state.activeHint = null;
     renderHeader();
     elements.input.value = '';
@@ -1051,6 +1097,31 @@
     if (event.pointerType === 'touch' || event.pointerType === 'pen') event.preventDefault();
   });
   elements.hintButton.addEventListener('click', useHint);
+  let helpReturnFocus = null;
+  function openHelp() {
+    helpReturnFocus = document.activeElement;
+    elements.helpDialog.hidden = false;
+    elements.helpCloseButton.focus({ preventScroll: true });
+  }
+  function closeHelp() {
+    elements.helpDialog.hidden = true;
+    if (helpReturnFocus && typeof helpReturnFocus.focus === 'function') helpReturnFocus.focus({ preventScroll: true });
+  }
+  elements.helpButton.addEventListener('click', openHelp);
+  elements.helpCloseButton.addEventListener('click', closeHelp);
+  elements.helpDoneButton.addEventListener('click', closeHelp);
+  elements.helpDialog.addEventListener('click', (event) => {
+    if (event.target === elements.helpDialog) closeHelp();
+  });
+  elements.helpDialog.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') { event.preventDefault(); closeHelp(); return; }
+    if (event.key !== 'Tab') return;
+    const focusable = [...elements.helpDialog.querySelectorAll('button:not(:disabled), a[href], [tabindex]:not([tabindex="-1"])')];
+    if (!focusable.length) return;
+    const first = focusable[0], last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+  });
   elements.hintConfirmButton.addEventListener('click', confirmHint);
   elements.hintCancelButton.addEventListener('click', () => {
     elements.hintConfirmation.hidden = true;
@@ -1068,7 +1139,37 @@
       elements.hintButton.focus({ preventScroll: true });
     }
   });
-  elements.newGameButton.addEventListener('click', () => startPuzzle({ resetScore: true }));
+  let newGameReturnFocus = null;
+  function openNewGameConfirmation() {
+    if (busy || puzzleTransition || externalProgressChanged) return;
+    newGameReturnFocus = document.activeElement;
+    elements.newGameConfirmation.hidden = false;
+    elements.keepPlayingButton.focus({ preventScroll: true });
+  }
+  function closeNewGameConfirmation() {
+    elements.newGameConfirmation.hidden = true;
+    if (newGameReturnFocus && typeof newGameReturnFocus.focus === 'function') newGameReturnFocus.focus({ preventScroll: true });
+  }
+  function confirmNewGame() {
+    closeNewGameConfirmation();
+    startPuzzle({ resetScore: true });
+  }
+  elements.newGameButton.addEventListener('click', openNewGameConfirmation);
+  elements.finishNewGameButton.addEventListener('click', openNewGameConfirmation);
+  elements.keepPlayingButton.addEventListener('click', closeNewGameConfirmation);
+  elements.confirmNewGameButton.addEventListener('click', confirmNewGame);
+  elements.newGameConfirmation.addEventListener('click', (event) => {
+    if (event.target === elements.newGameConfirmation) closeNewGameConfirmation();
+  });
+  elements.newGameConfirmation.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') { event.preventDefault(); closeNewGameConfirmation(); return; }
+    if (event.key !== 'Tab') return;
+    const focusable = [...elements.newGameConfirmation.querySelectorAll('button:not(:disabled)')];
+    if (focusable.length < 2) return;
+    const first = focusable[0], last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+  });
   elements.nextButton.addEventListener('click', () => startPuzzle({ nextLevel: true }));
   elements.retryButton.addEventListener('click', () => startPuzzle());
   elements.shareChallengeButton.addEventListener('click', shareChallenge);
@@ -1089,6 +1190,7 @@
     shortestPath,
     calculateHintCost,
     calculateHintPenalty,
+    puzzleDifficultyBand,
     useHint,
     confirmHint,
     calculatePoints,

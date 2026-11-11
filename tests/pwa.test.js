@@ -43,7 +43,7 @@ for (const asset of ['./index.html', './styles.css', './app.js', './dictionary.j
   assert(worker.includes(asset), 'service worker app shell includes ' + asset);
 }
 assert(worker.includes("const CACHE_PREFIX = 'wrdlink-shell-'"));
-assert(worker.includes('const CACHE_NAME = `' + '${CACHE_PREFIX}' + 'v25`'));
+assert(worker.includes('const CACHE_NAME = `' + '${CACHE_PREFIX}' + 'v27`'));
 assert(worker.includes("request.mode === 'navigate'"));
 assert(worker.includes('self.clients.claim()'));
 assert(deploy.includes('manifest.webmanifest sw.js'));
@@ -60,9 +60,20 @@ assert(styles.includes('overflow-y: auto'));
 assert(styles.includes('flex: 1 1 auto'));
 assert(game.includes('if (wasAtBottom) list.scrollTop = list.scrollHeight'));
 assert(game.includes('const shareRequest = navigator.share(shareData)'));
+assert(game.includes('Every submitted attempt costs one point'), 'submitted invalid attempts are charged');
+assert(game.includes('puzzleDifficultyBand'), 'puzzle difficulty progresses with campaign level');
+assert(game.includes('dismissFirstPlayInstructions'), 'first play onboarding is dismissed on first submission');
+assert(game.includes('elements.helpDialog.addEventListener'), 'game guide supports keyboard interaction');
 assert(game.includes('window.setTimeout(() => URL.revokeObjectURL(url), 60000)'));
 assert(game.includes('prepareResultCard(result)'));
 assert(html.includes('id="share-status"'));
+assert(html.includes('id="help-button"'), 'persistent in game help control is present');
+assert(html.includes('id="how-to-play-dialog"'), 'keyboard accessible game guide dialog is present');
+assert(html.includes('id="first-play-instructions"'), 'first play instructions have a dedicated visibility target');
+assert(html.includes('id="finish-new-game-button"'), 'completion state offers a fresh campaign action');
+assert(html.includes('id="new-game-confirmation"'), 'destructive campaign reset has a confirmation dialog');
+assert(html.includes('id="confirm-new-game-button"'), 'new game confirmation has an explicit confirm action');
+assert(html.includes('id="finish-bonus"'), 'completion state shows the level award separately');
 assert(html.includes('id="download-result-button"'));
 assert(html.includes('enterkeyhint="send"'));
 assert(html.includes('aria-label="Send word"'));
@@ -72,7 +83,8 @@ assert(!html.includes('aria-label="Enter your next four letter word"'));
 assert(!html.includes('id="entry-help"'));
 assert(!html.includes('class="chain-hint"'));
 assert(!html.includes('class="game-footer"'));
-assert(!html.includes('class="loading-letters"'));
+assert(html.includes('class="loading-letters"'), 'loading state includes the animated WRDLINK letter tiles');
+assert(styles.includes('@keyframes loading-tile'), 'loading tile animation is present');
 assert(html.includes('autocorrect="off"'));
 assert(html.includes('writingsuggestions="false"'));
 assert(html.includes('<form id="move-form" novalidate>'));
@@ -160,9 +172,11 @@ for (const asset of [
   assert(fs.existsSync(path.join(__dirname, '..', asset)), 'README image exists: ' + asset);
 }
 assert.doesNotMatch(readme, /```mermaid/, 'README does not depend on Mermaid rendering');
-assert.ok(readme.includes('Each new level starts with **25 points**'), 'README documents the 25 point per level reset');
-assert.match(readme, /hint price increases by one for every confirmed hint within the current level/i, 'README documents level scoped hint escalation');
-assert.match(readme, /resets when the next level begins/i, 'README documents the hint reset between levels');
+assert.ok(readme.includes('A new campaign starts with **25 points**'), 'README documents the 25 point campaign start');
+assert.match(readme, /Every submitted attempt deducts \*\*1 point\*\*/i, 'README documents rejected attempt costs');
+assert.match(readme, /hint price increases by one for every confirmed hint across the entire campaign/i, 'README documents campaign wide hint escalation');
+assert.match(readme, /Only \*\*New game\*\* resets the hint sequence/i, 'README documents the new game hint reset');
+assert.match(readme, /remaining balance carries into the next level/i, 'README documents campaign score carryover');
 assert.match(readme, /version 6/, 'README documents the current save schema');
 assert.match(readme, /3,889 four letter words/, 'README documents the bundled dictionary size');
 
