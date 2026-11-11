@@ -127,8 +127,23 @@
     </div>
 
     <section class="game-workspace" aria-label="WRDLINK word puzzle">
-      <div id="loading" class="loading-progress" role="status">
-        <div class="loading-track"><span></span></div><p>Building your word ladder</p>
+      <div id="loading" class="loading-progress" role="status" aria-label="Preparing WRDLINK">
+        <div class="loading-heading">
+          <span class="loading-kicker">WRDLINK ARCADE</span>
+          <h1>Building your word ladder</h1>
+          <p>Connecting the words. One moment.</p>
+        </div>
+        <div class="loading-letters" aria-hidden="true">
+          <span class="loading-tile" style="--tile-index: 0">W</span>
+          <span class="loading-tile" style="--tile-index: 1">R</span>
+          <span class="loading-tile" style="--tile-index: 2">D</span>
+          <span class="loading-tile" style="--tile-index: 3">L</span>
+          <span class="loading-tile" style="--tile-index: 4">I</span>
+          <span class="loading-tile" style="--tile-index: 5">N</span>
+          <span class="loading-tile" style="--tile-index: 6">K</span>
+        </div>
+        <div class="loading-track" role="progressbar" aria-label="Loading puzzle" aria-busy="true"><span class="loading-fill"></span></div>
+        <p class="loading-label">Preparing your next word challenge</p>
       </div>
 
       <div id="game" hidden>
