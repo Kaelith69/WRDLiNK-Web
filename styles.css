@@ -697,6 +697,11 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 @media (max-width: 620px) {
   .header-help-button { width: 32px; min-width: 32px; height: 34px; border-radius: 9px; }
   :root.keyboard-open .header-help-button { width: 30px; min-width: 30px; height: 32px; }
+  @media (max-width: 420px) {
+    .header-right { gap: 4px; }
+    .header-help-button { width: 30px; min-width: 30px; height: 32px; }
+    .theme-toggle { width: 32px; min-width: 32px; height: 32px; }
+  }
   :root.keyboard-open .game-header {
     min-height: 54px;
     height: 54px;
