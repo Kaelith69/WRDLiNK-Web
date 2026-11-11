@@ -352,8 +352,12 @@ async function testInteractions() {
   assert.match(challenge.shareCalls[1].url, /challenge=COLD-WARM/, 'native result share includes a link to replay the same puzzle');
   assert.match(challenge.shareCalls[1].text, /Play the same puzzle: https:\/\/example\.test\/WRDLiNK-Web\/\?challenge=COLD-WARM/, 'native result share includes the replay link in its text');
 
+  const previousPuzzleId = challenge.game.getState().puzzle.id;
   challenge.elements.get('new-game-button').dispatch('click');
-  assert.match(challenge.game.getState().puzzle.id, /^random-/, 'New game starts a fresh puzzle');
+  assert.equal(challenge.elements.get('new-game-confirmation').hidden, false, 'New game asks before discarding progress');
+  assert.equal(challenge.game.getState().puzzle.id, previousPuzzleId, 'opening confirmation preserves the current puzzle');
+  challenge.elements.get('confirm-new-game-button').dispatch('click');
+  assert.match(challenge.game.getState().puzzle.id, /^random-/, 'confirmed New game starts a fresh puzzle');
   assert.equal(challenge.game.getState().score, 25, 'New game resets the score to 25');
   assert.equal(challenge.game.getState().hintsUsed, 0, 'new game resets hint count');
   assert.equal(challenge.game.getState().hintPenalty, 0, 'new game resets hint deductions');
