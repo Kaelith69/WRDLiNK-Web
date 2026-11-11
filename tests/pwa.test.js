@@ -171,9 +171,11 @@ for (const asset of [
   assert(fs.existsSync(path.join(__dirname, '..', asset)), 'README image exists: ' + asset);
 }
 assert.doesNotMatch(readme, /```mermaid/, 'README does not depend on Mermaid rendering');
-assert.ok(readme.includes('Each new level starts with **25 points**'), 'README documents the 25 point per level reset');
-assert.match(readme, /hint price increases by one for every confirmed hint within the current level/i, 'README documents level scoped hint escalation');
-assert.match(readme, /resets when the next level begins/i, 'README documents the hint reset between levels');
+assert.ok(readme.includes('A new campaign starts with **25 points**'), 'README documents the 25 point campaign start');
+assert.match(readme, /Every submitted attempt deducts \*\*1 point\*\*/i, 'README documents rejected attempt costs');
+assert.match(readme, /hint price increases by one for every confirmed hint across the entire campaign/i, 'README documents campaign wide hint escalation');
+assert.match(readme, /Only \*\*New game\*\* resets the hint sequence/i, 'README documents the new game hint reset');
+assert.match(readme, /remaining balance carries into the next level/i, 'README documents campaign score carryover');
 assert.match(readme, /version 6/, 'README documents the current save schema');
 assert.match(readme, /3,889 four letter words/, 'README documents the bundled dictionary size');
 
